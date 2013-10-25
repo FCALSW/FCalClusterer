@@ -1,0 +1,20 @@
+<gear>
+    <global detectorName="MyBeamCal" />
+    <detectors>
+        <detector name="BeamCal" geartype="CalorimeterParameters">
+            <layout type="Endcap" symmetry="2" phi0="0.000000000e+00" />
+            <dimensions inner_r="2.001000000e+01" outer_r="1.500000000e+02" inner_z="3.485699600e+03" />
+            <layer repeat="30" thickness="4.000800000e+00" absorberThickness="3.500000000e+00" cellSize0="7.646470588e+00" cellSize1="1.000000000e+00" />
+            <parameter name="beam_crossing_angle" type="double" value="1.400000000e+01" />
+            <parameter name="cylinder_spanning_phi" type="double" value="5.585053606e+00" />
+            <parameter name="cylinder_starting_phi" type="double" value="3.490658504e+00" />
+            <parameter name="dead_area_outer_r" type="double" value="6.588882353e+01" />
+            <parameter name="pairsMonitorZ" type="double" value="3.485849800e+03" />
+            <parameter name="phi_segmentation" type="DoubleVec" value="2.327105669e-01 2.327105669e-01 1.745329252e-01 1.396263402e-01 1.396263402e-01 1.163552835e-01 9.973310011e-02 8.726646260e-02 8.726646260e-02 7.757018898e-02 6.981317008e-02 6.981317008e-02 6.346651825e-02 5.817764173e-02 5.817764173e-02 5.370243852e-02 4.986655006e-02" />
+	    <parameter name="nPhi_segmentation" type="IntVec" value="3 3 4 5 5 6 7 8 8 9 10 10 11 12 12 13 14" />
+	    <!--parameter name="nPhi_segmentation" type="IntVec" value="4 5 6 6 7 8 9 9 10 11 12 12 13 14 15" /-->
+            <parameter name="rad_segmentation" type="DoubleVec" value="20.01 27.6565 35.3029 42.9494 50.5959 58.2424 65.8888 73.5353 81.1818 88.8282 96.4747 104.121 111.768 119.414 127.061 134.707 142.354 150.0" />
+        </detector>
+
+    </detectors>
+</gear>

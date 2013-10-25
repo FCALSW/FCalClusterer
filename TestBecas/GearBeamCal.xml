@@ -1,0 +1,20 @@
+<gear>
+    <global detectorName="MyBeamCal" />
+    <detectors>
+
+        <detector name="BeamCal" geartype="CalorimeterParameters">
+            <layout type="Endcap" symmetry="2" phi0="0.000000000e+00" />
+            <dimensions inner_r="3.201000000e+01" outer_r="1.500000000e+02" inner_z="3.280699600e+03" />
+            <layer repeat="40" thickness="4.000800000e+00" absorberThickness="3.500000000e+00" cellSize0="7.866000000e+00" cellSize1="1.000000000e+00" />
+            <parameter name="beam_crossing_angle" type="double" value="2.000000000e+01" />
+            <parameter name="cylinder_spanning_phi" type="double" value="6.108652382e+00" />
+            <parameter name="cylinder_starting_phi" type="double" value="3.228859116e+00" />
+            <parameter name="dead_area_outer_r" type="double" value="7.134000000e+01" />
+            <parameter name="pairsMonitorZ" type="double" value="3.180849800e+03" />
+            <parameter name="phi_segmentation" type="DoubleVec" value="0.190895 0.152716 0.127264 0.127264 0.109083 0.0954477 0.0848424 0.0848424 0.0763582 0.0694165 0.0636318 0.0636318 0.058737 0.0545415 0.0509054" />
+	    <parameter name="nPhi_segmentation" type="IntVec" value="4 5 6 6 7 8 9 9 10 11 12 12 13 14 15" />
+            <parameter name="rad_segmentation" type="DoubleVec" value="32.01 39.876 47.742 55.608 63.474 71.34 79.206 87.072 94.938 102.804 110.67 118.536 126.402 134.268 142.134" />
+        </detector>
+
+    </detectors>
+</gear>
