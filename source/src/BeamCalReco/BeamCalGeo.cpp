@@ -1,6 +1,7 @@
 #include "BeamCalGeo.hh"
 
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 
 
