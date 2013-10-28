@@ -100,14 +100,7 @@ int BeamCalGeoCached::getPadsInRing( int ring ) const {
 
 void BeamCalGeoCached::setPadsInRing()  {
   for (int ring = 0; ring < m_rings; ++ring) {
-    if ( ring < getFirstFullRing() ) {
-      m_padsPerRing[ring] = getNSegments()[ring] * getSymmetryFold();
-    } else {
-      int segmentsInRing = getSymmetryFold()*getNSegments()[ring];
-      double deltaPhi = ( 2.0*M_PI - getDeadAngle())/double(segmentsInRing);
-      const int additionalSegments = (int)(getDeadAngle()/deltaPhi);
-      m_padsPerRing[ring] = segmentsInRing + additionalSegments;
-    }
+    m_padsPerRing[ring] = BeamCalGeo::getPadsInRing(ring);
   }//for all rings
 }//setPadsRings
   

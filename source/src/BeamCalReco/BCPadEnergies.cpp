@@ -95,7 +95,11 @@ double BCPadEnergies::getTotalEnergy() const{
 
 
 void BCPadEnergies::setEnergies(const std::vector<double> &energies){
-  if( (int)energies.size() != m_BCG.getPadsPerBeamCal() ) throw std::out_of_range("Energies vector has wrong size!");
+  if( (int)energies.size() != m_BCG.getPadsPerBeamCal() ) {
+    std::stringstream errorMessage;
+    errorMessage << "Energies vector has wrong size! " << energies.size() << " vs. "  <<  m_BCG.getPadsPerBeamCal();
+    throw std::out_of_range( errorMessage.str()  );
+  }
   for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
     m_PadEnergies[i] = energies[i] ;
   }
@@ -112,7 +116,11 @@ void BCPadEnergies::setEnergies(const BCPadEnergies &bcp){
 
 
 void BCPadEnergies::addEnergies(const std::vector<double> &energies){
-  if( (int) energies.size() != m_BCG.getPadsPerBeamCal() ) throw std::out_of_range("Energies vector has wrong size!");
+  if( (int)energies.size() != m_BCG.getPadsPerBeamCal() ) {
+    std::stringstream errorMessage;
+    errorMessage << "Energies vector has wrong size! " << energies.size() << " vs. "  <<  m_BCG.getPadsPerBeamCal();
+    throw std::out_of_range( errorMessage.str()  );
+  }
   for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
     m_PadEnergies[i] += energies[i] ;
   }
@@ -128,7 +136,11 @@ void BCPadEnergies::addEnergies(const BCPadEnergies &bcp){
 
 
 void BCPadEnergies::subtractEnergies(const std::vector<double> &energies){
-  if( (int) energies.size() != m_BCG.getPadsPerBeamCal() ) throw std::out_of_range("Energies vector has wrong size!");
+  if( (int)energies.size() != m_BCG.getPadsPerBeamCal() ) {
+    std::stringstream errorMessage;
+    errorMessage << "Energies vector has wrong size! " << energies.size() << " vs. "  <<  m_BCG.getPadsPerBeamCal();
+    throw std::out_of_range( errorMessage.str()  );
+  }
   for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
     m_PadEnergies[i] -= energies[i] ;
   }

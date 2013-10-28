@@ -231,8 +231,13 @@ int BeamCalGeo::getPadsInRing( int ring ) const {
       return getNSegments()[ring] * getSymmetryFold();
     } else {
       int segmentsInRing = getSymmetryFold()*getNSegments()[ring];
-      double deltaPhi = (2.0*M_PI - getDeadAngle())/(segmentsInRing);
-      const int additionalSegments = (int)(getDeadAngle()/deltaPhi)+1;
+      double deltaPhi = ( 2.0*M_PI - getDeadAngle())/double(segmentsInRing);
+      int additionalSegments = (int)((getDeadAngle()/deltaPhi));
+      //if the new segments would not cover the full dead angle range, add one
+      //add 1e-5 for floating point precision
+      if ( additionalSegments*deltaPhi+1e-5 < getDeadAngle() ) {
+	additionalSegments++;
+      }
       return segmentsInRing + additionalSegments;
     }
 }
