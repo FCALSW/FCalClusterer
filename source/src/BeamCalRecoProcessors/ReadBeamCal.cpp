@@ -1,4 +1,4 @@
-#include "ReadBeamCal.h"
+#include "ReadBeamCal.hh"
 
 #include <BeamCalReco/BeamCal.hh>
 #include <BeamCalReco/BeamCalGeoGear.hh>
