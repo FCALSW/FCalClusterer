@@ -1,4 +1,4 @@
-ADD_LIBRARY ( BeamCalRecoProcessors SHARED ReadBeamCal.cpp )
+ADD_LIBRARY ( BeamCalRecoProcessors SHARED ReadBeamCal.cpp BeamCalClusterReco)
 
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/include/BeamCalRecoProcessors )
 
