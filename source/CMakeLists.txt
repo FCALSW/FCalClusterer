@@ -1,1 +1,3 @@
+INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/include )
 ADD_SUBDIRECTORY ( src/ )
+
