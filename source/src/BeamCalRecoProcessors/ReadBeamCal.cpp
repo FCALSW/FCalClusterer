@@ -57,7 +57,7 @@ ReadBeamCal::ReadBeamCal() : Processor("ReadBeamCal"),
 			     m_bcg(NULL) {
 
   // modify processor description
-  _description = "ReadBeamCal will create a 3D histogram with the energy deposits in BeamCal from the Background events. It reads in the simulation for the pairs and creates a single histogram in a tree" ;
+  _description = "ReadBeamCal reads the simulation for the pairs and creates two std::vector<double> in a tree, which can then be used later on for Overlay, calculation of fluctiuations, etc." ;
 
 
   // register steering parameters: name, description, class-variable, default value
