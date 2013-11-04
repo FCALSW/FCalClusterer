@@ -4,6 +4,7 @@
 #include "BeamCalReco/BeamCalGeoGear.hh"
 #include "BeamCalReco/BeamCalCluster.hh"
 #include "BeamCalReco/BCPCuts.hh"
+#include "BeamCalReco/BCRootUtilities.hh"
 
 //GEAR
 #include <gearxml/GearXML.h>
@@ -15,16 +16,12 @@
 #include <TH2F.h>
 #include <TStyle.h>
 
-
 #include <vector>
 #include <iostream>
 #include <iomanip>
 
-void ReadBecasFile(std::string filename, BeamCalGeo* geo, std::vector<BCPadEnergies>& newPads );
-void ReadBecasFromTree(TFile* becasFile, BeamCalGeo* geo, std::vector<BCPadEnergies>& newPads );
-
 int main (int argn, char **argc) {
-
+ 
   if ( argn < 4 ) {
     std::cout << "Not enough parameters"  << std::endl;
     std::cout << "ReconstructBeCaS GearFile SignalFile backgroundSigmaFile"  << std::endl;
@@ -49,9 +46,9 @@ int main (int argn, char **argc) {
   std::cout << "Read Files"  << std::endl;
   std::vector<BCPadEnergies> signalBeamCals(2, geo), backgroundBeamCals(2, geo);
 
-  ReadBecasFile(signalFile, geo, signalBeamCals);
+  BCUtil::ReadBecasFile(signalFile, signalBeamCals);
 
-  ReadBecasFile(backgroundSigmaFile, geo, backgroundBeamCals);
+  BCUtil::ReadBecasFile(backgroundSigmaFile, backgroundBeamCals);
   //subtract sigma from signal
   signalBeamCals[0].subtractEnergies(backgroundBeamCals[0]);
   signalBeamCals[1].subtractEnergies(backgroundBeamCals[1]);
@@ -100,48 +97,3 @@ int main (int argn, char **argc) {
 }
 
 
-
-void ReadBecasFile(std::string filename, BeamCalGeo* geo, std::vector<BCPadEnergies>& newPads) {
-
-  TFile *becasFile = TFile::Open(TString(filename));
-  if( not becasFile ) {
-    std::cerr << "File not found! " << filename  << std::endl;
-    exit(1);
-  }
-
-  //check if this histogram exists, if it does we read the energy from histograms
-  TH2F *testhisto(NULL);
-  becasFile->GetObject("EnergyDepositionRPhiLr0", testhisto);
-  ReadBecasFromTree( becasFile, geo, newPads );
-
-  becasFile->Close();
-
-  return;
-
-}
-
-
-void ReadBecasFromTree(TFile* becasFile, BeamCalGeo* geo, std::vector<BCPadEnergies>& newPads ) {
-
-  TTree *becasTree(NULL);
-  becasFile->GetObject("tSegment",becasTree);
-
-  int position[3];
-  double energy;
-  becasTree->SetBranchAddress("sPos",position);
-  becasTree->SetBranchAddress("sEdep",&energy);
-
-  for (int i = 0 ; i < becasTree->GetEntries(); ++i)  {
-    becasTree->GetEntry(i);
-    int layer(position[0]), ring(position[1]), phiPad(position[2]);
-    const int globalPadIndex = geo->getPadIndex(abs(layer), ring, phiPad);
-    BCPadEnergies::BeamCalSide_t side = ( layer < 0 ) ? BCPadEnergies::kLeft : BCPadEnergies::kRight ;
-    newPads[side].addEnergy( globalPadIndex, energy);
-
-  }//for all entries
-
-  
-
-  return;
-
-}// ReadBecasFromTree

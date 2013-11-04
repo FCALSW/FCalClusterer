@@ -1,4 +1,4 @@
-SET( BeamCalReco_SOURCES BeamCal.cpp BCUtilities.cpp BeamCalGeo.cpp BeamCalGeoGear.cpp BeamCalGeoCached.cpp  BCPadEnergies.cpp BeamCalCluster.cpp BCPCuts.cpp BCRecoObject.cpp  )
+SET( BeamCalReco_SOURCES BeamCal.cpp BCUtilities.cpp BCRootUtilities.cpp BeamCalGeo.cpp BeamCalGeoGear.cpp BeamCalGeoCached.cpp  BCPadEnergies.cpp BeamCalCluster.cpp BCPCuts.cpp BCRecoObject.cpp  )
 
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/include/BeamCalReco )
 
