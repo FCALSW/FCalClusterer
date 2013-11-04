@@ -416,14 +416,14 @@ void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEn
 
       if( not checkNextNeighborsList.empty() ) {
 	largestTower = checkNextNeighborsList.begin();
-	checkNextNeighborsList.erase ( largestTower );
       }
 
+      //compare largest tower with all other towers
       for (BCPadEnergies::TowerIndexList::iterator it = allTowersInBeamCal.begin(); it != allTowersInBeamCal.end(); ++it) {
 	if( it->first == largestTower->first ) continue;
 
 	//if the tower is already in the list we do nothing
-	if ( towersInThisCluster.find(it->first) != towersInThisCluster.end()) continue;
+	if ( towersInThisCluster.find(it->first) != towersInThisCluster.end() ) continue;
 
 	const bool isNeighbour = testPads.m_BCG.arePadsNeighbours(largestTower->first, it->first);
 	if ( isNeighbour ) {
@@ -438,6 +438,9 @@ void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEn
 
 	} //if they are neighbours
       }// find neighbouring towers/pads
+
+      //remove the tower we just used from the checkNextNeighborsList
+      checkNextNeighborsList.erase( largestTower->first );
 
     } while ( not checkNextNeighborsList.empty() );
 
