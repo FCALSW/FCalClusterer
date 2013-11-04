@@ -26,36 +26,6 @@
 #include <iomanip>
 #include <iostream>
 
-//#define BEAMCALDISTANCE 3350
-
-// #warning "Turn globalBeamCalDist into member variable read from Gear"
-// const double globalBeamCalDist = 3350;
-
-
-
-/*
-  for(int i=0; i < (int)segmentation.size(); i++) {
-    Double_t radius = m_MinRadius+(m_MaxRadius-m_MinRadius)*(double)i/(double)m_nRings;
-     m_VecRadSegments[i] = radius;
-     if(radius < m_BCG.getCutout()) {
-      int segs = (int)(m_UnDeadAngle/(TMath::RadToDeg()*segmentation[i]))+1;
-      if(segs % m_nSymmetryfold != 0) {
-	segs = segs - segs % m_nSymmetryfold;
-      }
-      m_VecPhiSegments.push_back(segs);
-    } else {
-      int segs = (int)(360./(TMath::RadToDeg()*segmentation[i]));
-      if(segs % m_nFullfold != 0) {
-	segs = segs - segs % m_nFullfold;
-      }
-      m_VecPhiSegments.push_back(segs);
-    }
-  }
-  m_VecRadSegments[m_nRings] = m_MaxRadius;
- 
-
-}//Default constructor
-*/
 
 BeamCal::BeamCal(gear::GearMgr* gearMgr):
   m_BCG(new BeamCalGeoCached(gearMgr)),
@@ -70,16 +40,6 @@ BeamCal::BeamCal(gear::GearMgr* gearMgr):
   m_h3BeamCalHisto(NULL)
 {
 
-  //Get the parameters for BeamCal from the Gear File
-  //  const gear::CalorimeterParameters& BCParas = gearMgr->getBeamCalParameters();//GearParameters("BEAMCAL");
-  //  std::vector<double> segmentation = BCParas.getDoubleVals("phi_segmentation");
-
-  // std::cout << "Segmentation Phis" << std::endl;
-  // for(int i = 0; i < m_nRings; i++) {
-  //   std::cout << std::setw(12) << m_VecPhiSegments[i];
-  // }
-  // std::cout << std::endl;
-
   for( int ring=0; ring< m_BCG->getBCRings(); ring++){
     const int padsInThisRing = m_BCG->getPadsInRing(ring);
 
@@ -89,26 +49,13 @@ BeamCal::BeamCal(gear::GearMgr* gearMgr):
       m_MapCrowns[ring][phiPad] = ( extents[2] < extents[3] ) ?
 		   TCrown(0,0,extents[0],extents[1],extents[2],extents[3]):
 		   TCrown(0,0,extents[0],extents[1],extents[2],extents[3]+360.0);
-    
 
-    //   }//for normal elements
     }//all sectors    
   }//all rings
 
 }
 
-
-
-
-
 BeamCal::~BeamCal() {
-  //  std::cout << "Deleting the BeamCal Object" << std::endl;
-  // for( int i=0; i<m_BCG->getBCRings(); i++){
-  //   for(int k=0; k<Segments[i]; k++){
-  //     delete cr[i][k];
-  //   }
-  // }
-// //   cout << "Done" << endl; 
   delete m_h3BeamCalHisto;
   delete m_BCG;
 }
@@ -132,23 +79,15 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
     palette = (TPaletteAxis*)frame->GetListOfFunctions()->FindObject("palette");
   } else {
     BeamCalEnergy->SetContour(99);
-    //    minenergy = BeamCalEnergy->GetMinimum();
     maxenergy = 1.0001*BeamCalEnergy->GetMaximum();
-//     cout << "BCE " << minenergy << "   to   " << maxenergy << endl;
     BeamCalEnergy->SetAxisRange(minenergy, maxenergy, "Z");
     BeamCalEnergy->Draw("colz");
     pad->Update();
     palette = (TPaletteAxis*)BeamCalEnergy->GetListOfFunctions()->FindObject("palette");
   }
 
-  if (palette) {
-    palette->GetAxis()->SetTitle("Deposited Energy per Pad [GeV]");
-    palette->GetAxis()->SetTitleOffset(1.0);
-  }
-
   for( int i=0; i<m_BCG->getBCRings(); i++){
     for(int k=0; k<m_BCG->getPadsInRing(i); k++){
-      //      Color_t color= palette->GetBinColor(k+1,i+1);
       Double_t energy = BeamCalEnergy->GetBinContent(k+1, i+1);
       if(m_NormalizeByArea) {
 	energy = energy/GetPadArea(i, k);
@@ -164,7 +103,6 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
 	Int_t color1, color2;
 	wlmin = TMath::Log10(minenergy);
 	wlmax = TMath::Log10(maxenergy);
-	//	if (minerergy <= 0 && maxenergy > 0) wmin = TMath::Min((Double_t)1, (Double_t)0.001*wmax);
 	Int_t ncolors = gStyle->GetNumberOfColors();
 	Int_t ndivz   = 99;
 	Double_t scale = ndivz/(wlmax - wlmin);
@@ -175,10 +113,7 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
 	if(color1 > 98) color1 = 98;
 	color2 = Int_t((color1+0.99)*Double_t(ncolors)/Double_t(ndivz));
 	color = gStyle->GetColorPalette(color2);
-// 	if (i == 0) {
-// 	  cout << k << "  "  << color1 << "  " << color2 << "   " << color << endl;
-// 	}
-   //----------------------------------------
+      //----------------------------------------
       } else {
 	Double_t zc = energy;
 	if(energy > 0) {
@@ -197,17 +132,9 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
       if(energy == 0) {
 	m_MapCrowns[i][k].SetFillColor(kWhite);
       }
-//       if(AxisMaximum < 0) {
-// 	if(maxenergy < energy) {
-// 	  // 	cout << k+1 << "  " << i+1 << "  " << energy << "  " << maxenergy << "  " << color << endl;
-// 	  maxenergy = energy;
-// 	  frame->SetAxisRange(1e-3, 1.01*maxenergy,"Z");
-// 	}
-//       }
-
     }
   }
-  //  cout << "Talking to me ??" << endl;
+  
   pad->Clear();
   pad->SetLogz(m_bLogZ);
   frame->SetAxisRange(minenergy, maxenergy, "Z");
@@ -215,29 +142,31 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
   frame->SetBinContent(2, maxenergy);
   frame->GetXaxis()->SetTitle("X' [mm]");
   frame->GetYaxis()->SetTitle("Y [mm]");
-  //  frame->GetYaxis()->SetTitleOffset(1.4);
+  
   frame->SetContour(99);
   TH1* frameCopy = frame->DrawCopy("colz");
   pad->Update();
   palette  = (TPaletteAxis*)frameCopy->GetListOfFunctions()->FindObject("palette");
   if(palette){
     palette->GetAxis()->SetTitle("Deposited Energy per Pad [GeV]");
-    //CustomRoot::MovePaletteHorizontally(frameCopy);
-    palette->GetAxis()->SetTitleOffset(1.1);
-    palette->GetAxis()->SetLabelOffset(-0.01);
+    //Move Palette Horizontally 
+    const double step = 0.055;
+    palette->SetX1NDC(palette->GetX1NDC()-step);
+    palette->SetX2NDC(palette->GetX2NDC()-step);
+    palette->GetAxis()->SetTitleOffset(1.45);
+    palette->GetAxis()->SetLabelOffset(0.01);
   }  else {
     std::cout << "No Palette!!!"  << std::endl;
   }
   pad->Update();
 
   for(int i=0; i<m_BCG->getBCRings(); i++){
-    //std::cout << "Drawing Ring " << i << std::endl;
     for(int k=0; k<m_BCG->getPadsInRing(i); k++){
-      //      std::cout << "      Pad " << k  << std::endl;
       m_MapCrowns[i][k].DrawClone();
-     }
-   }
-}
+    }
+  }
+
+}//BeamCalDraw
 
 
 
