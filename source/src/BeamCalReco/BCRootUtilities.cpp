@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cmath>
 #include <stdexcept>
+#include <cstdlib>
 
 
 void BCUtil::ReadRootFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads) {
