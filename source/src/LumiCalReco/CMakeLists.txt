@@ -1,0 +1,16 @@
+SET( LumiCalReco_SOURCES LumiCalClusterer.cc )
+
+INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/include/LumiCalReco )
+INCLUDE_DIRECTORIES ( ./include )
+INCLUDE_DIRECTORIES ( ./include/LumiCalClusterer )
+
+ADD_LIBRARY( LumiCalReco SHARED ${LumiCalReco_SOURCES} )
+TARGET_LINK_LIBRARIES( LumiCalReco ${ROOT_LIBRARIES} ${LCIO_LIBRARIES} ${GEAR_LIBRARIES} ${Marlin_LIBRARIES} )
+
+INSTALL( TARGETS
+  LumiCalReco
+  LIBRARY DESTINATION lib)
+
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/source/include/LumiCalReco
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.hh")
