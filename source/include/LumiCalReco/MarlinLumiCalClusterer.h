@@ -79,52 +79,52 @@ namespace MarlinLumiCalClusterer {
 
 
 
-class MarlinLumiCalClusterer : public Processor {
+  class MarlinLumiCalClusterer : public Processor {
 
-public:
+  public:
 
-	// returns the processor instance
-	virtual Processor * newProcessor() {return new MarlinLumiCalClusterer ;}
-	
-	// Constructor
-	MarlinLumiCalClusterer() ;
-	
-	// initialization routine - Called at the begining of the job.
-	virtual void init() ;
-	
-	// pre-run actions - Called for every run
-	virtual void processRunHeader( LCRunHeader * run  ) ;
-	
-	// main actions in each event -Called for every event - the working horse. 
-	virtual void processEvent( LCEvent * evt ) ;
-	
-	// final action after last event analysis is over.
-	virtual void end() ;
+    // returns the processor instance
+    virtual Processor * newProcessor() {return new MarlinLumiCalClusterer ;}
 
-//protected:
+    // Constructor
+    MarlinLumiCalClusterer() ;
 
-	// Processor Parameters
-	string	LumiName ;
-	int	SkipNEvents, MaxRecordNumber;
+    // initialization routine - Called at the begining of the job.
+    virtual void init() ;
 
-	// global counters
-	int	NumRun, NumEvt, EvtNumber;
-	string	OutDirName;
+    // pre-run actions - Called for every run
+    virtual void processRunHeader( LCRunHeader * run  ) ;
 
-	int	NumEventsTree;
+    // main actions in each event -Called for every event - the working horse.
+    virtual void processEvent( LCEvent * evt ) ;
 
-	OutputManagerClass	* OutputManager;
-	GlobalMethodsClass	* GlobalMethods;
-	LumiCalClustererClass	* LumiCalClusterer;
+    // final action after last event analysis is over.
+    virtual void end() ;
 
-	void	TryMarlinLumiCalClusterer(LCEvent * evt);
+    //protected:
 
-	void	CreateClusters( map < int , map < int , vector<int> > > 	clusterIdToCellId,
-				map < int , map < int , vector<double> > > 	cellIdToCellEngy,
+    // Processor Parameters
+    string	LumiName ;
+    int	SkipNEvents, MaxRecordNumber;
+
+    // global counters
+    int	NumRun, NumEvt, EvtNumber;
+    string	OutDirName;
+
+    int	NumEventsTree;
+
+    OutputManagerClass	* OutputManager;
+    GlobalMethodsClass	* GlobalMethods;
+    LumiCalClustererClass	* LumiCalClusterer;
+
+    void	TryMarlinLumiCalClusterer(LCEvent * evt);
+
+    void	CreateClusters( map < int , map < int , vector<int> > >		clusterIdToCellId,
+				map < int , map < int , vector<double> > >	cellIdToCellEngy,
 				map < int , map < int , ClusterClass * > >	* clusterClassMapP );
 
 
-};
+  };
 
 
 
