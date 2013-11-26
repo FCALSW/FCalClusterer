@@ -100,6 +100,7 @@ void MarlinLumiCalClusterer::init(){
   GlobalMethods.SetConstants();
 
   //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
+  LumiCalClusterer.setLumiCollectionName(LumiInColName);
   LumiCalClusterer.init(GlobalMethods.GlobalParamI, GlobalMethods.GlobalParamD);
 
   NumEventsTree = 500;

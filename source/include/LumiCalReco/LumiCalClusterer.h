@@ -54,6 +54,8 @@ public:
   std::map < int , std::map < int , std::vector<double> > >	_superClusterIdToCellEngy;
 
 
+  void setLumiCollectionName(std::string const& lumiNameNow) { _lumiName = lumiNameNow; }
+
   /* --------------------------------------------------------------------------
      calculate the distance between two poins in 2D (in cartezian coordinates)
      (first index of arrays is X and the second is Y coordinates {or the other way around})
