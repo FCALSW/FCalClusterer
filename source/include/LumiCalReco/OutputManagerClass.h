@@ -1,4 +1,12 @@
 
+#include <TH1F.h>
+
+
+#include <map>
+#include <string>
+
+
+
 class OutputManagerClass {
 
 public:
@@ -6,39 +14,54 @@ public:
   ~OutputManagerClass();
 
 
-  map < TString , TH1 * >		HisMap1D;
-  map < TString , TH1 * > :: iterator	HisMap1DIterator;
+  std::map < std::string , TH1 * >		HisMap1D;
+  std::map < std::string , TH1 * > :: iterator	HisMap1DIterator;
 
-  map < TString , TH2 * >		HisMap2D;
-  map < TString , TH2 * > :: iterator	HisMap2DIterator;
-
-
-  map < TString , TTree * >		TreeMap;
-  map < TString , TTree * > :: iterator	TreeMapIterator;
-
-  map < TString , int > TreeIntV;
-  map < TString , double > TreeDoubleV;
+  std::map < std::string , TH2 * >		HisMap2D;
+  std::map < std::string , TH2 * > :: iterator	HisMap2DIterator;
 
 
-  TString	OutputRootFileName, OutDirName;
-  TFile	* OutputRootFile;
+  std::map < std::string , TTree * >		TreeMap;
+  std::map < std::string , TTree * > :: iterator	TreeMapIterator;
 
-  map < TString , int >		Counter;
-  map < TString , int >::iterator	CounterIterator;
+  std::map < std::string , int > TreeIntV;
+  std::map < std::string , double > TreeDoubleV;
+
+
+  std::string	OutputRootFileName, OutDirName;
+  TFile *OutputRootFile;
+
+  std::map < std::string , int >		Counter;
+  std::map < std::string , int >::iterator	CounterIterator;
 
   int	SkipNEvents, WriteRootTrees, NumEventsTree;
 
-  void	WriteToRootTree(TString optName, int nEvtNow);
-  void	Initialize(int skipNEventsNow , int numEventsTreeNow, TString outDirNameNow);
+  void	WriteToRootTree(std::string optName, int nEvtNow);
+  void	Initialize(int skipNEventsNow , int numEventsTreeNow, std::string outDirNameNow);
 
 private:
   // private method that may only be called ONCE in the destructor
   void	CleanUp();
 
+  OutputManagerClass& operator=(OutputManagerClass const& rhs);
+  OutputManagerClass(OutputManagerClass const&);
 };
 
-OutputManagerClass::OutputManagerClass() {
-
+OutputManagerClass::OutputManagerClass():
+  HisMap1D(),
+  HisMap1DIterator(),
+  HisMap2D(),
+  HisMap2DIterator(),
+  TreeMap(),
+  TreeMapIterator(),
+  TreeIntV(),
+  TreeDoubleV(),
+  OutputRootFileName(""), OutDirName(""),
+  OutputRootFile(NULL),
+  Counter(),
+  CounterIterator(),
+  SkipNEvents(0), WriteRootTrees(0), NumEventsTree(0)
+{
 }
 
 OutputManagerClass::~OutputManagerClass() {
@@ -47,7 +70,7 @@ OutputManagerClass::~OutputManagerClass() {
 }
 
 
-void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TString outDirNameNow){
+void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, std::string outDirNameNow){
 
 
   OutDirName = outDirNameNow;
@@ -66,20 +89,20 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TS
   TH2F	* his2;
   TTree	* tree;
   Int_t	markerCol = kRed-4, lineCol = kAzure+3, fillCol = kBlue-8;
-  TString hisName;  int numBins1;  double hisRange1[2];  int numBins2;  double hisRange2[2];
+  std::string hisName;  int numBins1;  double hisRange1[2];  int numBins2;  double hisRange2[2];
 
   WriteRootTrees = int(SkipNEvents/double(NumEventsTree));
 
 
   // check that the output directory exists
-  TString  outDirName = "cd "; outDirName += OutDirName;
-  assert( !system(outDirName) );
+  std::string  outDirName = "cd "; outDirName += OutDirName;
+  assert( !system(outDirName.c_str()) );
 
 
   hisRange1[0] = 0;	hisRange1[1] = 150;	numBins1 = 3000;
 
   hisName = "totEnergyOut";
-  his1 = new TH1F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1]); HisMap1D[hisName] = his1;
+  his1 = new TH1F(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1]); HisMap1D[hisName] = his1;
 
   his1->SetLineColor(lineCol);
   his1->SetFillColor(fillCol);
@@ -96,7 +119,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TS
   hisRange1[0] = 0;	hisRange1[1] = 300;	numBins1 = 300;
 
   hisName = "totEnergyIn";
-  his1 = new TH1F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1]);
+  his1 = new TH1F(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1]);
 
   his1->SetLineColor(lineCol);
   his1->SetFillColor(fillCol);
@@ -110,7 +133,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TS
   HisMap1D[hisName] = his1;
 
   hisName = "higestEngyParticle_Engy";
-  his1 = new TH1F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1]); HisMap1D[hisName] = his1;
+  his1 = new TH1F(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1]); HisMap1D[hisName] = his1;
 
   his1->SetLineColor(lineCol);
   his1->SetFillColor(fillCol);
@@ -125,7 +148,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TS
 
   hisRange1[0] = 0;	hisRange1[1] = .1;	numBins1 = 200;
   hisName = "higestEngyParticle_Theta";
-  his1 = new TH1F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1]); HisMap1D[hisName] = his1;
+  his1 = new TH1F(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1]); HisMap1D[hisName] = his1;
 
   his1->SetLineColor(lineCol);
   his1->SetFillColor(fillCol);
@@ -142,7 +165,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TS
   hisRange1[0] = 0;	hisRange1[1] = 300;	numBins1 = 300;
   hisRange2[0] = 0;	hisRange2[1] = .1;	numBins2 = 300;
   hisName = "thetaEnergyOut_DepositedEngy";
-  his2 = new TH2F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1],numBins2,hisRange2[0],hisRange2[1]);
+  his2 = new TH2F(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1],numBins2,hisRange2[0],hisRange2[1]);
 
   his2->SetMarkerColor(markerCol);
   his2->SetMarkerStyle(5);
@@ -158,7 +181,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TS
 
 
   hisName = "bhabhaSelectionTree";
-  tree = new TTree(hisName,hisName);
+  tree = new TTree(hisName.c_str(),hisName.c_str());
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
   tree -> Branch("Sign", &TreeIntV["sign"], "sign/I");
   tree -> Branch("Energy", &TreeDoubleV["engy"], "engy/D");
@@ -170,7 +193,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, TS
 
 
   hisName = "mcParticleTree";
-  tree = new TTree(hisName,hisName);
+  tree = new TTree(hisName.c_str(),hisName.c_str());
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
   tree -> Branch("Sign", &TreeIntV["sign"], "sign/I");
   tree -> Branch("PDG", &TreeIntV["pdg"], "pdg/I");
@@ -193,29 +216,29 @@ void OutputManagerClass::CleanUp(){
 
   int numHis;
 
-  // 1D histogram map
+  // 1D histogram std::map
   numHis            = HisMap1D.size();
   HisMap1DIterator  = HisMap1D.begin();
   for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap1DIterator++) {
-    TString hisName = (TString)(*HisMap1DIterator).first;
+    std::string hisName = (std::string)(*HisMap1DIterator).first;
 
     delete HisMap1D[hisName];
   }
 
-  // 2D histogram map
+  // 2D histogram std::map
   numHis            = HisMap2D.size();
   HisMap2DIterator  = HisMap2D.begin();
   for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap2DIterator++) {
-    TString hisName = (TString)(*HisMap2DIterator).first;
+    std::string hisName = (std::string)(*HisMap2DIterator).first;
 
     delete HisMap2D[hisName];
   }
 
-  // tree map
+  // tree std::map
   numHis            = TreeMap.size();
   TreeMapIterator   = TreeMap.begin();
   for(int hisNow = 0; hisNow < numHis; hisNow++ , ++TreeMapIterator) {
-    TString hisName = (TString)(*TreeMapIterator).first;
+    std::string hisName = (std::string)(*TreeMapIterator).first;
 
     delete TreeMap[hisName];
   }
@@ -225,20 +248,20 @@ void OutputManagerClass::CleanUp(){
 }
 
 
-void OutputManagerClass::WriteToRootTree(TString optName, int nEvtNow){
+void OutputManagerClass::WriteToRootTree(std::string optName, int nEvtNow){
 
   int numHis;
 
   if( int(nEvtNow/double(NumEventsTree)) ==  WriteRootTrees || optName == "forceWrite") {
     OutputRootFileName = "./";  OutputRootFileName += OutDirName;  OutputRootFileName += "/output_";
     OutputRootFileName += WriteRootTrees;  OutputRootFileName += ".root";
-    OutputRootFile = new TFile(OutputRootFileName,"RECREATE");
+    OutputRootFile = new TFile(OutputRootFileName.c_str(),"RECREATE");
 
-    // 1D histogram map
+    // 1D histogram std::map
     numHis            = HisMap1D.size();
     HisMap1DIterator  = HisMap1D.begin();
     for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap1DIterator++) {
-      TString hisName = (TString)(*HisMap1DIterator).first;
+      std::string hisName = (std::string)(*HisMap1DIterator).first;
       HisMap1D[hisName] -> Write();
       HisMap1D[hisName] -> Reset();
     }
@@ -247,7 +270,7 @@ void OutputManagerClass::WriteToRootTree(TString optName, int nEvtNow){
     numHis            = HisMap2D.size();
     HisMap2DIterator  = HisMap2D.begin();
     for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap2DIterator++) {
-      TString hisName = (TString)(*HisMap2DIterator).first;
+      std::string hisName = (std::string)(*HisMap2DIterator).first;
       HisMap2D[hisName] -> Write();
       HisMap2D[hisName] -> Reset();
     }
@@ -256,7 +279,7 @@ void OutputManagerClass::WriteToRootTree(TString optName, int nEvtNow){
     numHis            = TreeMap.size();
     TreeMapIterator   = TreeMap.begin();
     for(int hisNow = 0; hisNow < numHis; hisNow++ , ++TreeMapIterator) {
-      TString hisName = (TString)(*TreeMapIterator).first;
+      std::string hisName = (std::string)(*TreeMapIterator).first;
       TreeMap[hisName] -> Write();
       TreeMap[hisName] -> Reset();
     }
@@ -265,7 +288,7 @@ void OutputManagerClass::WriteToRootTree(TString optName, int nEvtNow){
     delete	OutputRootFile;
     WriteRootTrees++;
 
-    cout << coutPurple << endl << "Went through  " << nEvtNow << "  events..." << coutDefault << endl;
+    std::cout << std::endl << "Went through  " << nEvtNow << "  events..." << std::endl;
   }
 
   return;

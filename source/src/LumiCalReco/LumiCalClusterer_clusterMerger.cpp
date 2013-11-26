@@ -1,45 +1,46 @@
+// Local
+#include "SuperTrueClusterWeights.hh"
+#include "LumiCalClusterer.h"
+// Stdlib
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+//Forward Declaration
+namespace IMPL{
+  class CalorimeterHitImpl;
+}
 
 
 
 
-void LumiCalClustererClass::clusterMerger(	map < int , vector<double> >		* clusterIdToCellEngyP,
-						map < int , vector<int> >		* clusterIdToCellIdP,
-						map < int , vector<double> >		* clusterCMP,
-						map < int , CalorimeterHitImpl* >	calHitsCellIdGlobal ){
+void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> >		& clusterIdToCellEngy,
+						std::map < int , std::vector<int> >		& clusterIdToCellId,
+						std::map < int , LCCluster > & clusterCM,
+						std::map < int , IMPL::CalorimeterHitImpl* >	calHitsCellIdGlobal ){
 
 
-  int	detectorArm, clusterId, clusterId1, clusterId2, numClustersToMerge;
-  int	numClusters, numClusters2, numElementsInCluster, cellId;
-  double	engyNow, zPos;
+  int clusterId, clusterId1, clusterId2;
+  int numClusters, numClusters2, numElementsInCluster, cellId;
+  double	engyNow;
 
-  map < int , vector<int> >		clusterIdToCellId;
-  map < int , vector<int> > :: iterator	clusterIdToCellIdIterator;
-  clusterIdToCellId	= * clusterIdToCellIdP;
+  std::map < int , std::vector<int> > :: iterator	clusterIdToCellIdIterator;
 
-  map < int , vector<double> >	clusterCM;
-  clusterCM =	* clusterCMP;
+  std::vector < int >	allClusterIds, cellIdV;
+  std::vector < double >	cellEngyV;
 
-  map < int , vector<double>  >	clusterIdToCellEngy;
-  clusterIdToCellEngy = * clusterIdToCellEngyP;
+  std::map < int , double >			idToCellEngy;
+  std::map < int , double > :: iterator		idToCellEngyIterator;
 
-  vector < int >	allClusterIds,
-    cellIdV;
+  std::vector < SuperTrueClusterWeights * >	clusterPairWeightsV;
 
-  vector < double >	cellEngyV;
-
-  map < int , double >				idToCellEngy;
-  map < int , double > :: iterator	idToCellEngyIterator;
-
-  vector < SuperTrueClusterWeights * >	clusterPairWeightsV;
-
-  SuperTrueClusterWeights	* clusterPairWeightsNow;
 
 
 
 
   while(1) {
     /* --------------------------------------------------------------------------
-       make a vector of all of the cluster Ids, and than write the pair-wise
+       make a std::vector of all of the cluster Ids, and than write the pair-wise
        properties for all pair combinations
        -------------------------------------------------------------------------- */
     allClusterIds.clear();
@@ -47,10 +48,6 @@ void LumiCalClustererClass::clusterMerger(	map < int , vector<double> >		* clust
     numClusters               = clusterIdToCellId.size();
     for(int clusterNow=0; clusterNow<numClusters; clusterNow++, clusterIdToCellIdIterator++){
       clusterId   = (int)(*clusterIdToCellIdIterator).first;  // Id of cluster
-
-      // discount backscattered hits
-      zPos = clusterCM[clusterId][3];
-      detectorArm = int( zPos/Abs(zPos) );
 
       allClusterIds.push_back(clusterId);
     }
@@ -64,34 +61,35 @@ void LumiCalClustererClass::clusterMerger(	map < int , vector<double> >		* clust
 
 	if(clusterId1 == clusterId2) continue;
 
-	clusterPairWeightsNow = new SuperTrueClusterWeights(	clusterId1,
-								clusterId2,
-								clusterCM[clusterId1],
-								clusterCM[clusterId2] );
+	SuperTrueClusterWeights * clusterPairWeightsNow = new SuperTrueClusterWeights( clusterId1,
+										       clusterId2,
+										       clusterCM[clusterId1],
+										       clusterCM[clusterId2] );
 
-	clusterPairWeightsNow->setWeight(	"minEngyDistance",
-						_minSeparationDistance,
-						engySignalGeV(_minClusterEngyGeV, "GeVToSignal") );
+	clusterPairWeightsNow->setWeight( "minEngyDistance",
+					  _minSeparationDistance,
+					  engySignalGeV(_minClusterEngyGeV, GlobalMethodsClass::GeV_to_Signal) );
 
 	if(clusterPairWeightsNow->weight < 0) {
 	  clusterPairWeightsNow->setWeight("distance");
 	  clusterPairWeightsV.push_back(clusterPairWeightsNow);
+	} else {
+	  delete clusterPairWeightsNow;
 	}
       }
     }
 
     // if all the pairs made the cut than finish the loop
-    numClustersToMerge = clusterPairWeightsV.size();
-    if(numClustersToMerge == 0) break;
+    if( clusterPairWeightsV.empty() ) break;
 
     // choose the cluster pair with the shortest weight (distance)
-    sort(clusterPairWeightsV.begin(), clusterPairWeightsV.end(), SuperTrueClusterWeightsCompare);
+    sort(clusterPairWeightsV.begin(), clusterPairWeightsV.end(), SuperTrueClusterWeights::Compare);
 
     clusterId1 = clusterPairWeightsV[0]->superClusterId;
     clusterId2 = clusterPairWeightsV[0]->trueClusterId;
 
     /* --------------------------------------------------------------------------
-       go over all hits in the discarded cluster write a new hit-energy map
+       go over all hits in the discarded cluster write a new hit-energy std::map
        -------------------------------------------------------------------------- */
     for(int clusterNow = 0; clusterNow < 2; clusterNow++) {
       if(clusterNow == 0) clusterId = clusterId1;
@@ -132,13 +130,12 @@ void LumiCalClustererClass::clusterMerger(	map < int , vector<double> >		* clust
     cellIdV   = clusterIdToCellId[clusterId];
     cellEngyV = clusterIdToCellEngy[clusterId];
 
-    // initialize the energy/position vector for new clusters only
-    clusterCM[clusterId].clear();
-    for(int k=0; k<8; k++) clusterCM[clusterId].push_back(0.);
+    // initialize the energy/position std::vector for new clusters only
+    clusterCM[clusterId] = LCCluster();
 
     // calculate/update the energy/position of the CM
-    calculateEngyPosCM_EngyV(	cellIdV, cellEngyV, calHitsCellIdGlobal,
-				&clusterCM, clusterId, _methodCM);
+    calculateEngyPosCM_EngyV( cellIdV, cellEngyV, calHitsCellIdGlobal,
+			      clusterCM, clusterId, _methodCM);
 
     // cleanUp
     cellIdV.clear();  cellEngyV.clear();
@@ -146,7 +143,7 @@ void LumiCalClustererClass::clusterMerger(	map < int , vector<double> >		* clust
     /* --------------------------------------------------------------------------
        cleanUp virtual memory allocations
        -------------------------------------------------------------------------- */
-    numClustersToMerge = clusterPairWeightsV.size();
+    int numClustersToMerge = clusterPairWeightsV.size();
     for(int clusterNow1=0; clusterNow1<numClustersToMerge; clusterNow1++)
       delete clusterPairWeightsV[clusterNow1];
 
@@ -161,23 +158,23 @@ void LumiCalClustererClass::clusterMerger(	map < int , vector<double> >		* clust
      verbosity
      -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
-  cout	<< coutRed << "\tClusters:" << coutDefault << endl;
+  std::cout << "\tClusters:"  << std::endl;
 
   clusterIdToCellIdIterator = clusterIdToCellId.begin();
   numClusters               = clusterIdToCellId.size();
   for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterIdToCellIdIterator++) {
     clusterId = (int)(*clusterIdToCellIdIterator).first;
 
-    cout	<< "\t Id "  << clusterId
-		<< "  \t energy " << clusterCM[clusterId][0]
-		<< "     \t pos(x,y) =  ( " << clusterCM[clusterId][1]
-		<< " , " << clusterCM[clusterId][2] << " )"
-		<< "     \t pos(theta,phi) =  ( " << clusterCM[clusterId][6]
-		<< " , " << clusterCM[clusterId][7] << " )"
-		<< coutDefault << endl;
+    std::cout << "\t Id "  << clusterId
+	      << "  \t energy " << clusterCM[clusterId].getE()
+	      << "     \t pos(x,y) =  ( " << clusterCM[clusterId].getX()
+	      << " , " << clusterCM[clusterId].getY() << " )"
+	      << "     \t pos(theta,phi) =  ( " << clusterCM[clusterId].getTheta()
+	      << " , " << clusterCM[clusterId].getPhi() << " )"
+	      << std::endl;
   }
 
-  cout	<<  endl;
+  std::cout << std::endl;
 #endif
 
 
@@ -185,7 +182,4 @@ void LumiCalClustererClass::clusterMerger(	map < int , vector<double> >		* clust
   // cleanUp
   allClusterIds.clear();
 
-  * clusterIdToCellIdP	   = clusterIdToCellId;
-  * clusterCMP		   = clusterCM;
-  * clusterIdToCellEngyP     = clusterIdToCellEngy;
 }

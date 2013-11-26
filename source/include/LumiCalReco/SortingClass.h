@@ -11,10 +11,10 @@ public:
   double	Weight;
 };
 
-SortingClass::SortingClass(int idNow, double weightNow) {
-
-  Id     = idNow;
-  Weight = weightNow;
+SortingClass::SortingClass(int idNow, double weightNow):  
+  Id (idNow),
+  Weight(weightNow)
+{
 }
 
 SortingClass::~SortingClass() {

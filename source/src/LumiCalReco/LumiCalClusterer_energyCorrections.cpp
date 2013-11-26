@@ -1,36 +1,40 @@
+//Local
+#include "LumiCalClusterer.h"
+//Root
+#include <TH1F.h>
+//LCIO
+#include <IMPL/CalorimeterHitImpl.h>
+// stdlib
+#include <map>
+#include <vector>
+#include <cmath>
+//Forward Declarations
+namespace IMPL{
+  class CalorimeterHitImpl;
+}
 
-void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* superClusterIdToCellIdP,
-						map < int , vector<double> >		* superClusterIdToCellEngyP,
-						map < int , vector<double> >		* superClusterCMP,
-						map < int , CalorimeterHitImpl* >	calHitsCellIdGlobal ) {
+void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int> >	     & superClusterIdToCellId,
+						std::map < int , std::vector<double> >	     & superClusterIdToCellEngy,
+						std::map < int , LCCluster >		& superClusterCM,
+						std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellIdGlobal ) {
 
+  std::map < int , std::vector<int> > :: iterator	superClusterIdToCellIdIterator;
 
-  map < int , vector<double> >	superClusterIdToCellEngy;
-  superClusterIdToCellEngy = * superClusterIdToCellEngyP;
+  std::vector < int >		cellIdV;
+  std::vector < double >	cellEngyV;
 
-  map < int , vector<int> >		superClusterIdToCellId;
-  map < int , vector<int> > :: iterator	superClusterIdToCellIdIterator;
-  superClusterIdToCellId	= * superClusterIdToCellIdP;
+  std::map < int , double >		engyCorrectionCellId, engyCorrectionEngy;
+  std::map < int , double >::iterator	engyCorrectionCellIdIterator;
 
-  map < int , vector<double> >	superClusterCM;
-  superClusterCM	= * superClusterCMP;
-
-  vector < int >		cellIdV;
-  vector < double >	cellEngyV;
-
-  map < int , double >		engyCorrectionCellId, engyCorrectionEngy;
-  map < int , double >::iterator	engyCorrectionCellIdIterator;
-
-  double	pos1[2], pos2[2], pos3[2];
   double	distanceNow, distanceAB, distanceAC, distanceBC, engyNow;
   double	correctionFactor;
   int	cellIdHit, numElementsInSuperCluster;
   int	numSuperClusters, superClusterId;
 
-  int	maxEngySuperClusterId;
+  int	maxEngySuperClusterId(0);
   double	maxEngyCluster, engyClusterNow;
 
-  TString hisName;
+  std::string hisName;
   int numBins1;  double hisRange1[2];
 
   hisRange1[0] = -_moliereRadius * 5;	hisRange1[1] = _moliereRadius * 5;
@@ -39,13 +43,13 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
 
   // internal temporary histograms that are not to be written out
   hisName = "leftSideLargeHis";
-  TH1F * leftSideLargeHisH = new TH1F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1]);
+  TH1F leftSideLargeHisH(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1]);
 
   hisName = "rightSideSmallHis";
-  TH1F * rightSideSmallHisH = new TH1F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1]);
+  TH1F rightSideSmallHisH(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1]);
 
   hisName = "correctionRatio";
-  TH1F * correctionRatioH = new TH1F(hisName,hisName,numBins1,hisRange1[0],hisRange1[1]);
+  TH1F correctionRatioH(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1]);
 
 
 
@@ -58,7 +62,7 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
   for(int superClusterNow=0; superClusterNow<numSuperClusters; superClusterNow++, superClusterIdToCellIdIterator++){
     superClusterId   = (int)(*superClusterIdToCellIdIterator).first;  // Id of cluster
 
-    engyClusterNow = superClusterCM[superClusterId][0];
+    engyClusterNow = superClusterCM[superClusterId].getE();
     if(maxEngyCluster < engyClusterNow) {
       maxEngyCluster        = engyClusterNow;
       maxEngySuperClusterId = superClusterId;
@@ -74,16 +78,17 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
      -------------------------------------------------------------------------- */
   superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
   numSuperClusters               = superClusterIdToCellId.size();
+  double pos1[2]={0.0, 0.0}, pos2[2]={0.0, 0.0}, pos3[2]={0.0, 0.0};
   for(int superClusterNow=0; superClusterNow<numSuperClusters; superClusterNow++, superClusterIdToCellIdIterator++){
     superClusterId  = (int)(*superClusterIdToCellIdIterator).first;	// Id of cluster
 
     if(superClusterId == maxEngySuperClusterId) {
-      pos1[0] = superClusterCM[superClusterId][1];
-      pos1[1] = superClusterCM[superClusterId][2];
+      pos1[0] = superClusterCM[superClusterId].getX();
+      pos1[1] = superClusterCM[superClusterId].getY();
     }
     if(superClusterId != maxEngySuperClusterId) {
-      pos2[0] = superClusterCM[superClusterId][1];
-      pos2[1] = superClusterCM[superClusterId][2];
+      pos2[0] = superClusterCM[superClusterId].getX();
+      pos2[1] = superClusterCM[superClusterId].getY();
     }
   }
 
@@ -98,13 +103,13 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
     for(int hitNow = 0; hitNow < numElementsInCluster; hitNow++){
       cellIdHit = superClusterIdToCellId[superClusterId][hitNow];
 
-      pos3[0] = calHitsCellIdGlobal[cellIdHit] -> getPosition()[0];
-      pos3[1] = calHitsCellIdGlobal[cellIdHit] -> getPosition()[1];
+      pos3[0] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[0];
+      pos3[1] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[1];
 
       engyNow = superClusterIdToCellEngy[superClusterId][hitNow];
 
       distanceNow  = (pos3[0] - pos1[0]) * (pos2[0] - pos1[0]) + (pos3[1] - pos1[1]) * (pos2[1] - pos1[1]);
-      distanceNow /= Power(distanceAB , 2);
+      distanceNow /= distanceAB*distanceAB;
 
       // distanceNow point of the tangent from point pos3[] to the line connecting the two CMs
       pos3[0] = pos1[0] + distanceNow * (pos2[0] - pos1[0]);
@@ -115,35 +120,35 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
 
 
       // distanceNow == 0 if point A is in between points C and B
-      distanceNow = Abs(distanceBC - distanceAC - distanceAB) / distanceBC;
+      distanceNow = fabs(distanceBC - distanceAC - distanceAB) / distanceBC;
 
       if(distanceNow < 1e-7  &&  superClusterId == maxEngySuperClusterId)
-	leftSideLargeHisH -> Fill(distanceAC , engyNow);
+	leftSideLargeHisH . Fill(distanceAC , engyNow);
 
       if(distanceNow > 1e-7  &&  superClusterId != maxEngySuperClusterId)
-	rightSideSmallHisH -> Fill(distanceAC , engyNow);
+	rightSideSmallHisH . Fill(distanceAC , engyNow);
     }
   }
 
   /* --------------------------------------------------------------------------
      fill the correctionRatioH histogram with correction ratios
      -------------------------------------------------------------------------- */
-  int nBinsX = rightSideSmallHisH -> GetNbinsX();
+  int nBinsX = rightSideSmallHisH . GetNbinsX();
   for(int binNowX = 0; binNowX < nBinsX; binNowX++) {
 
-    distanceNow  = leftSideLargeHisH  -> GetBinCenter (binNowX);
-    double	engyLargeNow = leftSideLargeHisH  -> GetBinContent(binNowX);
-    double	engySmallNow = rightSideSmallHisH -> GetBinContent(binNowX);
+    distanceNow  = leftSideLargeHisH  . GetBinCenter (binNowX);
+    double	engyLargeNow = leftSideLargeHisH  . GetBinContent(binNowX);
+    double	engySmallNow = rightSideSmallHisH . GetBinContent(binNowX);
     double	deltaEngy    = engySmallNow - engyLargeNow;
     double	engyRatio    = deltaEngy / engySmallNow;
 
     if(deltaEngy > 0)	engyNow = deltaEngy;
     else			engyNow = engySmallNow;
 
-    engyNow = engySignalGeV(engyNow, "SignalToGeV");
+    engyNow = engySignalGeV(engyNow, GlobalMethodsClass::Signal_to_GeV);
 
     if(engyRatio > 0)
-      correctionRatioH  -> Fill (distanceNow , engyRatio);
+      correctionRatioH.Fill (distanceNow , engyRatio);
   }
 
 
@@ -160,13 +165,13 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
     for(int hitNow = 0; hitNow < numElementsInSuperCluster; hitNow++){
       cellIdHit = superClusterIdToCellId[superClusterId][hitNow];
 
-      pos3[0] = calHitsCellIdGlobal[cellIdHit] -> getPosition()[0];
-      pos3[1] = calHitsCellIdGlobal[cellIdHit] -> getPosition()[1];
+      pos3[0] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[0];
+      pos3[1] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[1];
 
       engyNow = superClusterIdToCellEngy[superClusterId][hitNow];
 
       distanceNow  = (pos3[0] - pos1[0]) * (pos2[0] - pos1[0]) + (pos3[1] - pos1[1]) * (pos2[1] - pos1[1]);
-      distanceNow /= Power(distanceAB , 2);
+      distanceNow /= distanceAB*distanceAB;
 
       // distanceNow point of the tangent from point pos3[] to the line connecting the two CMs
       pos3[0] = pos1[0] + distanceNow * (pos2[0] - pos1[0]);
@@ -177,11 +182,11 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
 
 
       // distanceNow == 0 if point A is in between points C and B
-      distanceNow = Abs(distanceBC - distanceAC - distanceAB) / distanceBC;
+      distanceNow = fabs(distanceBC - distanceAC - distanceAB) / distanceBC;
 
       if(distanceNow > 1e-7) {
-	int binNow = correctionRatioH -> Fill(distanceAC,0);
-	correctionFactor = correctionRatioH  -> GetBinContent(binNow);
+	int binNow = correctionRatioH.Fill(distanceAC,0);
+	correctionFactor = correctionRatioH.GetBinContent(binNow);
 
 	if(correctionFactor > 0  &&  superClusterId != maxEngySuperClusterId){
 	  engyNow = engyNow * correctionFactor;
@@ -251,7 +256,7 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
     engyNow = superClusterCM[superClusterId][0];
 
     cout	<< "\t Id " << superClusterId << "  \t  energy(signal,GeV) = ( "
-		<< engyNow  << " , " << engySignalGeV(engyNow,  "SignalToGeV")
+		<< engyNow  << " , " << engySignalGeV(engyNow,  GlobalMethodsClass::Signal_to_GeV)
 		<< " )  \t pos(x,y) =  ( " << superClusterCM[superClusterId][1]
 		<< " , " << superClusterCM[superClusterId][2] << " )"
 		<< endl;
@@ -271,12 +276,12 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
     cellIdV   = superClusterIdToCellId[superClusterId];
     cellEngyV = superClusterIdToCellEngy[superClusterId];
 
-    // initialize the energy/position vector for new clusters only
-    for(int k=0; k<8; k++) superClusterCM[superClusterId].push_back(0.);
+    // initialize the energy/position std::vector for new clusters only
+    superClusterCM[superClusterId] = LCCluster();
 
     // calculate/update the energy/position of the CM
-    calculateEngyPosCM_EngyV(	cellIdV, cellEngyV, calHitsCellIdGlobal,
-				&superClusterCM, superClusterId, _methodCM);
+    calculateEngyPosCM_EngyV( cellIdV, cellEngyV, calHitsCellIdGlobal,
+			      superClusterCM, superClusterId, _methodCM);
   }
   cellIdV.clear();  cellEngyV.clear();
 
@@ -296,21 +301,12 @@ void LumiCalClustererClass::energyCorrections (	map < int , vector<int> >		* sup
     engyNow = superClusterCM[superClusterId][0];
 
     cout	<< "\t Id " << superClusterId << "  \t  energy(signal,GeV) = ( "
-		<< engyNow  << " , " << engySignalGeV(engyNow,  "SignalToGeV")
+		<< engyNow  << " , " << engySignalGeV(engyNow,  GlobalMethodsClass::Signal_to_GeV)
 		<< " )  \t pos(x,y) =  ( " << superClusterCM[superClusterId][1]
 		<< " , " << superClusterCM[superClusterId][2] << " )"
 		<< endl;
   }
 #endif
-
-
-  * superClusterIdToCellIdP   = superClusterIdToCellId;
-  * superClusterIdToCellEngyP = superClusterIdToCellEngy;
-  * superClusterCMP           = superClusterCM;
-
-  //  cleanUp
-  delete leftSideLargeHisH;  delete rightSideSmallHisH;  delete correctionRatioH;
-
 
   return ;
 }

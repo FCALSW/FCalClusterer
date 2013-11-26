@@ -1,19 +1,22 @@
+//Local
+#include "Global.hh"
+#include "LumiCalClusterer.h"
+// Stdlib
+#include <map>
+#include <vector>
+#include <cmath>
+#include <iostream>
 
-void LumiCalClustererClass:: fiducialVolumeCuts(	map < int , vector<int> >		* superClusterIdToCellIdP,
-							map < int , vector<double> >		* superClusterIdToCellEngyP,
-							map < int , vector<double> >		* superClusterCMP ) {
-
-
-  map < int , vector<int> >	superClusterIdToCellId   = * superClusterIdToCellIdP;
-  map < int , vector<double> >	superClusterIdToCellEngy = * superClusterIdToCellEngyP;
-  map < int , vector<double> >	superClusterCM           = * superClusterCMP;
+void LumiCalClustererClass:: fiducialVolumeCuts( std::map < int , std::vector<int> > & superClusterIdToCellId,
+						 std::map < int , std::vector<double> > & superClusterIdToCellEngy,
+						 std::map < int , LCCluster > & superClusterCM ) {
 
   int	numSuperClusters, superClusterId;
   double	thetaSuperCluster;
 
-  map < int , vector<int> > ::iterator superClusterIdToCellIdIterator;
+  std::map < int , std::vector<int> > ::iterator superClusterIdToCellIdIterator;
 
-  vector < int >	clusterIdToErase;
+  std::vector < int >	clusterIdToErase;
 
   /* --------------------------------------------------------------------------
      discard true/reconstructed clusters that are outside the fiducial volume
@@ -23,7 +26,7 @@ void LumiCalClustererClass:: fiducialVolumeCuts(	map < int , vector<int> >		* su
   for(int superClusterNow=0; superClusterNow<numSuperClusters; superClusterNow++, superClusterIdToCellIdIterator++){
     superClusterId   = (int)(*superClusterIdToCellIdIterator).first;  // Id of cluster
 
-    thetaSuperCluster = Abs(superClusterCM[superClusterId][6]);
+    thetaSuperCluster = fabs(superClusterCM[superClusterId].getTheta());
     if(thetaSuperCluster < _thetaContainmentBouds[0] || thetaSuperCluster > _thetaContainmentBouds[1])
       clusterIdToErase.push_back(superClusterId);
 
@@ -34,7 +37,7 @@ void LumiCalClustererClass:: fiducialVolumeCuts(	map < int , vector<int> >		* su
     superClusterId = clusterIdToErase[superClusterNow];
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    cout	<< coutRed << "\tErase cluster " << superClusterId << coutDefault << endl;
+    std::cout << "\tErase cluster " << superClusterId << std::endl;
 #endif
 
     superClusterIdToCellId.erase(superClusterId);
@@ -42,11 +45,6 @@ void LumiCalClustererClass:: fiducialVolumeCuts(	map < int , vector<int> >		* su
     superClusterCM.erase(superClusterId);
   }
   clusterIdToErase.clear();
-
-
-  * superClusterIdToCellIdP   = superClusterIdToCellId;
-  * superClusterIdToCellEngyP = superClusterIdToCellEngy;
-  * superClusterCMP           = superClusterCM;
 
   return ;
 }

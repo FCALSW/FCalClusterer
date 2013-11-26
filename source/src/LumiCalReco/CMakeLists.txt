@@ -1,4 +1,18 @@
-SET( LumiCalReco_SOURCES LumiCalClusterer.cc )
+SET( LumiCalReco_SOURCES 
+  ClusterClass.cpp
+  GlobalMethodsClass.cpp
+  LCCluster.cpp
+  LumiCalClusterer.cpp
+  LumiCalClusterer_auxiliary.cpp
+  LumiCalClusterer_buildClusters.cpp
+  LumiCalClusterer_buildClusters_auxiliary.cpp
+  LumiCalClusterer_clusterMerger.cpp
+  LumiCalClusterer_energyCorrections.cpp
+  LumiCalClusterer_fiducialVolumeCuts.cpp
+  LumiCalClusterer_getCalHits.cpp
+  SuperTrueClusterWeights.cpp
+  VirtualCluster.cpp
+)
 
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/include/LumiCalReco )
 INCLUDE_DIRECTORIES ( ./include )
