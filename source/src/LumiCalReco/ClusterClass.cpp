@@ -22,6 +22,9 @@ ClusterClass::ClusterClass(int idNow):
 {
   // inherited method from BeamPipe class, to set all global constants
   SetConstants();
+  clusterPosition[0] = 0.0;
+  clusterPosition[1] = 0.0;
+  clusterPosition[2] = 0.0;
 }
 
 ClusterClass::~ClusterClass() {
@@ -208,4 +211,27 @@ int ClusterClass::ResetStats() {
 #endif
 
   return 1;
+}
+
+
+
+std::ostream& operator<<(std::ostream & o, const ClusterClass& rhs) {
+
+  o << "Cluster Information:   " << rhs.Id << std::endl
+    << std::setw(30) << "sign, engyHits, engyMC:  "
+    << std::setw(13) << rhs.SignMC
+    << std::setw(13) << GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , rhs.Engy)
+    << std::setw(13) << rhs.EngyMC << std::endl
+    << std::setw(30) << "theta mc,rec:"
+    << std::setw(13) << rhs.ThetaMC
+    << std::setw(13) << rhs.Theta << std::endl
+    << std::setw(30) << "phi mc,rec:"
+    << std::setw(13) << rhs.PhiMC
+    << std::setw(13) << rhs.Phi << std::endl
+    << std::setw(30) << "vertex X,Y,Z: "
+    << std::setw(13) << rhs.VtxX
+    << std::setw(13) << rhs.VtxY
+    << std::setw(13) << rhs.VtxZ
+    << std::endl << std::endl;
+  return o;
 }

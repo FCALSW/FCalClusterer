@@ -1,6 +1,12 @@
 #include <map>
 #include <vector>
 
+#include <IMPL/ReconstructedParticleImpl.h>
+#include <IMPL/ClusterImpl.h>
+#include <EVENT/LCCollection.h>
+#include <IMPL/LCCollectionVec.h>
+/* >> */ 
+
   /* --------------------------------------------------------------------------
      -------------------------------------------------------------------------- */
   void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(  EVENT::LCEvent * evt  ){
@@ -14,9 +20,6 @@
       std::map < int , std::map < int , ClusterClass * > >	clusterClassMap;
       std::map < int , ClusterClass * > :: iterator	clusterClassMapIterator;
 
-      std::map < int , std::map < int , std::vector<int> > >	clusterIdToCellId;
-      std::map < int , std::map < int , std::vector<double> > >	cellIdToCellEngy;
-
       int	numClusters, clusterId;
       double	weightNow;
 
@@ -29,17 +32,21 @@
 	 -------------------------------------------------------------------------- */
       // instantiate a clusterClass object for each mcParticle which was created
       // infront of LumiCal and was destroyed after lumical.
-      LumiCalClusterer . processEvent(evt);
+      LumiCalClusterer.processEvent(evt);
 
-      clusterIdToCellId = LumiCalClusterer . _superClusterIdToCellId;
-      cellIdToCellEngy  = LumiCalClusterer . _superClusterIdToCellEngy;
 
-      CreateClusters( clusterIdToCellId , cellIdToCellEngy , clusterClassMap );
+      CreateClusters( LumiCalClusterer._superClusterIdToCellId,
+		      LumiCalClusterer._superClusterIdToCellEngy,
+		      clusterClassMap );
 
 
       /* --------------------------------------------------------------------------
 	 flag the highest-energy cluster in each arm
 	 -------------------------------------------------------------------------- */
+      
+      LCCollectionVec* LCalClusterCol = new LCCollectionVec(LCIO::CLUSTER);
+      LCCollectionVec* LCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
+
       for(int armNow = -1; armNow < 2; armNow += 2) {
 	sortingClassV.clear();
 
@@ -47,6 +54,38 @@
 	clusterClassMapIterator = clusterClassMap[armNow].begin();
 	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
 	  clusterId = (int)(*clusterClassMapIterator).first;
+
+	  ClusterClass const* thisCluster = clusterClassMap[armNow][clusterId];
+
+	  ClusterImpl* cluster = new ClusterImpl;
+	  const double thetaCluster = thisCluster->Theta;
+	  const double energyCluster = thisCluster->Engy;
+	  const double phiCluster = thisCluster->Phi;
+	  cluster->setEnergy( energyCluster );
+
+	  const float clusterPosition[3] = { float(thisCluster->getPosition()[0]),
+					     float(thisCluster->getPosition()[1]),
+					     float(thisCluster->getPosition()[2])};
+
+	  cluster->setPosition( clusterPosition );
+#pragma message ("FIXME: Link Calohits to the Cluster")
+
+	  float momentumCluster[3] = { float(energyCluster * sin ( thetaCluster ) * cos ( phiCluster )),
+				       float(energyCluster * sin ( thetaCluster ) * sin ( phiCluster )),
+				       float(energyCluster * cos ( thetaCluster )) };
+
+	  const float mass = 0.0;
+	  const float charge = 1e+19;
+
+	  ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
+	  particle->setMass( mass ) ;
+	  particle->setCharge( charge ) ;
+	  particle->setMomentum ( momentumCluster ) ;
+	  particle->setEnergy ( energyCluster ) ;
+	  particle->addCluster( cluster ) ;
+
+	  LCalClusterCol->addElement(cluster);
+	  LCalRPCol->addElement(particle);
 
 	  if(clusterClassMap[armNow][clusterId]->OutsideFlag == 1)	continue;
 
@@ -80,6 +119,16 @@
 	}
 
       }
+
+      //Add collections to the event if there are clusters
+      if ( LCalClusterCol->getNumberOfElements() != 0 ) {
+	evt->addCollection(LCalClusterCol, "LumiCalCluster");
+	evt->addCollection(LCalRPCol, "LumiCalRecoParticles");
+      } else {
+	delete LCalClusterCol;
+	delete LCalRPCol;
+      }
+
 
 
 
@@ -273,25 +322,24 @@
 
     std::map < int , std::vector<int> >  ::const_iterator	clusterIdToCellIdIterator;
 
-    int	numClusters, clusterId, numElementsInCluster, cellId;
-    double	engyHit;
-
     for(int armNow = -1; armNow < 2; armNow += 2) {
 
       clusterIdToCellIdIterator = clusterIdToCellId.at(armNow).begin();
-      numClusters               = clusterIdToCellId.at(armNow).size();
+      int numClusters               = clusterIdToCellId.at(armNow).size();
       for(int superClusterNow = 0; superClusterNow < numClusters; superClusterNow++, clusterIdToCellIdIterator++) {
-	clusterId = (int)(*clusterIdToCellIdIterator).first;
+	int clusterId = (int)(*clusterIdToCellIdIterator).first;
 
 	clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId);
 	clusterClassMap[armNow][clusterId] -> SetStatsMC();
 	clusterClassMap[armNow][clusterId] -> SignMC = armNow;
 
-	numElementsInCluster = clusterIdToCellId.at(armNow).at(clusterId).size();
+#pragma message ("FIXME: Calculate the position of the cluster")
+
+	int numElementsInCluster = clusterIdToCellId.at(armNow).at(clusterId).size();
 	for(int cellNow = 0; cellNow < numElementsInCluster; cellNow++) {
 
-	  cellId  = clusterIdToCellId.at(armNow).at(clusterId).at(cellNow);
-	  engyHit = cellIdToCellEngy.at(armNow).at(clusterId).at(cellNow);
+	  int cellId  = clusterIdToCellId.at(armNow).at(clusterId).at(cellNow);
+	  double engyHit = cellIdToCellEngy.at(armNow).at(clusterId).at(cellNow);
 
 	  clusterClassMap[armNow][clusterId] -> FillHit(cellId , engyHit);
 	}
@@ -314,9 +362,9 @@
 #endif
 
       clusterClassMapIterator = clusterClassMap[armNow].begin();
-      numClusters             = clusterClassMap[armNow].size();
+      int numClusters             = clusterClassMap[armNow].size();
       for (int MCParticleNow = 0; MCParticleNow < numClusters; MCParticleNow++, clusterClassMapIterator++) {
-	clusterId = (int)(*clusterClassMapIterator).first;
+	int clusterId = (int)(*clusterClassMapIterator).first;
 
 	int	resetStatsFlag = clusterClassMap[armNow][clusterId] -> ResetStats();
 

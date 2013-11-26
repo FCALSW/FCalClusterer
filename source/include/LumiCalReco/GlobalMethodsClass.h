@@ -55,7 +55,7 @@ public:
   ParametersDouble GlobalParamD;
   ParametersString GlobalParamS;
 
-  double SignalGevConversion( Parameter_t optName , double valNow );
+  static double SignalGevConversion( Parameter_t optName , double valNow );
 
   double Distance2DPolar( std::map <std::string , double>& pos1 , std::map < std::string , double>& pos2 );
 

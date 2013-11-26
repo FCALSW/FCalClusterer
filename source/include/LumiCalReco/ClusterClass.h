@@ -31,12 +31,17 @@ public:
   double	Engy, Theta, Phi, RZStart;
   double	VtxX, VtxY, VtxZ, EndPointX, EndPointY, EndPointZ;
   double	EngyMC, ThetaMC, PhiMC;
-
+  double clusterPosition[3];
   std::vector <int> MergedV;
 
   std::string	OutsideReason;
 
   std::map < int , double >	Hit;
+
+  const double * getPosition() const { return clusterPosition; }
+  
+  friend std::ostream& operator<<(std::ostream & o, const ClusterClass& rhs);
+  
 
 };
 
