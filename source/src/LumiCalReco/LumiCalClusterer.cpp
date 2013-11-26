@@ -29,6 +29,7 @@ namespace EVENT{
 LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _superClusterIdToCellId(),
   _superClusterIdToCellEngy(),
+  _superClusterIdClusterInfo(),
   _lumiName( lumiNameNow ),
   _clusterMinNumHits(15),
   _hitMinEnergy(5*1e-6),
@@ -164,6 +165,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 
   _superClusterIdToCellId.clear();
   _superClusterIdToCellEngy.clear();
+  _superClusterIdClusterInfo.clear();
 
   /* --------------------------------------------------------------------------
      Loop over al hits in the LCCollection and write the hits into std::vectors
@@ -258,6 +260,9 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 		<< "  Id:"     << std::setw(4)  << superClusterId
 		<< superClusterCM[armNow][superClusterId]
 		<< std::endl;
+
+      //Store information of clusters
+      _superClusterIdClusterInfo[armNow][superClusterId] = superClusterCM[armNow][superClusterId];
     }
   }
 

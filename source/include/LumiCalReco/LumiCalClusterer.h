@@ -52,7 +52,7 @@ public:
 
   std::map < int , std::map < int , std::vector<int> > >	_superClusterIdToCellId;
   std::map < int , std::map < int , std::vector<double> > >	_superClusterIdToCellEngy;
-
+  std::map < int , std::map < int , LCCluster > > _superClusterIdClusterInfo;
 
   void setLumiCollectionName(std::string const& lumiNameNow) { _lumiName = lumiNameNow; }
 

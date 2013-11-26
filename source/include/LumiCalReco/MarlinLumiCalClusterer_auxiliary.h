@@ -56,16 +56,17 @@
 	  clusterId = (int)(*clusterClassMapIterator).first;
 
 	  ClusterClass const* thisCluster = clusterClassMap[armNow][clusterId];
+	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
 
 	  ClusterImpl* cluster = new ClusterImpl;
 	  const double thetaCluster = thisCluster->Theta;
-	  const double energyCluster = thisCluster->Engy;
+	  const double energyCluster = GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisCluster->Engy);
 	  const double phiCluster = thisCluster->Phi;
 	  cluster->setEnergy( energyCluster );
 
-	  const float clusterPosition[3] = { float(thisCluster->getPosition()[0]),
-					     float(thisCluster->getPosition()[1]),
-					     float(thisCluster->getPosition()[2])};
+	  const float clusterPosition[3] = { float(thisClusterInfo.getPosition()[0]),
+					     float(thisClusterInfo.getPosition()[1]),
+					     float(thisClusterInfo.getPosition()[2])};
 
 	  cluster->setPosition( clusterPosition );
 #pragma message ("FIXME: Link Calohits to the Cluster")
@@ -332,8 +333,6 @@
 	clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId);
 	clusterClassMap[armNow][clusterId] -> SetStatsMC();
 	clusterClassMap[armNow][clusterId] -> SignMC = armNow;
-
-#pragma message ("FIXME: Calculate the position of the cluster")
 
 	int numElementsInCluster = clusterIdToCellId.at(armNow).at(clusterId).size();
 	for(int cellNow = 0; cellNow < numElementsInCluster; cellNow++) {
