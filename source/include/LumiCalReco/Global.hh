@@ -15,44 +15,5 @@
 #include <string>
 #include <iomanip>
 
-template<class T, class G>
-void printMap (std::string callFrom, int line , std::map< T, G> const& /*myMap*/) {
-  std::cout << __PRETTY_FUNCTION__  << std::endl;
-  std::cout << "Calling from " << callFrom << " " << line  << std::endl;
-  // for( auto& entry: myMap ){
-  //   std::cout << entry.first << "  " << entry.second  << std::endl;
-  // }
-  return;
-}
-
-
-template<class T>
-void printVector (std::vector<T> const& myVector ) {
-  // for( auto& entry: myVector ){
-  //   std::cout << std::setw(14) << entry;
-  // }
-  std::cout << std::endl;
-  return;
-}
-
-
-template<class T, class G>
-void printMapVector (std::string callFrom, int line , std::map< T, std::vector<  G > > const& myMap) {
-  std::cout << "Calling from " << callFrom << " " << line  << std::endl;
-  // for( auto const& entry: myMap ){
-  //   std::cout << entry.first;
-  //   printVector(entry.second);
-  // }
-  return;
-}
-
-template<class T>
-void printMapVector (std::string callFrom, int line , std::map< T, LCCluster > const& myMap) {
-  std::cout << "Calling from " << callFrom << " " << line  << std::endl;
-  // for( auto const& entry: myMap ){
-  //   std::cout << std::setw(4) << entry.first << entry.second << std::endl;
-  // }
-  return;
-}
 
 #endif // Global_hh

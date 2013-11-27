@@ -269,12 +269,12 @@
       int numCounters = OutputManager.Counter.size();
 
       if(numCounters > 0)
-	std::cout << std::endl << "Global counters:"  << std::endl;
+	streamlog_out(DEBUG) << std::endl << "Global counters:"  << std::endl;
 
       OutputManager.CounterIterator = OutputManager.Counter.begin();
       for(int hisNow = 0; hisNow < numCounters; hisNow++ , OutputManager.CounterIterator++) {
 	std::string counterName = (std::string)(*OutputManager.CounterIterator).first;
-	std::cout << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
+	streamlog_out(DEBUG) << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
       }
 #endif
 
@@ -304,7 +304,7 @@
     // if an !E!9exception has been thrown (no *col for this event) than do....
     catch( DataNotAvailableException &e ){
 #ifdef _LC_DEBUG
-      std::cout << "Event " << NumEvt << " has an exception"<< std::endl;
+      streamlog_out(DEBUG) << "Event " << NumEvt << " has an exception"<< std::endl;
 #endif
     }
 
@@ -348,8 +348,8 @@
 
 
 #if _CLUSTER_RESET_STATS_DEBUG == 1
-    std::cout << std::endl << "Transfering information into ClusterClass objects ......  "
-	      << std::endl;
+    streamlog_out(DEBUG) << "Transfering information into ClusterClass objects ......  "
+			 << std::endl;
 #endif
 
     /* --------------------------------------------------------------------------
@@ -357,7 +357,7 @@
        -------------------------------------------------------------------------- */
     for(int armNow = -1; armNow < 2; armNow += 2) {
 #if _CLUSTER_RESET_STATS_DEBUG == 1
-      std::cout << std::endl << "Initial Reset Stats for LumiCal arm = " << armNow << "  ...... " << std::endl;
+      streamlog_out(DEBUG) << "Initial Reset Stats for LumiCal arm = " << armNow << "  ...... " << std::endl;
 #endif
 
       clusterClassMapIterator = clusterClassMap[armNow].begin();
@@ -371,7 +371,7 @@
 	if(resetStatsFlag == 1) continue;
 	if(clusterClassMap[armNow][clusterId] -> SignMC != armNow) continue;
 
-	std::cout << "\tParticle Out ("
+	streamlog_out( MESSAGE4 ) << "\tParticle Out ("
 		  << clusterClassMap[armNow][clusterId] -> OutsideReason << "):   " << clusterId << std::endl
 		  << "\t\t pdg, parentId , NumMCDaughters = "
 		  << "\t" << clusterClassMap[armNow][clusterId] -> Pdg

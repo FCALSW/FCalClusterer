@@ -1,5 +1,7 @@
 #include "GlobalMethodsClass.h"
 
+#include <marlin/VerbosityLevels.h>
+
 #include <map>
 #include <string>
 #include <cmath>
@@ -182,15 +184,15 @@ void GlobalMethodsClass::PrintAllParameters() const {
 
 
   for (ParametersInt::const_iterator it = GlobalParamI.begin();it != GlobalParamI.end() ;++it) {
-    std::cout << " - (int)     " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
+    streamlog_out(MESSAGE) << " - (int)     " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
   }
 
   for (ParametersDouble::const_iterator it = GlobalParamD.begin();it != GlobalParamD.end() ;++it) {
-    std::cout << " - (double)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
+    streamlog_out(MESSAGE) << " - (double)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
   }
 
   for (ParametersString::const_iterator it = GlobalParamS.begin();it != GlobalParamS.end() ;++it) {
-    std::cout << " - (string)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
+    streamlog_out(MESSAGE) << " - (string)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
   }
 
 }

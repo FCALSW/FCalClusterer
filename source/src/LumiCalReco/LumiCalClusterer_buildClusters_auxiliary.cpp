@@ -129,8 +129,8 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
       isConnectedToNeighbor[cellIdHit] = 0;
       cellIdToClusterId[cellIdHit] = 0;
     } catch (std::out_of_range &e) {
-      std::cout << "Out Of Range " << cellIdHit
-		<< "in calHitsCellID" << std::endl;
+      streamlog_out( ERROR ) << "Out Of Range " << cellIdHit
+			     << "in calHitsCellID" << std::endl;
     }
   }
 
@@ -176,9 +176,8 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 	  }
 	}//if
       } catch (std::out_of_range & e) {
-	std::cout << "Out of range " << cellIdNeighbor
-		  << " in calHitsCellId:" <<  std::endl;
-	printMap(__func__, __LINE__, calHitsCellId);
+	streamlog_out( ERROR ) << "Out of range " << cellIdNeighbor
+			       << " in calHitsCellId:" <<  std::endl;
       }
 
     }//For all neighbor
@@ -489,18 +488,12 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
       // compute distance to neighboring clusters
       numClusters = clusterIdV.size();
 
-      //std::cout << "Cluster ID: " << clusterId  << std::endl;
-      //printMapVector (__func__, __LINE__,clusterCM);
-      //std::cout << "There are " << numClusters  << std::endl;
       for(int j=1; j<numClusters; j++){
+
 	int clusterIdJ = clusterIdV[j];
 	CM2[0] = clusterCM[clusterIdJ].getX();
 	CM2[1] = clusterCM[clusterIdJ].getY();
-	// std::cout << std::setw(13) << CM1[0]
-	//	  << std::setw(13) << CM1[1]
-	//	  << std::setw(13) << CM2[0]
-	//	  << std::setw(13) << CM2[1]
-	//	  << std::endl;
+
 	distanceCM = distance2D(CM1,CM2);
 
 	int considerCloseCluster = 0;
@@ -621,10 +614,6 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 	if(considerCloseCluster == 1) {
 	  // store the weight of the close cluster
 	  engyCM = clusterCM[clusterId].getE();
-	  // std::cout << __LINE__
-	  //	  << "DistanceCM " << distanceCM
-	  //	  << "  engyCM " << engyCM
-	  //	  << std::endl;
 
 	  assert (distanceCM > 0 && engyCM > 0);
 
@@ -1483,14 +1472,14 @@ int LumiCalClustererClass::buildSuperClusters ( std::map <int , IMPL::Calorimete
 
 
 #if _CLUSTER_BUILD_DEBUG == 1
-  std::cout  << " - superClusters:"  << std::endl;
+  streamlog_out( DEBUG ) << " - superClusters:"  << std::endl;
 
   superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
   numSuperClusters               = superClusterIdToCellId.size();
   for(int superClusterNow=0; superClusterNow<numSuperClusters; superClusterNow++, superClusterIdToCellIdIterator++){
     superClusterId  = (int)(*superClusterIdToCellIdIterator).first;	// Id of cluster
 
-    std::cout << "\t Id " << superClusterId << "  \t  energy " << superClusterCM[superClusterId].getE()
+    streamlog_out( DEBUG ) << "\t Id " << superClusterId << "  \t  energy " << superClusterCM[superClusterId].getE()
 	      << "     \t pos(x,y) =  ( " << superClusterCM[superClusterId].getX()
 	      << " , " << superClusterCM[superClusterId].getY() << " )"
 	      << "     \t pos(theta,phi) =  ( " << superClusterCM[superClusterId].getTheta()

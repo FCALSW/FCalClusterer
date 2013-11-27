@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 //Forward Declaration
 namespace IMPL{
   class CalorimeterHitImpl;
@@ -159,23 +160,22 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
      verbosity
      -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
-  std::cout << "\tClusters:"  << std::endl;
+  if ( not clusterIdToCellId.empty() ) {
+    streamlog_out( MESSAGE3 ) << "Clusters:"  << std::endl;
+  } else {
+    streamlog_out( MESSAGE3 ) << "No Clusters on this side" << std::endl;
+  }
 
   clusterIdToCellIdIterator = clusterIdToCellId.begin();
   numClusters               = clusterIdToCellId.size();
   for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterIdToCellIdIterator++) {
     clusterId = (int)(*clusterIdToCellIdIterator).first;
 
-    std::cout << "\t Id "  << clusterId
-	      << "  \t energy " << clusterCM[clusterId].getE()
-	      << "     \t pos(x,y) =  ( " << clusterCM[clusterId].getX()
-	      << " , " << clusterCM[clusterId].getY() << " )"
-	      << "     \t pos(theta,phi) =  ( " << clusterCM[clusterId].getTheta()
-	      << " , " << clusterCM[clusterId].getPhi() << " )"
-	      << std::endl;
+    streamlog_out( MESSAGE3 ) << "Id " << std::setw(4) << clusterId
+			      << clusterCM[clusterId] << std::endl;
+
   }
 
-  std::cout << std::endl;
 #endif
 
 

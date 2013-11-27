@@ -288,7 +288,7 @@ void OutputManagerClass::WriteToRootTree(std::string optName, int nEvtNow){
     delete	OutputRootFile;
     WriteRootTrees++;
 
-    std::cout << std::endl << "Went through  " << nEvtNow << "  events..." << std::endl;
+    streamlog_out(DEBUG) << std::endl << "Went through  " << nEvtNow << "  events..." << std::endl;
   }
 
   return;

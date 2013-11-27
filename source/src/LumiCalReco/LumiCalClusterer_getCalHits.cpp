@@ -33,7 +33,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
     std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > :: iterator		calHitsIterator;
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    std::cout << std::endl  << "Getting hit information ...."
+    streamlog_out( DEBUG ) << std::endl  << "Getting hit information ...."
 	      << std::endl << std::endl;
 #endif
 
@@ -80,7 +80,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       rHit	= (rCell+0.5)   * _rCellLength + _rMin;
       phiHit	= (phiCell+0.5) * _phiCellLength;
 
-      zHit    = (double)calHitIn -> getPosition()[2];
+      zHit      = (double)calHitIn -> getPosition()[2];
 
       // compute x.y hit coordinates
       xHit = rHit * cos(phiHit);
@@ -89,7 +89,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       hitPosV[0] = xHit; hitPosV[1] = yHit; hitPosV[2] = zHit;
 
       // determine the side (arm) of the hit -> (+,-)1
-      arm = int(zHit/fabs(zHit));
+      arm = (( zHit < 0 ) ? -1 : 1);
 
       // create a new IMPL::CalorimeterHitImpl
       calHitNew = new IMPL::CalorimeterHitImpl();
@@ -111,7 +111,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
   // if an exception has been thrown (no *col for this event) then do....
   catch( EVENT::DataNotAvailableException &e){
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    std::cout << "Event has a SimCalorimeterHitImpl exception"<< std::endl;
+    streamlog_out( ERROR ) << "Event has a SimCalorimeterHitImpl exception"<< std::endl;
 #endif
   }
 

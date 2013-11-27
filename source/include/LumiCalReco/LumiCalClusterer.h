@@ -21,6 +21,7 @@
 #include <IMPL/SimCalorimeterHitImpl.h>
 #include <UTIL/CellIDDecoder.h>
 
+#include <marlin/VerbosityLevels.h>
 
 #include <string>
 #include <map>

@@ -3,6 +3,7 @@
 #include "ClusterClass.h"
 
 #include <EVENT/MCParticle.h>
+#include <marlin/VerbosityLevels.h>
 
 #include <cmath>
 
@@ -192,22 +193,7 @@ int ClusterClass::ResetStats() {
   Phi = atan2(ytemp, xtemp);
 
 #if _CLUSTER_RESET_STATS_DEBUG == 1
-  std::cout << "\tReset stats:   " << Id << std::endl
-	    << std::setw(30) << "sign, engyHits, engyMC:  "
-	    << std::setw(13) << SignMC
-	    << std::setw(13) << SignalGevConversion(Signal_to_GeV , Engy)
-	    << std::setw(13) << EngyMC << std::endl
-	    << std::setw(30) << "theta mc,rec:"
-	    << std::setw(13) << ThetaMC
-	    << std::setw(13) << Theta << std::endl
-	    << std::setw(30) << "phi mc,rec:"
-	    << std::setw(13) << PhiMC
-	    << std::setw(13) << Phi << std::endl
-	    << std::setw(30) << "vertex X,Y,Z: "
-	    << std::setw(13) << VtxX
-	    << std::setw(13) << VtxY
-	    << std::setw(13) << VtxZ
-	    << std::endl << std::endl;
+  streamlog_out( MESSAGE4 ) << *this << std::endl;
 #endif
 
   return 1;
@@ -231,7 +217,6 @@ std::ostream& operator<<(std::ostream & o, const ClusterClass& rhs) {
     << std::setw(30) << "vertex X,Y,Z: "
     << std::setw(13) << rhs.VtxX
     << std::setw(13) << rhs.VtxY
-    << std::setw(13) << rhs.VtxZ
-    << std::endl << std::endl;
+    << std::setw(13) << rhs.VtxZ;
   return o;
 }

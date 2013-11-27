@@ -37,7 +37,7 @@ void LumiCalClustererClass:: fiducialVolumeCuts( std::map < int , std::vector<in
     superClusterId = clusterIdToErase[superClusterNow];
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    std::cout << "\tErase cluster " << superClusterId << std::endl;
+    streamlog_out( DEBUG ) << "\tErase cluster " << superClusterId << std::endl;
 #endif
 
     superClusterIdToCellId.erase(superClusterId);

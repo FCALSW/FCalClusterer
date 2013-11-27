@@ -110,10 +110,10 @@ void MarlinLumiCalClusterer::init(){
   /* --------------------------------------------------------------------------
      Print out Processor Parameters
      -------------------------------------------------------------------------- */
-  std::cout << std::endl << "Global parameters for MarlinLumiCalClusterer Processor:" << std::endl;
+  streamlog_out(MESSAGE) << std::endl << "Global parameters for MarlinLumiCalClusterer Processor:" << std::endl;
   GlobalMethods.PrintAllParameters();
 
-  std::cout << std::endl;
+  streamlog_out(MESSAGE) << std::endl;
 
 }
 
@@ -137,7 +137,7 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
   EvtNumber = evt->getEventNumber();
 
 #ifdef _LC_DEBUG
-  std::cout << std::endl
+  streamlog_out( DEBUG ) << std::endl
 	    << "Run MarlinLumiCalClusterer::processEvent - event counter: NumEvt = " << NumEvt
 	    << " ( event index " << EvtNumber << " )"
 	    << std::endl ;
@@ -158,9 +158,8 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
 void MarlinLumiCalClusterer::end(){
 
 #ifdef _LC_DEBUG
-  std::cout << std::endl << "Run MarlinLumiCalClusterer::end() "
-	    << std::endl << std::endl
-	    << "Went through " << NumEvt << " events from " << NumRun << " file(s)" << std::endl << std::endl;
+  streamlog_out( DEBUG ) << std::endl << "Run MarlinLumiCalClusterer::end() "
+			 << std::endl << "Went through " << NumEvt << " events from " << NumRun << " file(s)" << std::endl << std::endl;
 #endif
 
   // write to the root tree

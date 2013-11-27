@@ -115,8 +115,8 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
      Print out Parameters
      -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
-  std::cout << std::endl << "Global parameters for LumiCalClustererClass:"  << std::endl;
-  std::cout << " _cellRMax: "			    << _cellRMax			 << std::endl
+  streamlog_out(MESSAGE) << std::endl << "Global parameters for LumiCalClustererClass:"  << std::endl;
+  streamlog_out(MESSAGE) << " _cellRMax: "			    << _cellRMax			 << std::endl
 	    << " _cellPhiMax: "			    << _cellPhiMax			 << std::endl
 	    << " _zFirstLayer: "		    << _zFirstLayer			 << std::endl
 	    << " _zLayerThickness: "		    << _zLayerThickness			 << std::endl
@@ -185,7 +185,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     int armNow = _armsToCluster[armToClusterNow];
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    std::cout << std::endl
+    streamlog_out( DEBUG ) << std::endl
 	      << "ARM = " << armNow << " : " << std::endl << std::endl;
 #endif
 
@@ -193,7 +193,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
        Construct clusters for each arm
        -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    std::cout << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
+    streamlog_out( DEBUG ) << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
 #endif
 
     buildClusters( calHits[armNow],
@@ -207,7 +207,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
        Merge superClusters according the minDistance nad minEngy rules
        -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    std::cout << "\tRun LumiCalClustererClass::clusterMerger()" << std::endl;
+    streamlog_out( DEBUG ) << "\tRun LumiCalClustererClass::clusterMerger()" << std::endl;
 #endif
 
     clusterMerger(		_superClusterIdToCellEngy[armNow],
@@ -231,7 +231,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     numSuperClusters = superClusterCM[armNow].size();
     if(numSuperClusters == 2) {
 #if _GENERAL_CLUSTERER_DEBUG == 1
-      std::cout << "\tRun LumiCalClustererClass::energyCorrections()" << std::endl;
+      streamlog_out( DEBUG ) << "\tRun LumiCalClustererClass::energyCorrections()" << std::endl;
 #endif
 
       energyCorrections( _superClusterIdToCellId[armNow],
@@ -248,7 +248,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
      verbosity
      -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
-  std::cout << std::endl << "Final clusters:" << std::endl;
+  streamlog_out( DEBUG4 ) << "Final clusters:" << std::endl;
 
   for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
     int armNow = _armsToCluster[armToClusterNow];
@@ -258,17 +258,16 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     for(int superClusterNow = 0; superClusterNow < numSuperClusters; superClusterNow++, superClusterCMIterator++) {
       int superClusterId = (int)(*superClusterCMIterator).first;
 
-      std::cout << "  Arm:"    << std::setw(4)  << armNow
-		<< "  Id:"     << std::setw(4)  << superClusterId
-		<< superClusterCM[armNow][superClusterId]
-		<< std::endl;
+      streamlog_out( DEBUG4 ) << "  Arm:"    << std::setw(4)  << armNow
+			     << "  Id:"     << std::setw(4)  << superClusterId
+			     << superClusterCM[armNow][superClusterId]
+			     << std::endl;
 
       //Store information of clusters
       _superClusterIdClusterInfo[armNow][superClusterId] = superClusterCM[armNow][superClusterId];
     }
   }
 
-  std::cout << std::endl;
 #endif
 
 
