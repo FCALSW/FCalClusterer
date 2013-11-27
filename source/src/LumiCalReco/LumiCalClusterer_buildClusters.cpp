@@ -142,7 +142,8 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 
   std::cout  <<  "Shower peak layers:" << std::endl;
   std::cout  << "\t min # of hits, min energy/hit([signal],[GeV]) : " << minNumElementsInShowerPeakLayer
-	     << "\t(" <<  middleEnergyHitBound << " , " << engySignalGeV(middleEnergyHitBound, GlobalMethodsClass::Signal_to_GeV)
+	     << "\t(" <<  middleEnergyHitBound << " , " 
+	     << GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::Signal_to_GeV, middleEnergyHitBound)
 	     << ")" <<std::endl << "\t layers chosen : ";
 #endif
 

@@ -145,7 +145,7 @@ void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int
     if(deltaEngy > 0)	engyNow = deltaEngy;
     else			engyNow = engySmallNow;
 
-    engyNow = engySignalGeV(engyNow, GlobalMethodsClass::Signal_to_GeV);
+    engyNow = GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::Signal_to_GeV, engyNow);
 
     if(engyRatio > 0)
       correctionRatioH.Fill (distanceNow , engyRatio);

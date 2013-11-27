@@ -692,22 +692,3 @@ double LumiCalClustererClass::getDistanceAroundCMWithEnergyPercent( LCCluster co
   return distanceCM;
 
 }
-
-
-// ???????? DECIDE/FIX - make sure these are the correct callibration constants ????????
-/* --------------------------------------------------------------------------
-   get the parent particle Id of the parent which contributed the most
-   energy to the cluster
-   -------------------------------------------------------------------------- */
-double LumiCalClustererClass::engySignalGeV( double engy , GlobalMethodsClass::Parameter_t transformMethod ) {
-#pragma message("FIXME: SignalToGeV conversion")
-  if(transformMethod == GlobalMethodsClass::Signal_to_GeV)
-    engy = (engy) / .0105;
-  //		engy = (engy - .0013) / .0105;
-
-  else if(transformMethod == GlobalMethodsClass::GeV_to_Signal)
-    engy = engy * .0105;
-  //		engy = engy * .0105 + .0013;
-
-  return engy;
-}

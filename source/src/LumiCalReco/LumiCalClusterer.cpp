@@ -91,7 +91,8 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
 
   // minimal separation distance and energy (of either cluster) to affect a merge
   _minSeparationDistance = GlobalParamD.at(GlobalMethodsClass::MinSeparationDist);
-  _minClusterEngyGeV = engySignalGeV(GlobalParamD.at(GlobalMethodsClass::MinClusterEngy), GlobalMethodsClass::Signal_to_GeV);
+  _minClusterEngyGeV = GlobalMethodsClass::SignalGevConversion( GlobalMethodsClass::Signal_to_GeV,
+								GlobalParamD.at(GlobalMethodsClass::MinClusterEngy) );
 
 
   _thetaContainmentBouds[0] = GlobalParamD.at(GlobalMethodsClass::ThetaMin);
@@ -117,23 +118,24 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
   std::cout << std::endl << "Global parameters for LumiCalClustererClass:"  << std::endl;
   std::cout << " _cellRMax: "			    << _cellRMax			 << std::endl
 	    << " _cellPhiMax: "			    << _cellPhiMax			 << std::endl
-	    << " _zFirstLayer: "			    << _zFirstLayer			 << std::endl
-	    << " _zLayerThickness: "		    << _zLayerThickness				 << std::endl
-	    << " _rMin: "				    << _rMin				 << std::endl
-	    << " _rMax: "				    << _rMax				 << std::endl
+	    << " _zFirstLayer: "		    << _zFirstLayer			 << std::endl
+	    << " _zLayerThickness: "		    << _zLayerThickness			 << std::endl
+	    << " _rMin: "			    << _rMin				 << std::endl
+	    << " _rMax: "			    << _rMax				 << std::endl
 	    << " _rCellLength [mm]: "		    << _rCellLength			 << std::endl
 	    << " _phiCellLength [rad]:"		    << _phiCellLength			 << std::endl
-	    << " _methodCM: "			    << _methodCM				 << std::endl
+	    << " _methodCM: "			    << _methodCM			 << std::endl
 	    << " _logWeightConst: "		    << _logWeightConst			 << std::endl
-	    << " _elementsPercentInShowerPeakLayer: " << _elementsPercentInShowerPeakLayer	 << std::endl
+	    << " _elementsPercentInShowerPeakLayer: " << _elementsPercentInShowerPeakLayer	<< std::endl
 	    << " _moliereRadius: "		    << _moliereRadius			 << std::endl
 	    << " _minSeparationDistance: "	    << _minSeparationDistance		 << std::endl
-	    << " _minClusterEngy - GeV: "		    << _minClusterEngyGeV		 << std::endl
-	    << " _minClusterEngy - Signal: "	    << engySignalGeV(_minClusterEngyGeV, GlobalMethodsClass::GeV_to_Signal)
+	    << " _minClusterEngy - GeV: "	    << _minClusterEngyGeV		 << std::endl
+	    << " _minClusterEngy - Signal: "	    
+	    << GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::GeV_to_Signal, _minClusterEngyGeV)
 	    << std::endl
-	    << " _hitMinEnergy: "			    << _hitMinEnergy			 << std::endl
-	    << " _thetaContainmentBouds[0]: "	    << _thetaContainmentBouds[0]		 << std::endl
-	    << " _thetaContainmentBouds[1]: "	    << _thetaContainmentBouds[1]		 << std::endl
+	    << " _hitMinEnergy: "		    << _hitMinEnergy		         << std::endl
+	    << " _thetaContainmentBouds[0]: "	    << _thetaContainmentBouds[0]	 << std::endl
+	    << " _thetaContainmentBouds[1]: "	    << _thetaContainmentBouds[1]	 << std::endl
 	    << " _middleEnergyHitBoundFrac: "	    << _middleEnergyHitBoundFrac	 << std::endl
 	    << std::endl;
 #endif

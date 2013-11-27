@@ -68,7 +68,8 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
 
 	clusterPairWeightsNow->setWeight( "minEngyDistance",
 					  _minSeparationDistance,
-					  engySignalGeV(_minClusterEngyGeV, GlobalMethodsClass::GeV_to_Signal) );
+					  GlobalMethodsClass::SignalGevConversion( GlobalMethodsClass::GeV_to_Signal,
+										   _minClusterEngyGeV) );
 
 	if(clusterPairWeightsNow->weight < 0) {
 	  clusterPairWeightsNow->setWeight("distance");

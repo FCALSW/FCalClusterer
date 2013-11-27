@@ -256,11 +256,6 @@ protected:
 					  double moliereFraction,
 					  std::map < int , int > & flag );
 
-  double	engySignalGeV( double engy,
-			       GlobalMethodsClass::Parameter_t transformMethod );
-
-
-
 };
 
 #endif // LumiCalClusterer_h

@@ -104,6 +104,7 @@ double GlobalMethodsClass::Distance2DPolar( std::map <std::string , double>& pos
    -------------------------------------------------------------------------- */
 double GlobalMethodsClass::SignalGevConversion( Parameter_t optName , double valNow ){
 
+#pragma message("FIXME: SignalToGeV conversion")
   double	returnVal = -1;
   const double conversionFactor(0.0105*1789/1500*(1488/1500.0));
   //const double conversionFactor(0.0105);
