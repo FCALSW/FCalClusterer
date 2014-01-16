@@ -39,9 +39,10 @@ public:
   void	WriteToRootTree(std::string optName, int nEvtNow);
   void	Initialize(int skipNEventsNow , int numEventsTreeNow, std::string outDirNameNow);
 
+  void	CleanUp();
+
 private:
   // private method that may only be called ONCE in the destructor
-  void	CleanUp();
 
   OutputManagerClass& operator=(OutputManagerClass const& rhs);
   OutputManagerClass(OutputManagerClass const&);
@@ -214,35 +215,27 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, st
 
 void OutputManagerClass::CleanUp(){
 
-  int numHis;
-
   // 1D histogram std::map
-  numHis            = HisMap1D.size();
   HisMap1DIterator  = HisMap1D.begin();
-  for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap1DIterator++) {
-    std::string hisName = (std::string)(*HisMap1DIterator).first;
-
-    delete HisMap1D[hisName];
+  for(; HisMap1DIterator != HisMap1D.end(); ++HisMap1DIterator) {
+    delete HisMap1DIterator->second;
   }
 
   // 2D histogram std::map
-  numHis            = HisMap2D.size();
   HisMap2DIterator  = HisMap2D.begin();
-  for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap2DIterator++) {
-    std::string hisName = (std::string)(*HisMap2DIterator).first;
-
-    delete HisMap2D[hisName];
+  for(;HisMap2DIterator != HisMap2D.end(); ++HisMap2DIterator) {
+    delete HisMap2DIterator->second;
   }
 
   // tree std::map
-  numHis            = TreeMap.size();
   TreeMapIterator   = TreeMap.begin();
-  for(int hisNow = 0; hisNow < numHis; hisNow++ , ++TreeMapIterator) {
-    std::string hisName = (std::string)(*TreeMapIterator).first;
-
-    delete TreeMap[hisName];
+  for(; TreeMapIterator != TreeMap.end(); ++TreeMapIterator) {
+    delete TreeMapIterator->second;
   }
 
+  TreeMap.clear();
+  HisMap2D.clear();
+  HisMap1D.clear();
 
   return;
 }
@@ -250,38 +243,30 @@ void OutputManagerClass::CleanUp(){
 
 void OutputManagerClass::WriteToRootTree(std::string optName, int nEvtNow){
 
-  int numHis;
-
   if( int(nEvtNow/double(NumEventsTree)) ==  WriteRootTrees || optName == "forceWrite") {
     OutputRootFileName = "./";  OutputRootFileName += OutDirName;  OutputRootFileName += "/output_";
     OutputRootFileName += WriteRootTrees;  OutputRootFileName += ".root";
     OutputRootFile = new TFile(OutputRootFileName.c_str(),"RECREATE");
 
     // 1D histogram std::map
-    numHis            = HisMap1D.size();
     HisMap1DIterator  = HisMap1D.begin();
-    for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap1DIterator++) {
-      std::string hisName = (std::string)(*HisMap1DIterator).first;
-      HisMap1D[hisName] -> Write();
-      HisMap1D[hisName] -> Reset();
+  for(; HisMap1DIterator != HisMap1D.end(); ++HisMap1DIterator) {
+      HisMap1DIterator->second -> Write();
+      HisMap1DIterator->second -> Reset();
     }
 
     // 2D histogram map
-    numHis            = HisMap2D.size();
     HisMap2DIterator  = HisMap2D.begin();
-    for(int hisNow = 0; hisNow < numHis; hisNow++ , HisMap2DIterator++) {
-      std::string hisName = (std::string)(*HisMap2DIterator).first;
-      HisMap2D[hisName] -> Write();
-      HisMap2D[hisName] -> Reset();
+    for(;HisMap2DIterator != HisMap2D.end();++HisMap2DIterator) {
+      HisMap2DIterator->second -> Write();
+      HisMap2DIterator->second -> Reset();
     }
 
     // tree map
-    numHis            = TreeMap.size();
     TreeMapIterator   = TreeMap.begin();
-    for(int hisNow = 0; hisNow < numHis; hisNow++ , ++TreeMapIterator) {
-      std::string hisName = (std::string)(*TreeMapIterator).first;
-      TreeMap[hisName] -> Write();
-      TreeMap[hisName] -> Reset();
+    for(; TreeMapIterator != TreeMap.end(); ++TreeMapIterator) {
+      TreeMapIterator->second -> Write();
+      TreeMapIterator->second -> Reset();
     }
 
     OutputRootFile -> Close();

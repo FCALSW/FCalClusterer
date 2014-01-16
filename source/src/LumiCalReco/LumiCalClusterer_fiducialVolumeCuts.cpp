@@ -27,7 +27,7 @@ void LumiCalClustererClass:: fiducialVolumeCuts( std::map < int , std::vector<in
     superClusterId   = (int)(*superClusterIdToCellIdIterator).first;  // Id of cluster
 
     thetaSuperCluster = fabs(superClusterCM[superClusterId].getTheta());
-    if(thetaSuperCluster < _thetaContainmentBouds[0] || thetaSuperCluster > _thetaContainmentBouds[1])
+    if(thetaSuperCluster < _thetaContainmentBounds[0] || thetaSuperCluster > _thetaContainmentBounds[1])
       clusterIdToErase.push_back(superClusterId);
 
   }

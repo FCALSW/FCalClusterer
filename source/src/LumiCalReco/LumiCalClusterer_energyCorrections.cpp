@@ -78,7 +78,7 @@ void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int
      -------------------------------------------------------------------------- */
   superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
   numSuperClusters               = superClusterIdToCellId.size();
-  double pos1[2]={0.0, 0.0}, pos2[2]={0.0, 0.0}, pos3[2]={0.0, 0.0};
+  double pos1[2]={0.0, 0.0}, pos2[2]={0.0, 0.0};
   for(int superClusterNow=0; superClusterNow<numSuperClusters; superClusterNow++, superClusterIdToCellIdIterator++){
     superClusterId  = (int)(*superClusterIdToCellIdIterator).first;	// Id of cluster
 
@@ -103,8 +103,9 @@ void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int
     for(int hitNow = 0; hitNow < numElementsInCluster; hitNow++){
       cellIdHit = superClusterIdToCellId[superClusterId][hitNow];
 
-      pos3[0] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[0];
-      pos3[1] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[1];
+      const IMPL::CalorimeterHitImpl* thisHit = calHitsCellIdGlobal.at(cellIdHit);
+      double pos3[2] = { thisHit -> getPosition()[0],
+			 thisHit -> getPosition()[1]};
 
       engyNow = superClusterIdToCellEngy[superClusterId][hitNow];
 
@@ -165,8 +166,9 @@ void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int
     for(int hitNow = 0; hitNow < numElementsInSuperCluster; hitNow++){
       cellIdHit = superClusterIdToCellId[superClusterId][hitNow];
 
-      pos3[0] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[0];
-      pos3[1] = calHitsCellIdGlobal.at(cellIdHit) -> getPosition()[1];
+      const IMPL::CalorimeterHitImpl* thisHit = calHitsCellIdGlobal.at(cellIdHit);
+      double pos3[2] = { thisHit -> getPosition()[0],
+			 thisHit -> getPosition()[1]};
 
       engyNow = superClusterIdToCellEngy[superClusterId][hitNow];
 

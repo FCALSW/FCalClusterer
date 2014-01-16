@@ -44,7 +44,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _middleEnergyHitBoundFrac(0.01),
   _methodCM(GlobalMethodsClass::LogMethod),
   _moliereRadius(),
-  _thetaContainmentBouds(),
+  _thetaContainmentBounds(),
   _minSeparationDistance(), _minClusterEngyGeV(),
   _totEngyArm(),
   _armsToCluster(),
@@ -95,8 +95,8 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
 								GlobalParamD.at(GlobalMethodsClass::MinClusterEngy) );
 
 
-  _thetaContainmentBouds[0] = GlobalParamD.at(GlobalMethodsClass::ThetaMin);
-  _thetaContainmentBouds[1] = GlobalParamD.at(GlobalMethodsClass::ThetaMax);
+  _thetaContainmentBounds[0] = GlobalParamD.at(GlobalMethodsClass::ThetaMin);
+  _thetaContainmentBounds[1] = GlobalParamD.at(GlobalMethodsClass::ThetaMax);
 
   _maxLayerToAnalyse = GlobalParamI.at(GlobalMethodsClass::NumCellsZ);
   _cellRMax	   = GlobalParamI.at(GlobalMethodsClass::NumCellsR);
@@ -134,8 +134,8 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
 	    << GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::GeV_to_Signal, _minClusterEngyGeV)
 	    << std::endl
 	    << " _hitMinEnergy: "		    << _hitMinEnergy		         << std::endl
-	    << " _thetaContainmentBouds[0]: "	    << _thetaContainmentBouds[0]	 << std::endl
-	    << " _thetaContainmentBouds[1]: "	    << _thetaContainmentBouds[1]	 << std::endl
+	    << " _thetaContainmentBounds[0]: "	    << _thetaContainmentBounds[0]	 << std::endl
+	    << " _thetaContainmentBounds[1]: "	    << _thetaContainmentBounds[1]	 << std::endl
 	    << " _middleEnergyHitBoundFrac: "	    << _middleEnergyHitBoundFrac	 << std::endl
 	    << std::endl;
 #endif
@@ -273,19 +273,17 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 
 
   // cleanUp
-  numArmsToCluster = _armsToCluster.size();
-  for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
-    int armNow = _armsToCluster[armToClusterNow];
-
-    calHitsCellIdGlobalIterator = calHitsCellIdGlobal[armNow].begin();
-    int numHitsLayer            = calHitsCellIdGlobal[armNow].size();
-    for(int hitNow = 0; hitNow < numHitsLayer; hitNow++, calHitsCellIdGlobalIterator++) {
-      int cellId = (int)(*calHitsCellIdGlobalIterator).first;  // Id of cell
-
-      delete calHitsCellIdGlobal[armNow][cellId];
+  for (std::map<int, std::map < int, std::vector <IMPL::CalorimeterHitImpl*> > >::iterator it = calHits.begin(); it != calHits.end(); ++it) {
+    std::map < int, std::vector <IMPL::CalorimeterHitImpl*> >& mapVecHits = it->second;
+    for (std::map < int, std::vector <IMPL::CalorimeterHitImpl*> >::iterator it2 = mapVecHits.begin(); it2 != mapVecHits.end(); ++it2) {
+      std::vector <IMPL::CalorimeterHitImpl*>& vecHits = it2->second;
+      for (std::vector<IMPL::CalorimeterHitImpl*>::iterator it3 = vecHits.begin(); it3 != vecHits.end(); ++it3) {
+	delete (*it3);
+      }
     }
   }
 
+  calHits.clear();
   superClusterCM.clear();
   calHitsCellIdGlobal.clear();
 

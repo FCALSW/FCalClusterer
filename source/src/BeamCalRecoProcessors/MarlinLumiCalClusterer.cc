@@ -1,5 +1,3 @@
-#define _LC_DEBUG
-
 // include my header file + whatever LCIO classes i use below
 
 #include "MarlinLumiCalClusterer.h"
@@ -136,12 +134,10 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
   NumEvt++;
   EvtNumber = evt->getEventNumber();
 
-#ifdef _LC_DEBUG
   streamlog_out( DEBUG ) << std::endl
 	    << "Run MarlinLumiCalClusterer::processEvent - event counter: NumEvt = " << NumEvt
 	    << " ( event index " << EvtNumber << " )"
 	    << std::endl ;
-#endif
 
 
   OutputManager.NumEventsTree = 500;	TryMarlinLumiCalClusterer(evt);
@@ -157,10 +153,9 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
    ========================================================================= */
 void MarlinLumiCalClusterer::end(){
 
-#ifdef _LC_DEBUG
-  streamlog_out( DEBUG ) << std::endl << "Run MarlinLumiCalClusterer::end() "
-			 << std::endl << "Went through " << NumEvt << " events from " << NumRun << " file(s)" << std::endl << std::endl;
-#endif
+  streamlog_out( DEBUG ) << "Run MarlinLumiCalClusterer::end() "
+			 << "Went through " << NumEvt << " events from " << NumRun << " file(s)" 
+			 << std::endl;
 
   // write to the root tree
   OutputManager.WriteToRootTree("forceWrite" , NumEvt);
@@ -177,5 +172,7 @@ void MarlinLumiCalClusterer::end(){
     std::string counterName = (std::string)(*OutputManager.CounterIterator).first;
     std::cout << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
   }
+
+  OutputManager.CleanUp();
 
 }

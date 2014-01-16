@@ -11,6 +11,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 
 /* =========================================================================
@@ -39,7 +40,6 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   int   numSuperClusters, superClusterId, numElementsInSuperCluster;
 
   std::string hisName;
-  TF1   * fitFunc;
 
   std::vector < std::map <int , IMPL::CalorimeterHitImpl* > > calHitsCellId(_maxLayerToAnalyse),
     calHitsSmallEngyCellId(_maxLayerToAnalyse);
@@ -82,7 +82,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   std::vector < std::map < int , VirtualCluster > >        virtualClusterCM(_maxLayerToAnalyse);
   VirtualCluster                        virtualClusterCMV;
 
-  std::map < int , TH1F * >             xLineFitCM, yLineFitCM;
+  std::map < int , TH1F >             xLineFitCM, yLineFitCM;
   std::vector < std::vector<double> >        fitParamX, fitParamY;
 
   std::map < int , double >                     layerToPosX, layerToPosY, layerToEngy;
@@ -375,7 +375,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   streamlog_out( DEBUG ) <<  "Fit lines through the averaged CM" << std::endl <<std::endl;
 #endif
 
-  fitFunc = new TF1("fitFunc","[0]+[1]*x",-3000,-2000);
+  TF1 fitFunc("fitFunc","[0]+[1]*x",-3000,-2000);
 
   streamlog_out( DEBUG ) << "Fit Param should be this size: " <<  engyPosCMLayer.size()  << std::endl;
   //  for(size_t clusterNow=0; clusterNow < engyPosCMLayer.size(); clusterNow++, engyPosCMLayerIterator++) {
@@ -398,10 +398,10 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 #endif
 
     hisName = "_xLineFitCM_Cluster"; hisName += clusterNow;
-    xLineFitCM[clusterNow] = new TH1F(  hisName.c_str(),hisName.c_str(),_maxLayerToAnalyse*10,0,_maxLayerToAnalyse);
+    xLineFitCM[clusterNow] = TH1F(  hisName.c_str(),hisName.c_str(),_maxLayerToAnalyse*10,0,_maxLayerToAnalyse);
 
     hisName = "_yLineFitCM_Cluster"; hisName += clusterNow;
-    yLineFitCM[clusterNow] = new TH1F(  hisName.c_str(),hisName.c_str(),_maxLayerToAnalyse*10,0,_maxLayerToAnalyse);
+    yLineFitCM[clusterNow] = TH1F(  hisName.c_str(),hisName.c_str(),_maxLayerToAnalyse*10,0,_maxLayerToAnalyse);
 
 
     /* --------------------------------------------------------------------------
@@ -433,8 +433,8 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
       layerToPosX[layerNow] /= layerToEngy[layerNow];
       layerToPosY[layerNow] /= layerToEngy[layerNow];
 
-      xLineFitCM[clusterNow] -> Fill(layerNow , layerToPosX[layerNow]);
-      yLineFitCM[clusterNow] -> Fill(layerNow , layerToPosY[layerNow]);
+      xLineFitCM[clusterNow] . Fill(layerNow , layerToPosX[layerNow]);
+      yLineFitCM[clusterNow] . Fill(layerNow , layerToPosY[layerNow]);
 
 #if _CLUSTER_BUILD_DEBUG == 1
       streamlog_out( DEBUG )     << "\tlayer , avPos(x,y) : " << layerNow << " \t (" << layerToPosX[layerNow]
@@ -443,34 +443,33 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
     }
 
     // fit a straight line for each histogram, and store the fit results
-    xLineFitCM[clusterNow]->Fit("fitFunc","+CQ0");
-    fitParamX.push_back(std::vector<double>(0));
-    fitParamX.back().push_back( fitFunc->GetParameter(0) );
-    fitParamX.back().push_back( fitFunc->GetParameter(1) );
+    xLineFitCM[clusterNow].Fit("fitFunc","+CQ0");
+    fitParamX.push_back(std::vector<double>(2,0.0));
+    fitParamX.back()[0] = fitFunc.GetParameter(0);
+    fitParamX.back()[1] = fitFunc.GetParameter(1);
 
 #if _CLUSTER_BUILD_DEBUG == 1
     streamlog_out( DEBUG )   << "\t -> xFitPar 0,1:  "
-		<< fitFunc->GetParameter(0) << " (+-) " << fitFunc->GetParError(0)
-		<< " \t,\t " << fitFunc->GetParameter(1) << " (+-) " << fitFunc->GetParError(1) <<std::endl;
+		<< fitFunc.GetParameter(0) << " (+-) " << fitFunc.GetParError(0)
+		<< " \t,\t " << fitFunc.GetParameter(1) << " (+-) " << fitFunc.GetParError(1) <<std::endl;
 #endif
 
-    yLineFitCM[clusterNow] -> Fit("fitFunc","+CQ0");
-    fitParamY.push_back(std::vector<double>(0));
-    fitParamY.back().push_back( fitFunc->GetParameter(0) );
-    fitParamY.back().push_back( fitFunc->GetParameter(1) );
+    yLineFitCM[clusterNow] . Fit("fitFunc","+CQ0");
+    fitParamY.push_back(std::vector<double>(2,0.0));
+    fitParamY.back()[0] = fitFunc.GetParameter(0);
+    fitParamY.back()[1] = fitFunc.GetParameter(1);
 
 #if _CLUSTER_BUILD_DEBUG == 1
     streamlog_out( DEBUG )       << "\t -> yFitPar 0,1:  "
-		    << fitFunc->GetParameter(0) << " (+-) " << fitFunc->GetParError(0)
-		    << " \t,\t " << fitFunc->GetParameter(1) << " (+-) " << fitFunc->GetParError(1) <<std::endl <<std::endl;
+		    << fitFunc.GetParameter(0) << " (+-) " << fitFunc.GetParError(0)
+		    << " \t,\t " << fitFunc.GetParameter(1) << " (+-) " << fitFunc.GetParError(1) <<std::endl <<std::endl;
 #endif
 
     // cleanUp
-    delete xLineFitCM[clusterNow]; delete yLineFitCM[clusterNow];
     layerToPosX.clear();  layerToPosY.clear();  layerToEngy.clear();
   }
   // cleanUp
-  xLineFitCM.clear(); yLineFitCM.clear(); delete fitFunc;
+  xLineFitCM.clear(); yLineFitCM.clear();
 
 
   /* --------------------------------------------------------------------------
@@ -515,11 +514,17 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 
     // form clusters for the non shower-peak layers in the non shower-peak layers only.
     if(isShowerPeakLayer[layerNow] == 0) {
+      try {
       virtualCMClusterBuild( calHitsCellId[layerNow],
 			     cellIdToClusterId[layerNow],
 			     clusterIdToCellId[layerNow],
 			     clusterCM[layerNow],
 			     virtualClusterCM[layerNow] );
+      } catch (std::out_of_range &e) {
+	std::cout << "exception"  << std::endl;
+	std::cout << e.what()  << std::endl;
+	throw;
+      }
 #if _CLUSTER_BUILD_DEBUG == 1
       streamlog_out(DEBUG) << "\tbuild cluster around a virtual CM in layer " << layerNow
 			   << std::endl;

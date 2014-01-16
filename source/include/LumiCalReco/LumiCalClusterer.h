@@ -94,7 +94,7 @@ protected:
   double	_middleEnergyHitBoundFrac;
   GlobalMethodsClass::WeightingMethod_t _methodCM;
   double	_moliereRadius;
-  double	_thetaContainmentBouds[2];
+  double	_thetaContainmentBounds[2];
   double	_minSeparationDistance, _minClusterEngyGeV;
 
   std::map < int , double >	_totEngyArm;
@@ -189,7 +189,7 @@ protected:
   double	posWeight( IMPL::CalorimeterHitImpl const* calHit ,
 			   GlobalMethodsClass::WeightingMethod_t method );
 
-  double	posWeightTureCluster( IMPL::CalorimeterHitImpl	* calHit,
+  double	posWeightTureCluster( IMPL::CalorimeterHitImpl const* calHit,
 				      double			cellEngy,
 				      GlobalMethodsClass::WeightingMethod_t method );
 

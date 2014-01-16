@@ -50,4 +50,11 @@ inline bool HitDistanceCMCmpAsc(  std::vector<double> const&a, std::vector<doubl
 }
 
 
+// template <class Lhs, class Rhs> inline bool compareByValue(const Lhs& lhs, const Rhs& rhs) {
+//   return lhs.second < rhs.second;
+// }
+template <class T> inline bool compareByValue(const T& lhs, const T& rhs) {
+  return lhs.second < rhs.second;
+}
+
 #endif // SortingFunctions_hh
