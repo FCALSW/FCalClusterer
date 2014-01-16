@@ -252,8 +252,8 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
     // go over all cellIds which have been registered in a cluster (first parameter of cellIdToClusterId).
     std::map < int , int > :: iterator
       cellIdToClusterIdIterator = cellIdToClusterId.begin(),
-      cEnd = cellIdToClusterId.begin();
-    for(; cellIdToClusterIdIterator != cEnd; ++cellIdToClusterIdIterator){
+      cEnd = cellIdToClusterId.end();
+    for(; cellIdToClusterIdIterator != cEnd; ++cellIdToClusterIdIterator) {
       cellIdHit = (int)(*cellIdToClusterIdIterator).first;	// cellId of cal hit
       int clusterIdHit = (int)(*cellIdToClusterIdIterator).second;	// cluster Id of cal hit
 
@@ -293,7 +293,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 	}
       }
     }
-  }
+  }//mergeOneHitClusters
 
 
   /* --------------------------------------------------------------------------
