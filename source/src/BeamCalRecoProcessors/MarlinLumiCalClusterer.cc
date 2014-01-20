@@ -27,7 +27,8 @@ MarlinLumiCalClusterer aMarlinLumiCalClusterer ;
 // constructor for MarlinLumiCalClusterer - MarlinLumiCalClusterer is an instance of Processor
 MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClusterer"),
 						   LumiInColName(""),
-						   LumiOutColName(""),
+						   LumiClusterColName(""),
+						   LumiRecoParticleColName(""),
 						   SkipNEvents(0),
 						   MaxRecordNumber(0),
 						   NumRun(0),
@@ -58,8 +59,15 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
   registerOutputCollection(LCIO::CLUSTER,
 			   "LumiCal_Clusters" ,
 			   "Collection of Cluster found in the LumiCal" ,
-			   LumiOutColName ,
+			   LumiClusterColName ,
 			   std::string("LumiCalClusters") ) ;
+
+  registerOutputCollection(LCIO::RECONSTRUCTEDPARTICLE,
+			   "LumiCal_RecoParticles" ,
+			   "Collection of Reconstructed Particles found in the LumiCal" ,
+			   LumiRecoParticleColName ,
+			   std::string("LumiCalRecoParticles") ) ;
+
 
   //---------------------------------------------------------
   registerProcessorParameter(	"SkipNEvents" ,

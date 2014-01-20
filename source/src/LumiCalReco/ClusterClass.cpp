@@ -34,60 +34,56 @@ ClusterClass::~ClusterClass() {
 
 void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
 
-
-  double	MCmomX, MCmomY, MCmomZ, MCr;
-  EVENT::MCParticle * mcParticleParent;
-
   Pdg = (int)mcParticle->getPDG();
   Id  = (int)mcParticle -> id();
 
-  VtxX    = (double)mcParticle->getVertex()[0];
-  VtxY    = (double)mcParticle->getVertex()[1];
-  VtxZ    = (double)mcParticle->getVertex()[2];
+  VtxX = (double)mcParticle->getVertex()[0];
+  VtxY = (double)mcParticle->getVertex()[1];
+  VtxZ = (double)mcParticle->getVertex()[2];
 
-  EndPointX    = (double)mcParticle->getEndpoint()[0];
-  EndPointY    = (double)mcParticle->getEndpoint()[1];
-  EndPointZ    = (double)mcParticle->getEndpoint()[2];
+  EndPointX = (double)mcParticle->getEndpoint()[0];
+  EndPointY = (double)mcParticle->getEndpoint()[1];
+  EndPointZ = (double)mcParticle->getEndpoint()[2];
 
-  MCmomX    = (double)mcParticle->getMomentum()[0];
-  MCmomY    = (double)mcParticle->getMomentum()[1];
-  MCmomZ    = (double)mcParticle->getMomentum()[2];
+  const double MCmomX = (double)mcParticle->getMomentum()[0];
+  const double MCmomY = (double)mcParticle->getMomentum()[1];
+  const double MCmomZ = (double)mcParticle->getMomentum()[2];
 
   SignMC = int(MCmomZ / fabs(MCmomZ));
-  MCr     = sqrt( MCmomX*MCmomX  + MCmomY*MCmomY);
+  double MCr = sqrt( MCmomX*MCmomX  + MCmomY*MCmomY);
   ThetaMC = atan(MCr / fabs(MCmomZ));
 
   // correction for the polar angle for cases where the particle does not
   // come from the IP (according to a projection on the face of LumiCal)
   if( fabs(VtxZ) > _VERY_SMALL_NUMBER ) {
-    //				cout <<"   ---   "<< Id << "\t" << ThetaMC << "\t -> \t" ;
+    //    cout <<"   ---   "<< Id << "\t" << ThetaMC << "\t -> \t" ;
     MCr = tan(ThetaMC) * (GlobalParamD[ZStart] - fabs(VtxZ));
     ThetaMC = atan( MCr / GlobalParamD[ZStart] );
-    //				cout	<< ThetaMC << "\t r,z:  " << MCr <<"\t" << Abs(vtxZ) <<  "\t"
-    //					<<  mcParticle->getDaughters().size() << endl ;
-    //				mcParticleParent = mcParticle -> getDaughters()[0];
-    //				cout	<< "\t\t\t"<< mcParticleParent->getVertex()[2] <<  "\t"<< mcParticleParent->id() <<  "\t"<< endl ;
+    // cout << ThetaMC << "\t r,z:  " << MCr <<"\t" << Abs(vtxZ) <<  "\t"
+    //      <<  mcParticle->getDaughters().size() << endl ;
+    // EVENT::MCParticle *mcParticleParent = mcParticle -> getDaughters()[0];
+    // cout << "\t\t\t"<< mcParticleParent->getVertex()[2]
+    //      <<  "\t"<< mcParticleParent->id() <<  "\t"<< endl ;
   }
 
   PhiMC = atan(fabs(MCmomY / MCmomX));
   if(MCmomZ > 0) {
-    if(MCmomX>0 && MCmomY>0) PhiMC  =		PhiMC;
-    if(MCmomX<0 && MCmomY>0) PhiMC  = M_PI -	PhiMC;
-    if(MCmomX<0 && MCmomY<0) PhiMC  = M_PI +	PhiMC;
-    if(MCmomX>0 && MCmomY<0) PhiMC  = 2*M_PI -	PhiMC;
+    // if(MCmomX>0 && MCmomY>0)   PhiMC = PhiMC;//no change, unneeded
+    if(MCmomX<0 && MCmomY>0)      PhiMC = M_PI   - PhiMC;
+    else if(MCmomX<0 && MCmomY<0) PhiMC = M_PI   + PhiMC;
+    else if(MCmomX>0 && MCmomY<0) PhiMC = 2*M_PI - PhiMC;
   } else {
-    if(MCmomX>0 && MCmomY>0) PhiMC  = M_PI -	PhiMC;
-    if(MCmomX<0 && MCmomY>0) PhiMC  =		PhiMC;
-    if(MCmomX<0 && MCmomY<0) PhiMC  = 2*M_PI -	PhiMC;
-    if(MCmomX>0 && MCmomY<0) PhiMC  = M_PI +	PhiMC;
+    if(MCmomX>0 && MCmomY>0)      PhiMC = M_PI   - PhiMC;
+    //if(MCmomX<0 && MCmomY>0)    PhiMC = PhiMC;//no change, unneeded
+    else if(MCmomX<0 && MCmomY<0) PhiMC = 2*M_PI - PhiMC;
+    else if(MCmomX>0 && MCmomY<0) PhiMC = M_PI   + PhiMC;
   }
 
   NumMCDaughters = (int)mcParticle -> getDaughters().size();
   EngyMC        = (double)mcParticle->getEnergy();
 
-
   // find the original parent of the particle
-  mcParticleParent = mcParticle;
+  EVENT::MCParticle *mcParticleParent = mcParticle;
   ParentId = Id;
   while(1) {
     if( !(mcParticleParent -> isCreatedInSimulation()) )
@@ -128,26 +124,16 @@ void ClusterClass::FillHit(int cellNow, double engyNow) {
 
 int ClusterClass::ResetStats() {
 
-  int	cellId, numHits;
-  double	weightNow, engyNow;
-  double	thetaSum, phiSum, weightSum, engySum;
-
-  std::map < int , double > :: iterator	hitIterator;
-  std::map < GlobalMethodsClass::Coordinate_t , double >		thetaPhiCellV;
+  double thetaSum(0.0), weightSum(0.0), engySum(0.0);
+  std::map < GlobalMethodsClass::Coordinate_t , double > thetaPhiCellV;
 
   // initialize modification flag
   ModifiedFlag = 0;
 
-  // initialization of summation variables
-  engySum = weightSum = thetaSum = phiSum = 0.;
-
   // re-sum energy from all cells (just in case)
-  numHits     = Hit.size();
-  hitIterator = Hit.begin();
-  for(int cellNow = 0; cellNow < numHits; cellNow++, hitIterator++) {
-    cellId = (int)(*hitIterator).first;
-
-    engySum += Hit[cellId];
+  for( std::map < int , double > :: iterator hitIterator = Hit.begin();
+       hitIterator != Hit.end(); ++hitIterator) {
+    engySum += hitIterator->second;
   }
   Engy = engySum;
 
@@ -155,38 +141,31 @@ int ClusterClass::ResetStats() {
   if(Engy < _VERY_SMALL_NUMBER) {
     OutsideFlag = 1;
     OutsideReason = "No energy deposits at all";
-
     return 0;
   }
 
-  numHits     = Hit.size();
-  hitIterator = Hit.begin();
   double xtemp(0.0), ytemp(0.0);
-  for(int cellNow = 0; cellNow < numHits; cellNow++, hitIterator++) {
-    cellId = (int)(*hitIterator).first;
-
+  for( std::map < int , double > :: iterator hitIterator = Hit.begin();
+       hitIterator != Hit.end(); ++hitIterator) {
+    int cellId = hitIterator->first;
     ThetaPhiCell(cellId , thetaPhiCellV);
 
-    engyNow = Hit[cellId];
-    weightNow = GlobalParamD[LogWeightConstant] + log(engyNow/engySum);
+    const double engyNow = hitIterator->second;
+    const double weightNow = GlobalParamD[LogWeightConstant] + log(engyNow/engySum);
     if(weightNow < 0) continue;
 
     thetaSum  += thetaPhiCellV[GlobalMethodsClass::COTheta] * weightNow;
-    double phi = thetaPhiCellV[GlobalMethodsClass::COPhi];
+    const double phi = thetaPhiCellV[GlobalMethodsClass::COPhi];
     xtemp += cos(phi) * weightNow;
     ytemp += sin(phi) * weightNow;
-    //phiSum    += thetaPhiCellV["phi"]   * weightNow;
-
     weightSum += weightNow;
   }
 
   if(weightSum < 1e-9) {
     OutsideFlag = 1;
     OutsideReason = "No energy deposits above the minimal threshold";
-
     return 0;
   }
-
 
   Theta    = thetaSum / weightSum;
   RZStart  = atan(fabs(Theta)) * GlobalParamD[ZStart];

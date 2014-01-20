@@ -57,10 +57,9 @@ public:
 
   static double SignalGevConversion( Parameter_t optName , double valNow );
 
-  double Distance2DPolar( std::map <std::string , double>& pos1 , std::map < std::string , double>& pos2 );
-
   void	ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> & thetaPhiCell);
 
+  static void CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR);
   static int CellIdZPR(int cellZ, int cellPhi, int cellR);
   static int CellIdZPR(int cellId, Coordinate_t ZPR);
 

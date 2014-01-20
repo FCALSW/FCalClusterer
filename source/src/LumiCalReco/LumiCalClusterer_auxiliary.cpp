@@ -120,7 +120,7 @@ int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
 
   int cellZ, cellPhi, cellR ;
 
-  // compute Z,Phi,R coordinets acording to the cellId
+  // compute Z,Phi,R coordinates according to the cellId
   cellZ   = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COZ) ;
   cellPhi = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COP) ;
   cellR   = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COR) ;

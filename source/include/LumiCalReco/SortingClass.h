@@ -1,3 +1,6 @@
+#ifndef SortingClass_h
+#define SortingClass_h 1
+
 /* --------------------------------------------------------------------------
    class ....
    -------------------------------------------------------------------------- */
@@ -24,7 +27,8 @@ SortingClass::~SortingClass() {
    sort rule
    -------------------------------------------------------------------------- */
 //in descending order (lowest value is first)
-bool cmpRuleDesc( SortingClass * a , SortingClass * b ) {
-
-  return a->Weight < b->Weight;
+inline bool cmpRuleDesc( SortingClass const& a , SortingClass const& b ) {
+  return a.Weight < b.Weight;
 }
+
+#endif // SortingClass_h

@@ -36,11 +36,7 @@ int GlobalMethodsClass::CellIdZPR(int cellZ, int cellPhi, int cellR) {
 int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t ZPR) {
 
   int cellZ, cellPhi, cellR;
-
-  // compute Z,Phi,R coordinates according to the cellId
-  cellZ   = (cellId >> 0 ) & 0xff ;
-  cellPhi = (cellId >> 8 ) & 0xff ;
-  cellR   = (cellId >> 16 ) & 0xff ;
+  CellIdZPR(cellId, cellZ, cellPhi, cellR);
 
   if(ZPR == GlobalMethodsClass::COZ) return cellZ;
   if(ZPR == GlobalMethodsClass::COR) return cellR;
@@ -49,7 +45,15 @@ int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t Z
   return 0;
 }
 
+void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR) {
 
+  // compute Z,Phi,R coordinates according to the cellId
+  cellZ   = (cellId >> 0 ) & 0xff ;
+  cellPhi = (cellId >> 8 ) & 0xff ;
+  cellR   = (cellId >> 16 ) & 0xff ;
+  return;
+
+}
 
 void GlobalMethodsClass::SetConstants() {
 #pragma message ("FIXME: Pick geometry up from GearFile")
@@ -89,18 +93,6 @@ void GlobalMethodsClass::SetConstants() {
 
 }
 
-
-/* --------------------------------------------------------------------------
-   merge pairs of particles with separation/energy low cuts
-   -------------------------------------------------------------------------- */
-double GlobalMethodsClass::Distance2DPolar( std::map <std::string , double>& pos1 , std::map <std::string , double>& pos2 ) {
-
-  return sqrt(	pos1["r"]*pos1["r"] + pos2["r"]*pos2["r"]
-		- 2 * pos1["r"]*pos2["r"] * cos(pos1["phi"] - pos2["phi"]) );
-
-}
-
-
 /* --------------------------------------------------------------------------
    ccccccccc
    -------------------------------------------------------------------------- */
@@ -126,24 +118,17 @@ double GlobalMethodsClass::SignalGevConversion( Parameter_t optName , double val
 
 void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> &thetaPhiCell) {
 
-
-
-  int	cellIdR, cellIdZ, cellIdPhi;
-  double	rCell, zCell, thetaCell, phiCell;
-
-  // compute Z,Phi,R coordinets acording to the cellId
-  cellIdZ   = (cellId >> 0 ) & 0xff ;
-  cellIdPhi = (cellId >> 8 ) & 0xff ;
-  cellIdR   = (cellId >> 16 ) & 0xff ;
+  // compute Z,Phi,R coordinates according to the cellId
+  int cellIdZ, cellIdPhi, cellIdR;
+  CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR);
 
   // theta
-  rCell      = GlobalParamD[RMin] + (cellIdR + .5) * GlobalParamD[RCellLength];
-  zCell      = fabs(GlobalParamD[ZStart]) + GlobalParamD[ZLayerThickness] * (cellIdZ - 1);
-  thetaCell  = atan(rCell / zCell);
+  double rCell      = GlobalParamD[RMin] + (cellIdR + .5) * GlobalParamD[RCellLength];
+  double zCell      = fabs(GlobalParamD[ZStart]) + GlobalParamD[ZLayerThickness] * (cellIdZ - 1);
+  double thetaCell  = atan(rCell / zCell);
 
   // phi
-  phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]);
-
+  double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]);
 
   // fill output container
   thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;

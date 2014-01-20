@@ -23,10 +23,6 @@
       int	numClusters, clusterId;
       double	weightNow;
 
-      std::vector < SortingClass * >	sortingClassV;
-      SortingClass			* sortingClass;
-
-
       /* --------------------------------------------------------------------------
 	 create clusters using: LumiCalClustererClass
 	 -------------------------------------------------------------------------- */
@@ -48,7 +44,7 @@
       LCCollectionVec* LCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
 
       for(int armNow = -1; armNow < 2; armNow += 2) {
-	sortingClassV.clear();
+	std::vector < SortingClass > sortingClassV;
 
 	numClusters             = clusterClassMap[armNow].size();
 	clusterClassMapIterator = clusterClassMap[armNow].begin();
@@ -70,7 +66,9 @@
 
 	  cluster->setPosition( clusterPosition );
 #pragma message ("FIXME: Link Calohits to the Cluster")
-
+	  //Get the cellID from the container Hit of the cluster and find the
+	  //matching LumiCal SimCalorimeterHit in the event collection, probably
+	  //have to loop over all of them until it is found
 	  float momentumCluster[3] = { float(energyCluster * sin ( thetaCluster ) * cos ( phiCluster )),
 				       float(energyCluster * sin ( thetaCluster ) * sin ( phiCluster )),
 				       float(energyCluster * cos ( thetaCluster )) };
@@ -94,8 +92,7 @@
 	  weightNow   = 1./weightNow;
 
 	  // instantiate the sorting class with the weight and insert to the vector
-	  sortingClass = new SortingClass(clusterId , weightNow);
-	  sortingClassV.push_back(sortingClass);
+	  sortingClassV.push_back(SortingClass(clusterId , weightNow));
 	}
 
 	// arrange the vector according to inverse of the energy (lowest first)
@@ -104,7 +101,7 @@
 	// flag the highest-energy cluster
 	numClusters = sortingClassV.size();
 	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++) {
-	  clusterId = sortingClassV[clusterNow]->Id;
+	  clusterId = sortingClassV[clusterNow].Id;
 
 	  if(clusterNow == 0)
 	    clusterClassMap[armNow][clusterId]->HighestEnergyFlag = 1;
@@ -112,19 +109,12 @@
 	    clusterClassMap[armNow][clusterId]->HighestEnergyFlag = 0;
 	}
 
-
-	// cleanUp
-	numClusters = sortingClassV.size();
-	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++) {
-	  delete sortingClassV[clusterNow];
-	}
-
       }
 
       //Add collections to the event if there are clusters
       if ( LCalClusterCol->getNumberOfElements() != 0 ) {
-	evt->addCollection(LCalClusterCol, "LumiCalCluster");
-	evt->addCollection(LCalRPCol, "LumiCalRecoParticles");
+	evt->addCollection(LCalClusterCol, LumiClusterColName);
+	evt->addCollection(LCalRPCol, LumiRecoParticleColName);
       } else {
 	delete LCalClusterCol;
 	delete LCalRPCol;

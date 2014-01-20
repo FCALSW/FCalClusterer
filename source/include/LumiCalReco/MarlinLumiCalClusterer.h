@@ -90,7 +90,7 @@ namespace EVENT{
     //protected:
 
     // Processor Parameters
-    std::string	LumiInColName, LumiOutColName ;
+    std::string	LumiInColName, LumiClusterColName, LumiRecoParticleColName ;
     int	SkipNEvents, MaxRecordNumber;
 
     // global counters
