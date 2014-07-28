@@ -15,9 +15,11 @@
 #include <UTIL/CellIDDecoder.h>
 
 // ----- include for verbosity dependend logging ---------
-#include "marlin/VerbosityLevels.h"
-#include "marlin/ProcessorEventSeeder.h"
-#include "marlin/Global.h"
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
+#include <marlin/ProcessorEventSeeder.h>
+#include <marlin/Global.h>
 
 #include <TTree.h>
 #include <TFile.h>
