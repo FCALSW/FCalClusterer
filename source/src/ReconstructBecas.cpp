@@ -58,15 +58,17 @@ int main (int argn, char **argc) {
   std::cout << "Reconstructing"  << std::endl;
 
   bool detailedPrintout;
-  std::vector<BeamCalCluster> clusters0 = signalBeamCals[0].lookForNeighbouringClustersOverSigma(backgroundBeamCals[0], cuts, detailedPrintout=false);
-  std::vector<BeamCalCluster> clusters1 = signalBeamCals[1].lookForNeighbouringClustersOverSigma(backgroundBeamCals[1], cuts, detailedPrintout=false);
+  const std::vector<BeamCalCluster>& clusters0 = signalBeamCals[0].lookForNeighbouringClustersOverSigma(backgroundBeamCals[0], cuts, detailedPrintout=false);
+  const std::vector<BeamCalCluster>& clusters1 = signalBeamCals[1].lookForNeighbouringClustersOverSigma(backgroundBeamCals[1], cuts, detailedPrintout=false);
 
   ///Output the reconstructed objects 
-  for (std::vector<BeamCalCluster>::iterator it = clusters0.begin(); it != clusters0.end(); ++it) {
+  std::cout << "cluster0"  << std::endl;
+  for (std::vector<BeamCalCluster>::const_iterator it = clusters0.begin(); it != clusters0.end(); ++it) {
     std::cout << *it  << std::endl;
   }
 
-  for (std::vector<BeamCalCluster>::iterator it = clusters1.begin(); it != clusters1.end(); ++it) {
+  std::cout << "cluster1"  << std::endl;
+  for (std::vector<BeamCalCluster>::const_iterator it = clusters1.begin(); it != clusters1.end(); ++it) {
     std::cout << *it  << std::endl;
   }
 
