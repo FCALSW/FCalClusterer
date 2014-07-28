@@ -6,20 +6,28 @@ SET( PROJECT_VERSION_MAJOR 0 )
 SET( PROJECT_VERSION_MINOR 1 )
 SET( CMAKE_BUILD_TYPE RelWithDebInfo )
 
+SET( FCAL_USE_ROOT True ) ##not optional
+SET( FCAL_USE_LCIO True ) ##not optional
+SET( FCAL_USE_GEAR True ) ##not optional
+SET( FCAL_USE_streamlog True ) ##not optional
+OPTION( FCAL_USE_Marlin  " Build Marlin Processors" True )
+
 #LIST( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 
-SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
-SET ( CMAKE_CXX_FLAGS_RELWITHDEBINFO "-ggdb" )
-LIST (APPEND CMAKE_CXX_FLAGS "-O3 -Wall -Wextra -Weffc++ -Wshadow  -ansi -pedantic -Wno-long-long -Wuninitialized" )
-##-Weffc++
+SET( CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} )
+SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "-ggdb" )
+
+LIST( APPEND CMAKE_CXX_FLAGS "-O3 -Wall -Wextra -Weffc++ -Wshadow  -ansi -pedantic -Wno-long-long -Wuninitialized" )
+
 
 FIND_PACKAGE( ILCUTIL REQUIRED COMPONENTS ILCSOFT_CMAKE_MODULES )
 # load default settings from ILCSOFT_CMAKE_MODULES
 INCLUDE( ilcsoft_default_settings )
 
-FOREACH( pkg ROOT LCIO GEAR Marlin ) #DD4hep
-  FIND_PACKAGE (${pkg} REQUIRED)
-  IF( ${pkg}_FOUND )
+FOREACH( pkg ROOT LCIO GEAR streamlog Marlin ) #DD4hep
+  IF ( ${FCAL_USE_${pkg}} )
+    MESSAGE ( STATUS "Building with ${pkg}" )
+    FIND_PACKAGE (${pkg} REQUIRED)
     INCLUDE_DIRECTORIES( SYSTEM ${${pkg}_INCLUDE_DIRS} )
     ADD_DEFINITIONS( ${${pkg}_DEFINITIONS} )
   ENDIF()
