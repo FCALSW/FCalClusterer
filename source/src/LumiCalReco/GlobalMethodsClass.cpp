@@ -1,6 +1,9 @@
 #include "GlobalMethodsClass.h"
 
-#include <marlin/VerbosityLevels.h>
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
+using streamlog::MESSAGE;
 
 #include <map>
 #include <string>
@@ -22,35 +25,38 @@ GlobalMethodsClass :: ~GlobalMethodsClass(){
    (1):	return a cellId for a given Z (layer), R (cylinder) and Phi (sector)
    (2):	return Z (layer), R (cylinder) and Phi (sector) for a given cellId
    -------------------------------------------------------------------------- */
-int GlobalMethodsClass::CellIdZPR(int cellZ, int cellPhi, int cellR) {
+int GlobalMethodsClass::CellIdZPR(int cellZ, int cellPhi, int cellR, int arm) {
 
   int cellId = 0;
 
-  cellId |= ( cellZ   << 0  ) ;
-  cellId |= ( cellPhi << 8  ) ;
-  cellId |= ( cellR   << 16 ) ;
+  cellId |= ( cellZ   <<  0 ) ;
+  cellId |= ( cellPhi << 10 ) ;
+  cellId |= ( cellR   << 20 ) ;
+  cellId |= ( arm     << 30 ) ;
 
   return cellId;
 }
 
 int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t ZPR) {
 
-  int cellZ, cellPhi, cellR;
-  CellIdZPR(cellId, cellZ, cellPhi, cellR);
+  int cellZ, cellPhi, cellR, arm;
+  CellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
 
   if(ZPR == GlobalMethodsClass::COZ) return cellZ;
   if(ZPR == GlobalMethodsClass::COR) return cellR;
   if(ZPR == GlobalMethodsClass::COP) return cellPhi;
+  if(ZPR == GlobalMethodsClass::COA) return arm;
 
   return 0;
 }
 
-void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR) {
+void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm) {
 
   // compute Z,Phi,R coordinates according to the cellId
-  cellZ   = (cellId >> 0 ) & 0xff ;
-  cellPhi = (cellId >> 8 ) & 0xff ;
-  cellR   = (cellId >> 16 ) & 0xff ;
+  cellZ   = (cellId >> 0  ) & (int)(( 1 << 10 ) -1) ; 
+  cellPhi = (cellId >> 10 ) & (int)(( 1 << 10 ) -1) ;
+  cellR   = (cellId >> 20 ) & (int)(( 1 << 10 ) -1) ;
+  arm     = (cellId >> 30 ) & (int)(( 1 <<  2 ) -1) ;
   return;
 
 }
@@ -119,8 +125,8 @@ double GlobalMethodsClass::SignalGevConversion( Parameter_t optName , double val
 void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> &thetaPhiCell) {
 
   // compute Z,Phi,R coordinates according to the cellId
-  int cellIdZ, cellIdPhi, cellIdR;
-  CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR);
+  int cellIdZ, cellIdPhi, cellIdR, arm;
+  CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
 
   // theta
   double rCell      = GlobalParamD[RMin] + (cellIdR + .5) * GlobalParamD[RCellLength];
