@@ -200,7 +200,8 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 		   (calHitsCellIdGlobal[armNow]),
 		   (_superClusterIdToCellId[armNow]),
 		   (_superClusterIdToCellEngy[armNow]),
-		   (superClusterCM[armNow]) );
+		   (superClusterCM[armNow]),
+		   armNow);
 
 
     /* --------------------------------------------------------------------------
