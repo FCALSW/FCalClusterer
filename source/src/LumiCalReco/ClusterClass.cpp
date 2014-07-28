@@ -3,10 +3,12 @@
 #include "ClusterClass.h"
 
 #include <EVENT/MCParticle.h>
-#include <marlin/VerbosityLevels.h>
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
 
 #include <cmath>
 
+using namespace streamlog;
 
 /* --------------------------------------------------------------------------
    class ....
