@@ -65,9 +65,11 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       layer   = (*_mydecoder)( calHitIn )["K"] ;
       phiCell = (*_mydecoder)( calHitIn )["J"] ;
       rCell   = (*_mydecoder)( calHitIn )["I"] ;
+      //arm     = (*_mydecoder)( calHitIn )["S-1"] ;
+
 
       ///APS Calculate the cellID with the function from here
-      cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell);
+      cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
       // detector layer (ring) - count layers from zero and not from one
       layer -= 1 ;
 
@@ -81,6 +83,8 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       phiHit	= (phiCell+0.5) * _phiCellLength;
 
       zHit      = (double)calHitIn -> getPosition()[2];
+      // determine the side (arm) of the hit -> (+,-)1
+      arm = (( zHit < 0 ) ? -1 : 1);
 
       // compute x.y hit coordinates
       xHit = rHit * cos(phiHit);
@@ -88,8 +92,6 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       // write x,y,z to an array
       hitPosV[0] = xHit; hitPosV[1] = yHit; hitPosV[2] = zHit;
 
-      // determine the side (arm) of the hit -> (+,-)1
-      arm = (( zHit < 0 ) ? -1 : 1);
 
       // create a new IMPL::CalorimeterHitImpl
       calHitNew = new IMPL::CalorimeterHitImpl();
