@@ -118,12 +118,9 @@ double LumiCalClustererClass::distance2DPolar(double *pos1, double *pos2) {
    -------------------------------------------------------------------------- */
 int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
 
-  int cellZ, cellPhi, cellR ;
-
+  int cellZ, cellPhi, cellR, arm;
   // compute Z,Phi,R coordinates according to the cellId
-  cellZ   = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COZ) ;
-  cellPhi = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COP) ;
-  cellR   = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COR) ;
+  GlobalMethodsClass::CellIdZPR( cellId, cellZ, cellPhi, cellR, arm);
 
 
   // change R cells according to the neighborIndex
@@ -203,7 +200,7 @@ int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
   }
 
   // compute the new cellId according to the new Z,Phi,R coordinates
-  cellId = GlobalMethodsClass::CellIdZPR(cellZ, cellPhi, cellR) ;
+  cellId = GlobalMethodsClass::CellIdZPR(cellZ, cellPhi, cellR, arm) ;
 
   return cellId ;
 }
@@ -551,19 +548,17 @@ void LumiCalClustererClass::getThetaPhiZCluster( std::map < int , IMPL::Calorime
    -------------------------------------------------------------------------- */
 double LumiCalClustererClass::thetaPhiCell(int cellId, GlobalMethodsClass::Coordinate_t output) {
 
-  int	cellIdR, cellIdZ, cellIdPhi;
+  int	cellIdR, cellIdZ, cellIdPhi, arm;
+  GlobalMethodsClass::CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
   double	rCell, zCell, thetaCell, phiCell, outputVal(-1);
 
   if(output == GlobalMethodsClass::COTheta) {
-    cellIdR    = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COR);
     rCell      = _rMin + (cellIdR + .5) * _rCellLength;
-    cellIdZ    = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COZ);
     zCell      = fabs(_zFirstLayer) + _zLayerThickness * (cellIdZ - 1);
     thetaCell  = atan(rCell / zCell);
     outputVal  = thetaCell;
   }
   else if(output == GlobalMethodsClass::COPhi) {
-    cellIdPhi = GlobalMethodsClass::CellIdZPR(cellId,GlobalMethodsClass::COP);
     phiCell   = 2*M_PI * (double(cellIdPhi) + .5) / _cellPhiMax;
     outputVal = phiCell;
   }
