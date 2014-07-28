@@ -66,7 +66,6 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
   pad->SetLogz(m_bLogZ);
   Double_t maxenergy = 0;
   Double_t minenergy = m_AxisMinimum;
-  TPaletteAxis *palette;
   if(m_AxisMaximum > 0) {
     maxenergy=m_AxisMaximum;
     // cout << "FRA " << minenergy << "   to   " << maxenergy << endl;
@@ -76,14 +75,12 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
     frame->Draw("colz");
     frame->SetContour(99);
     gPad->Update();
-    palette = (TPaletteAxis*)frame->GetListOfFunctions()->FindObject("palette");
   } else {
     BeamCalEnergy->SetContour(99);
     maxenergy = 1.0001*BeamCalEnergy->GetMaximum();
     BeamCalEnergy->SetAxisRange(minenergy, maxenergy, "Z");
     BeamCalEnergy->Draw("colz");
     pad->Update();
-    palette = (TPaletteAxis*)BeamCalEnergy->GetListOfFunctions()->FindObject("palette");
   }
 
   for( int i=0; i<m_BCG->getBCRings(); i++){
@@ -146,7 +143,7 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
   frame->SetContour(99);
   TH1* frameCopy = frame->DrawCopy("colz");
   pad->Update();
-  palette  = (TPaletteAxis*)frameCopy->GetListOfFunctions()->FindObject("palette");
+  TPaletteAxis* palette  = (TPaletteAxis*)frameCopy->GetListOfFunctions()->FindObject("palette");
   if(palette){
     palette->GetAxis()->SetTitle("Deposited Energy per Pad [GeV]");
     //Move Palette Horizontally 
