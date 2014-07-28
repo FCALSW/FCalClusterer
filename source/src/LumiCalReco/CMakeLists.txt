@@ -2,6 +2,7 @@ SET( LumiCalReco_SOURCES
   ClusterClass.cpp
   GlobalMethodsClass.cpp
   LCCluster.cpp
+  ProjectionInfo.cpp
   LumiCalClusterer.cpp
   LumiCalClusterer_auxiliary.cpp
   LumiCalClusterer_buildClusters.cpp
@@ -27,4 +28,5 @@ INSTALL( TARGETS
 
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/source/include/LumiCalReco
     DESTINATION include
-    FILES_MATCHING PATTERN "*.hh")
+    FILES_MATCHING PATTERN "*.hh"
+    PATTERN ".svn" EXCLUDE )
