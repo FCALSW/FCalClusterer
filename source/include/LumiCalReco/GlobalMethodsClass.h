@@ -37,7 +37,8 @@ public:
     COPhi,
     COZ,
     COR,
-    COP
+    COP,
+    COA
   }; 
   
   static std::string GetParameterName ( Parameter_t par );
@@ -59,9 +60,9 @@ public:
 
   void	ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> & thetaPhiCell);
 
-  static void CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR);
-  static int CellIdZPR(int cellZ, int cellPhi, int cellR);
-  static int CellIdZPR(int cellId, Coordinate_t ZPR);
+  static void CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
+  static int  CellIdZPR(int cellZ, int cellPhi, int cellR, int arm);
+  static int  CellIdZPR(int cellId, Coordinate_t ZPR);
 
   void PrintAllParameters() const;
 
