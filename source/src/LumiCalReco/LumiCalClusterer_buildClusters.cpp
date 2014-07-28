@@ -1,6 +1,7 @@
 // Local
 #include "LumiCalClusterer.h"
 #include "Global.hh"
+#include "SortingFunctions.hh"
 // Root
 #include <TF1.h>
 #include <TH1F.h>
@@ -12,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
 
 /* =========================================================================
@@ -23,37 +25,22 @@
    ============================================================================ */
 
 int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > const& calHits,
-					  std::map < int , IMPL::CalorimeterHitImpl* > & calHitsCellIdGlobal,
-					  std::map < int , std::vector<int> > & superClusterIdToCellId,
-					  std::map < int , std::vector<double> > & superClusterIdToCellEngy,
-					  std::map < int , LCCluster > & superClusterCM ) {
+					  MapIntCalHit & calHitsCellIdGlobal,
+					  MapIntVInt & superClusterIdToCellId,
+					  MapIntVDouble & superClusterIdToCellEngy,
+					  MapIntLCCluster & superClusterCM,
+					  const int detectorArm) {
 
-
-  int   detectorArm; //numClusters
-  int   numElementsInArm , minNumElementsInShowerPeakLayer;
-  int   numClustersMax, numClustersMajority(-1), numClustersAllLayers;
   int   maxEngyLayerN(-1);
   double maxEngyLayer;
-  double middleEnergyHitBound;
-  double CM1[2], CM2[2];
-
-  int   numSuperClusters, superClusterId, numElementsInSuperCluster;
-
-  std::string hisName;
+  int numSuperClusters;
 
   std::vector < std::map <int , IMPL::CalorimeterHitImpl* > > calHitsCellId(_maxLayerToAnalyse),
     calHitsSmallEngyCellId(_maxLayerToAnalyse);
 
-  std::map < int , IMPL::CalorimeterHitImpl* >
-    calHitsCellIdProjection,
-    calHitsCellIdProjectionFull;
-
-  std::map < int , IMPL::CalorimeterHitImpl* > :: iterator calHitsCellIdIterator;
-
   std::vector < std::map < int , int > >        cellIdToClusterId(_maxLayerToAnalyse+1);
 
   std::vector < std::map < int , std::vector<int> > >   clusterIdToCellId(_maxLayerToAnalyse+1);
-  std::map < int , std::vector<int> > :: iterator       clusterIdToCellIdIterator;
 
   std::vector < std::map < int , LCCluster > >        clusterCM(_maxLayerToAnalyse+1);
   std::map < int , LCCluster > :: iterator    clusterCMIterator;
@@ -71,16 +58,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 
   std::map < int , std::vector <int> >  thisLayer;
 
-  std::vector < LCCluster >  avrgCM;
-
-  std::map < int , int >                numClustersCounter;
-  std::map < int , int > :: iterator    numClustersCounterIterator;
-
-  std::map <int , double>               weightedDistanceV;
-  std::map <int , double> :: iterator   weightedDistanceVIterator;
-
   std::vector < std::map < int , VirtualCluster > >        virtualClusterCM(_maxLayerToAnalyse);
-  VirtualCluster                        virtualClusterCMV;
 
   std::map < int , TH1F >             xLineFitCM, yLineFitCM;
   std::vector < std::vector<double> >        fitParamX, fitParamY;
@@ -88,19 +66,6 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   std::map < int , double >                     layerToPosX, layerToPosY, layerToEngy;
   std::map < int , double > :: iterator layerToPosXYIterator;
 
-
-  /* --------------------------------------------------------------------------
-     determine the detector arm
-     -------------------------------------------------------------------------- */
-  detectorArm = 0;
-  std::map < int , std::vector <IMPL::CalorimeterHitImpl*> >::const_iterator calHitsIt = calHits.begin(),
-    calHitsEnd = calHits.end();
-  for (; calHitsIt!=calHitsEnd; ++calHitsIt) {
-    if(not calHitsIt->second.empty()) {
-      detectorArm  =  ( (calHitsIt->second[0]->getPosition()[2] < 0) ? -1 : 1 );
-      break;
-    }
-  }
 
   /* --------------------------------------------------------------------------
      determine the total energy of the hits in the arm
@@ -118,25 +83,21 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
      calculate the minimal energy to take into account in the initial
      clustering pass
      -------------------------------------------------------------------------- */
-  middleEnergyHitBound = exp(-1*_logWeightConst) * _totEngyArm[detectorArm] * _middleEnergyHitBoundFrac;
+  const double middleEnergyHitBound = exp(-1*_logWeightConst) * _totEngyArm[detectorArm] * _middleEnergyHitBoundFrac;
 
 
   /* --------------------------------------------------------------------------
      determine the min number of hits that makeup a showerPeak layer and
      flag the layers that make the cut
      -------------------------------------------------------------------------- */
-  numElementsInArm = 0;
-  calHitsIt = calHits.begin();
-  calHitsEnd = calHits.end();
-  for (; calHitsIt!=calHitsEnd; ++calHitsIt) {
+  int numElementsInArm = 0;
+  for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
     numElementsInArm += (int)calHitsIt->second.size();
   }
-  minNumElementsInShowerPeakLayer = int(numElementsInArm * _elementsPercentInShowerPeakLayer);
+  const int minNumElementsInShowerPeakLayer = int(numElementsInArm * _elementsPercentInShowerPeakLayer);
 
 #if _CLUSTER_BUILD_DEBUG == 1
-  calHitsIt = calHits.begin();
-  calHitsEnd = calHits.end();
-  for (; calHitsIt!=calHitsEnd; ++calHitsIt) {
+  for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
     streamlog_out( DEBUG ) << "Hits in layer " << std::setw(3) << calHitsIt->first << std::setw(6) << calHitsIt->second.size()  << std::endl;
   }
 
@@ -147,9 +108,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 			  << ")" <<std::endl << "\t layers chosen : ";
 #endif
 
-  calHitsIt = calHits.begin();
-  calHitsEnd = calHits.end();
-  for (; calHitsIt!=calHitsEnd; ++calHitsIt) {
+  for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
 
     if(int (calHitsIt->second.size()) >= minNumElementsInShowerPeakLayer) {
       isShowerPeakLayer[calHitsIt->first] = 1;
@@ -171,9 +130,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
      separate cal hits with energy above/below the middleEnergyHitBound.
      in any case only choose hits with energy above the _hitMinEnergy cut
      -------------------------------------------------------------------------- */
-  calHitsIt = calHits.begin();
-  calHitsEnd = calHits.end();
-  for (; calHitsIt!=calHitsEnd; ++calHitsIt) {
+  for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
     //  for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) {
     for(size_t j=0; j<calHitsIt->second.size(); j++){
       int       cellIdHit = (int)calHitsIt->second[j]->getCellID0();
@@ -244,28 +201,22 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   /* --------------------------------------------------------------------------
      decide how many global clusters there are
      -------------------------------------------------------------------------- */
+  MapIntInt numClustersCounter;
   // find the number of clusters in the majority of layers
-  for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) if(isShowerPeakLayer[layerNow] == 1) {
+  for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) {
+    if(isShowerPeakLayer[layerNow] == 1) {
       const int numClusters = clusterCM[layerNow].size();
       numClustersCounter[numClusters]++;
     }
-
-  numClustersMax = 0;
-  numClustersCounterIterator = numClustersCounter.begin();
-  numClustersAllLayers       = numClustersCounter.size();
-  for(int i=0; i<numClustersAllLayers; i++,numClustersCounterIterator++){
-    int numClustersNow  = (int)(*numClustersCounterIterator).first;
-    int numClustersSize = (int)(*numClustersCounterIterator).second;
-
-    if(numClustersMax < numClustersSize) {
-      numClustersMax      = numClustersSize;
-      numClustersMajority = numClustersNow;
-    }
   }
+
+  MapIntInt::iterator maxCluster = 
+    std::max_element( numClustersCounter.begin(), numClustersCounter.end(), compareByValue<std::pair<int, int> >);
+  int numClustersMajority = maxCluster->second;
   numClustersCounter.clear();
 
 #if _CLUSTER_BUILD_DEBUG == 1
-  streamlog_out( DEBUG ) <<  "\t -> Assume thet there are " << numClustersMajority
+  streamlog_out( DEBUG ) <<  "\t -> Assume that there are " << numClustersMajority
 	   << " global clusters" << std::endl <<std::endl;
 #endif
 
@@ -278,7 +229,8 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
      -------------------------------------------------------------------------- */
   // find the layer with the most energy which has numClustersMajority clusters
   maxEngyLayer = 0.;
-  for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) if(isShowerPeakLayer[layerNow] == 1) {
+  for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) {
+    if(isShowerPeakLayer[layerNow] == 1) {
       clusterCMIterator = clusterCM[layerNow].begin();
       const int numClusters = clusterCM[layerNow].size();
 
@@ -295,9 +247,10 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 	maxEngyLayerN = layerNow;
       }
     }
-
+  }
   // for the layer with the most energy which has numClustersMajority clusters,
   // initialize the averageCM vector
+  std::vector < LCCluster >  avrgCM;
   for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) {
     if(isShowerPeakLayer[layerNow] == 1) {
       clusterCMIterator = clusterCM[layerNow].begin();
@@ -321,51 +274,39 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 
   // for all layers but the layer with the most energy which has numClustersMajority clusters,
   // update the averageCM vector
-  for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) if(isShowerPeakLayer[layerNow] == 1) {
+  for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) {
+    if(isShowerPeakLayer[layerNow] == 1) {
       clusterCMIterator = clusterCM[layerNow].begin();
 
       if( (int(clusterCM[layerNow].size()) != numClustersMajority) || (layerNow == maxEngyLayerN) ) continue;
 
       for(int clusterNow1 = 0; clusterNow1 < numClustersMajority; clusterNow1++, clusterCMIterator++){
-	int clusterId = (int)(*clusterCMIterator).first;
+	LCCluster const& thisCluster = clusterCM[layerNow][clusterCMIterator->first];
+	const double CM1[2] = { thisCluster.getX(), thisCluster.getY() };
 
-	CM1[0] = clusterCM[layerNow][clusterId].getX();
-	CM1[1] = clusterCM[layerNow][clusterId].getY();
-
+	std::map <int , double> weightedDistanceV;
 	// compare the position of the CM to the averaged CM positions
 	for(int clusterNow2 = 0; clusterNow2 < numClustersMajority; clusterNow2++){
-	  CM2[0] = avrgCM[clusterNow2].getX();
-	  CM2[1] = avrgCM[clusterNow2].getY();
-	  const double distanceCM(distance2D(CM1,CM2));
+	  const double distanceCM(distance2D(CM1,avrgCM[clusterNow2].getPosition()));
 	  weightedDistanceV[clusterNow2] = (distanceCM > 0 ) ? 1./distanceCM : 1e10;
-
 	}
 
-	double  maxClusterWeight = -1;
-	int     maxWeightClusterId;
-	weightedDistanceVIterator = weightedDistanceV.begin();
-	const int numClusters = weightedDistanceV.size();
-	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, weightedDistanceVIterator++){
-	  int   clusterIdNow  = (int)(*weightedDistanceVIterator).first;
-	  double        clusterWeight = (double)(*weightedDistanceVIterator).second;
-
-	  if(maxClusterWeight < clusterWeight) {
-	    maxWeightClusterId = clusterIdNow;
-	    maxClusterWeight   = clusterWeight;
-	  }
-	}
+	std::map < int , double > :: iterator closestCluster = 
+	  std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue< std::pair<int, double> >);
 
 	// add the CM to the right vector
-	engyPosCMLayer[maxWeightClusterId].push_back(clusterCM[layerNow][clusterId]);
-	thisLayer[maxWeightClusterId].push_back( layerNow );
+	engyPosCMLayer[closestCluster->first].push_back(thisCluster);
+	thisLayer[closestCluster->first].push_back( layerNow );
 
 	// update the multi-layer CM position
-	avrgCM[maxWeightClusterId].addToEnergy(clusterCM[layerNow][clusterId].getE());
-	avrgCM[maxWeightClusterId].setX( (CM1[0]+CM2[0])/2.);
-	avrgCM[maxWeightClusterId].setY( (CM1[1]+CM2[1])/2.);
+	//APS: BUGFIX This used to have the CM2 from the clusterNow2 loop above, instead of closestCluster
+	avrgCM[closestCluster->first].addToEnergy(thisCluster.getE());
+#warning "Should this be energy weighted?" //APS
+	avrgCM[closestCluster->first].setX( (CM1[0]+avrgCM[closestCluster->first].getX())/2.);
+	avrgCM[closestCluster->first].setY( (CM1[1]+avrgCM[closestCluster->first].getY())/2.);
       }//for all clusters
-    }//for all layers
-
+    }//if isShowerPeakLayer
+  }//for all layers
 
   /* --------------------------------------------------------------------------
      fit a stright line through each cluster from engyPosCMLayer. results
@@ -397,7 +338,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
     streamlog_out( DEBUG ) << "clusterId " << clusterId << std::endl;
 #endif
 
-    hisName = "_xLineFitCM_Cluster"; hisName += clusterNow;
+    std::string hisName = "_xLineFitCM_Cluster"; hisName += clusterNow;
     xLineFitCM[clusterNow] = TH1F(  hisName.c_str(),hisName.c_str(),_maxLayerToAnalyse*10,0,_maxLayerToAnalyse);
 
     hisName = "_yLineFitCM_Cluster"; hisName += clusterNow;
@@ -491,9 +432,11 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 
       if ( fitParamX[clusterNow].empty() ) continue; //APS
 
+      VirtualCluster virtualClusterCMV;
+
       // extrapolated x/y positions
-      virtualClusterCMV.setX( fitParamX[clusterNow][0] + fitParamX[clusterNow][1] * layerNow); // x position
-      virtualClusterCMV.setY( fitParamY[clusterNow][0] + fitParamY[clusterNow][1] * layerNow); // y position
+      virtualClusterCMV.setX( fitParamX[clusterNow][0] + fitParamX[clusterNow][1] * layerNow ); // x position
+      virtualClusterCMV.setY( fitParamY[clusterNow][0] + fitParamY[clusterNow][1] * layerNow ); // y position
 
       // ???????? DECIDE/FIX - incorparate the parameters given here better in the code ????????
       // ???????? DECIDE/FIX - consider a different middle layer for the else condition ????????
@@ -631,9 +574,9 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   superClusterCMIterator = superClusterCM.begin();
   numSuperClusters       = superClusterCM.size();
   for(int superClusterNow = 0; superClusterNow < numSuperClusters; superClusterNow++, superClusterCMIterator++) {
-    superClusterId = (int)(*superClusterCMIterator).first;
+    const int superClusterId = (int)(*superClusterCMIterator).first;
 
-    numElementsInSuperCluster = superClusterIdToCellId[superClusterId].size();
+    const int numElementsInSuperCluster = superClusterIdToCellId[superClusterId].size();
     for(int cellNow = 0; cellNow < numElementsInSuperCluster; cellNow++) {
       int cellIdHit = superClusterIdToCellId[superClusterId][cellNow];
 
@@ -652,7 +595,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   superClusterCMIterator = superClusterCM.begin();
   numSuperClusters       = superClusterCM.size();
   for(int superClusterNow = 0; superClusterNow < numSuperClusters; superClusterNow++, superClusterCMIterator++) {
-    superClusterId = (int)(*superClusterCMIterator).first;
+    const int superClusterId = (int)(*superClusterCMIterator).first;
 
     streamlog_out( DEBUG ) << "\t Id "  << superClusterId
 	      << "  \t energy " << superClusterCM[superClusterId].getEnergy()
