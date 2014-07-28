@@ -17,11 +17,13 @@
 #include "GlobalMethodsClass.h"
 #include "LCCluster.hh"
 #include "VirtualCluster.hh"
+#include "ProjectionInfo.hh"
 
 #include <IMPL/SimCalorimeterHitImpl.h>
 #include <UTIL/CellIDDecoder.h>
 
-#include <marlin/VerbosityLevels.h>
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
 
 #include <string>
 #include <map>
@@ -37,6 +39,14 @@ namespace IMPL{
 
 class LumiCalClustererClass {
 
+  typedef std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > MapIntVCalHit;
+  typedef std::map < int , IMPL::CalorimeterHitImpl* >  MapIntCalHit;
+  typedef std::map < int , ProjectionInfo > MapIntProjectionInfo;
+  typedef std::map < int , LCCluster > MapIntLCCluster;
+
+  typedef std::map < int , std::vector < double > > MapIntVDouble;
+  typedef std::map < int , std::vector < int > > MapIntVInt;
+  typedef std::map < int , int > MapIntInt;
 
 public:
 
@@ -111,7 +121,8 @@ protected:
 			std::map < int , IMPL::CalorimeterHitImpl* > & calHitsCellIdGlobal,
 			std::map < int , std::vector<int> > & superClusterIdToCellId,
 			std::map < int , std::vector<double> > & superClusterIdToCellEngy,
-			std::map < int , LCCluster > & superClusterCM );
+			std::map < int , LCCluster > & superClusterCM, 
+			const int detectorArm);
 
   int	initialClusterBuild( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
 			     std::map < int , int >			  & cellIdToClusterId,
