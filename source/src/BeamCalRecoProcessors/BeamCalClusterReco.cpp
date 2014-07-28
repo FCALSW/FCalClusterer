@@ -19,14 +19,18 @@
 #include <IMPL/ClusterImpl.h>
 
 // ----- include for verbosity dependend logging ---------
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
 #include <marlin/ProcessorEventSeeder.h>
-#include <marlin/VerbosityLevels.h>
 #include <marlin/Global.h>
 
 //ROOT
 #include <TCanvas.h>
 #include <TChain.h>
 #include <TCrown.h>
+#include <TEfficiency.h>
+#include <TFile.h>
 #include <TH2F.h>
 #include <TLine.h>
 #include <TPaveText.h>
@@ -59,6 +63,7 @@ WrongParameterException(std::string error) : std::runtime_error(error) { }
 
 
 BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
+					   m_colNameMC(""),
 					   m_colNameBCal(""),
 					   m_files(),
 					   m_nEvt(0),
@@ -68,6 +73,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 					   m_minimumTowerSize(0),
 					   m_startLookingInLayer(0),
 					   m_usePadCuts(true),
+					   m_createEfficienyFile(false),
 					   m_sigmaCut(1.0),
 					   m_startingRings(),
 					   m_requiredRemainingEnergy(),
@@ -82,8 +88,12 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 					   m_backgroundBX(0),
 					   m_BCG(NULL),
 					   m_bcpCuts(NULL),
+					   m_thetaEfficieny(NULL),
+					   m_phiEfficiency(NULL),
+					   m_twoDEfficiency(NULL),
 					   m_BCalClusterColName(""),
-					   m_BCalRPColName("")
+					   m_BCalRPColName(""),
+					   m_EfficiencyFileName("")
 {
 
 // modify processor description
@@ -93,6 +103,13 @@ _description = "BeamCalClusterReco takes a list of beamcal background files from
 
 
 // register steering parameters: name, description, class-variable, default value
+
+registerInputCollection( LCIO::MCPARTICLE,
+			   "MCParticle Collection Name, only needed and used to estimate efficiencies" ,
+			   "Name of the MCParticle Collection"  ,
+			   m_colNameMC ,
+			   std::string("MCParticle") ) ;
+
 
 registerInputCollection( LCIO::SIMCALORIMETERHIT,
 			   "BeamCalCollectionName" ,
@@ -170,6 +187,17 @@ registerProcessorParameter ("PrintThisEvent",
 //			      "Skips events with electrons at the edge of the BeamCal or near the Keyhole cutout.",
 //			      m_LimitedAreaOfBeamCal,
 //			      bool(true) ) ;
+
+registerProcessorParameter ("CreateEfficiencyFile",
+			    "Flag to create the TEfficiency for fast tagging library",
+			    m_createEfficienyFile,
+			    false ) ;
+
+registerProcessorParameter ("EfficiencyFilename",
+			    "The name of the rootFile which will contain the TEfficiency objects",
+			    m_EfficiencyFileName,
+			    std::string("TaggingEfficiency.root") ) ;
+
 
  registerOutputCollection( LCIO::RECONSTRUCTEDPARTICLE,
 			   "RecoParticleCollectionname" ,
@@ -317,6 +345,19 @@ void BeamCalClusterReco::init() {
     delete listOfBunchCrossingsRight[i];
   }
 
+  //Create Efficiency Objects if required
+  if(m_createEfficienyFile) {
+    const double //angles in mrad
+      minAngle(0.9*m_BCG->getBCInnerRadius()/m_BCG->getBCZDistanceToIP()*1000), 
+      maxAngle(1.1*m_BCG->getBCOuterRadius()/m_BCG->getBCZDistanceToIP()*1000); 
+    const int bins = 50;
+    m_thetaEfficieny = new TEfficiency("thetaEff","Efficiency vs. #Theta", bins, minAngle, maxAngle);
+    m_phiEfficiency  = new TEfficiency("phiEff","Efficiency vs. #Phi", 72, 0, 360);
+    m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta adn #Phi", bins, minAngle, maxAngle, 72, 0, 360);
+  }//Creating Efficiency objects
+
+
+
 }//init
 
 void BeamCalClusterReco::processRunHeader( LCRunHeader*) {
@@ -325,6 +366,14 @@ void BeamCalClusterReco::processRunHeader( LCRunHeader*) {
 }
 
 void BeamCalClusterReco::processEvent( LCEvent * evt ) {
+
+  //MCInformation to estimate Efficiency
+  double impactTheta(0.0), impactPhi(0.0);
+  bool notFoundAFake(false);
+
+  if(m_createEfficienyFile) {
+    FindOriginalMCParticle(evt, impactTheta, impactPhi, notFoundAFake);
+  }
 
   m_random3->SetSeed(m_nEvt+Global::EVENTSEEDER->getSeed(this));
 
@@ -453,9 +502,21 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     BCalClusterCol->addElement(cluster);
     BCalRPCol->addElement(particle);
 
+
+    if(m_createEfficienyFile) {
+      if( (*it)->shouldHaveCluster()  ) {//only fill if there should be a cluster on this side
+	bool hasRightCluster = BCUtil::areCloseTogether((*it)->getThetaMrad(), (*it)->getPhi(), impactTheta, impactPhi );
+	m_thetaEfficieny->Fill( hasRightCluster, impactTheta );
+	m_phiEfficiency->Fill ( hasRightCluster, impactPhi );
+	m_twoDEfficiency->Fill( hasRightCluster, impactTheta, impactPhi);
+      } else { //if there should not be a cluster it must be a fake
+	//Fill Fake Cluster
+      }
+    }
+
+
+    //CleanUp
     delete *it;
-
-
   }//for all found clusters
 
   ///////////////////////////////////////
@@ -488,6 +549,14 @@ void BeamCalClusterReco::end(){
 			     << " processed " << m_nEvt << " events."
 			     << std::endl ;
 
+
+  if(m_createEfficienyFile) {
+    TFile *effFile = TFile::Open(m_EfficiencyFileName.c_str(),"RECREATE");
+    m_thetaEfficieny->Write();
+    m_phiEfficiency->Write();
+    m_twoDEfficiency->Write();
+    effFile->Close();
+  }
 
   delete m_BeamCalAverageLeft;
   delete m_BeamCalAverageRight;
@@ -532,6 +601,10 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
   std::vector<BCRecoObject*> recoVec;
 
 
+  //Should we have a cluster, based on MC Information, needed for efficiency estimates
+  const bool shouldHaveCluster = ( signalPads.getSide() == m_eventSide );
+
+
   //////////////////////////////////////////
   // This calls the clustering function!
   //////////////////////////////////////////
@@ -546,19 +619,17 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
     if(signalPads.getSide() == BCPadEnergies::kLeft) streamlog_out(MESSAGE2) << LONGSTRING;
 
     //Apply cuts on the reconstructed clusters, then calculate angles
-    if ( ( (*it).getNPads() > 2 ) && m_bcpCuts->isClusterAboveThreshold( (*it) ) ) {
+    if ( ( it->getNPads() > 2 ) && m_bcpCuts->isClusterAboveThreshold( (*it) ) ) {
 
-      double theta((*it).getTheta());
-      double phi  ((*it).getPhi());
+      double theta(it->getTheta());
+      double phi  (it->getPhi());
 
       streamlog_out(MESSAGE2) << " found something "
 			      << std::setw(10) << theta
 			      << std::setw(10) << phi
 	;//ending the streamlog!
 
-      //
-      const bool ignoreThisValue=false;
-      recoVec.push_back( new BCRecoObject(ignoreThisValue, true, theta, phi, (*it).getEnergy(), (*it).getNPads(), signalPads.getSide() ) );
+      recoVec.push_back( new BCRecoObject(shouldHaveCluster, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide() ) );
 
     }//if we have enough pads and energy in the clusters
 
@@ -715,3 +786,36 @@ void BeamCalClusterReco::DrawLineMarkers( const std::vector<BCRecoObject*> & Rec
 
   return;
 }
+
+
+void BeamCalClusterReco::FindOriginalMCParticle(LCEvent *evt, double& impactTheta, double& impactPhi, bool& notFoundAFake) {
+
+  try {
+    LCCollection* colMC = evt->getCollection ( m_colNameMC );
+    MCParticle *tempmc = dynamic_cast<MCParticle*>(colMC->getElementAt(0));
+    const double *momentum = tempmc->getMomentum();
+    double momentum2[3];
+    //Rotate to appropriate beamCal System
+#pragma message "Fix the rotation thing"
+    if(momentum[2] > 0) {
+      BCUtil::RotateToBeamCal<10>(momentum, momentum2);
+      m_eventSide = 0;
+    } else {
+      BCUtil::RotateFromBeamCal<10>(momentum, momentum2);
+      m_eventSide = 1;
+    }
+    //    double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
+    impactTheta = BCUtil::AngleToBeamCal<10>(momentum)*1000;//mrad
+    impactPhi   = TMath::ATan2(momentum2[1], momentum2[0]) * TMath::RadToDeg();
+    notFoundAFake = true;
+    if(impactPhi < 0) impactPhi += 360;
+
+  } catch (Exception &e) {
+    impactTheta = -9999.0;
+    impactPhi   = -9999.0;
+    notFoundAFake = true;
+    m_eventSide = -1;
+  }
+
+  return;
+}//FindOriginalMCParticle

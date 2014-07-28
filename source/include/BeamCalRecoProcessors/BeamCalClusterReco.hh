@@ -55,6 +55,7 @@ class BeamCalClusterReco : public marlin::Processor {
 
   /** Input collection name.
    */
+  std::string m_colNameMC;
   std::string m_colNameBCal;
   std::vector<std::string> m_files;
 
@@ -65,6 +66,7 @@ class BeamCalClusterReco : public marlin::Processor {
   int m_minimumTowerSize;
   int m_startLookingInLayer;
   bool m_usePadCuts;
+  bool m_createEfficienyFile;
   double m_sigmaCut;
 
   std::vector<float> m_startingRings;
@@ -83,16 +85,22 @@ class BeamCalClusterReco : public marlin::Processor {
 
   TRandom3 *m_random3;
   TChain* m_backgroundBX;
-  //std::vector<TEfficiency*> m_recoEfficiencies;
-  //std::vector<TH1*> m_checkPlots;
+
+  BeamCalGeo *m_BCG;
+  BCPCuts* m_bcpCuts;
+
+  TEfficiency *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
+
+  
 
 private:
+
+  void FindOriginalMCParticle(LCEvent *evt, double& impactTheta, double& impactPhi, bool& notFoundAFake);
+
   void printBeamCalEventDisplay(BCPadEnergies& padEnergies_left, BCPadEnergies& padEnergies_right,
 				int maxLayer, double maxDeposit, double depositedEnergy,
 				const std::vector<BCRecoObject*> & RecoedObjects) const;
 
-  BeamCalGeo *m_BCG;
-  BCPCuts* m_bcpCuts;
   BCPadEnergies* getBeamCalErrors(const BCPadEnergies *averages, const std::vector<BCPadEnergies*> singles,
 				  int numberForAverage );
 
@@ -103,6 +111,7 @@ private:
 
   std::string m_BCalClusterColName;
   std::string m_BCalRPColName;
+  std::string m_EfficiencyFileName;
 
   BeamCalClusterReco(const BeamCalClusterReco&);
   BeamCalClusterReco& operator=(const BeamCalClusterReco&);
