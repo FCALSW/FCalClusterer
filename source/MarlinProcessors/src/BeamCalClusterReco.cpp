@@ -1,12 +1,12 @@
 #include "BeamCalClusterReco.hh"
 
-#include "BeamCalReco/BCPCuts.hh"
-#include "BeamCalReco/BCPadEnergies.hh"
-#include "BeamCalReco/BCRecoObject.hh"
-#include "BeamCalReco/BeamCal.hh"
-#include "BeamCalReco/BeamCalCluster.hh"
-#include "BeamCalReco/BCUtilities.hh"
-#include "BeamCalReco/BeamCalGeoCached.hh"
+#include "BCPCuts.hh"
+#include "BCPadEnergies.hh"
+#include "BCRecoObject.hh"
+#include "BeamCal.hh"
+#include "BeamCalCluster.hh"
+#include "BCUtilities.hh"
+#include "BeamCalGeoCached.hh"
 
 //LCIO
 #include <EVENT/LCCollection.h>

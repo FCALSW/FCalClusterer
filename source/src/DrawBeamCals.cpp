@@ -1,9 +1,9 @@
-#include "BeamCalReco/BeamCalGeo.hh"
-#include "BeamCalReco/BeamCalGeoGear.hh"
-#include "BeamCalReco/BeamCalGeoCached.hh"
-#include "BeamCalReco/BeamCal.hh"
-#include "BeamCalReco/BCPadEnergies.hh"
-#include "BeamCalReco/BCRootUtilities.hh"
+#include "BeamCalGeo.hh"
+#include "BeamCalGeoGear.hh"
+#include "BeamCalGeoCached.hh"
+#include "BeamCal.hh"
+#include "BCPadEnergies.hh"
+#include "BCRootUtilities.hh"
 
 //GEAR
 #include <gearxml/GearXML.h>

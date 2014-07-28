@@ -1,7 +1,7 @@
 #ifndef ReadBeamCal_h
 #define ReadBeamCal_h 1
 
-#include <BeamCalReco/BCPadEnergies.hh>
+#include <BCPadEnergies.hh>
 
 #include <string>
 #include <vector>

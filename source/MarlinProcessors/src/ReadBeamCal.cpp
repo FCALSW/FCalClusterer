@@ -1,9 +1,9 @@
 #include "ReadBeamCal.hh"
 
-#include <BeamCalReco/BeamCal.hh>
-#include <BeamCalReco/BeamCalGeoGear.hh>
-#include <BeamCalReco/BeamCalGeoCached.hh>
-#include <BeamCalReco/BCUtilities.hh>
+#include <BeamCal.hh>
+#include <BeamCalGeoGear.hh>
+#include <BeamCalGeoCached.hh>
+#include <BCUtilities.hh>
 
 
 #include <EVENT/LCCollection.h>

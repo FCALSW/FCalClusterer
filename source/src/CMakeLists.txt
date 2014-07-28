@@ -3,16 +3,12 @@
 #ADD_LIBRARY( BCPadEnergies SHARED BCPadEnergies.cpp BeamCalCluster.cpp BCPCuts.cpp BCRecoObject.cpp )
 #ADD_LIBRARY( BeamCalReco SHARED BeamCal GearBeamCal BCPadEnergies )
 
-ADD_SUBDIRECTORY(BeamCalReco)
-ADD_SUBDIRECTORY(LumiCalReco)
 
-if(Marlin_FOUND)
-  ADD_SUBDIRECTORY(BeamCalRecoProcessors)
-endif(Marlin_FOUND)
 #TARGET_LINK_LIBRARIES( GearBeamCal ${ROOT_LIBRARIES} ${GEAR_LIBRARIES} ${DD4hep_LIBRARIES} )
 #TARGET_LINK_LIBRARIES( BeamCal BCPadEnergies ${ROOT_LIBRARIES} )
 
-INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/include )
+INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/LumiCalReco/include )
+INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/BeamCalReco/include )
 
 ADD_EXECUTABLE (ReconstructBecas ReconstructBecas.cpp)
 TARGET_LINK_LIBRARIES ( ReconstructBecas BeamCalReco )

@@ -1,10 +1,10 @@
-#include "BeamCalReco/BeamCal.hh"
-#include "BeamCalReco/BCPadEnergies.hh"
-#include "BeamCalReco/BeamCalGeoCached.hh"
-#include "BeamCalReco/BeamCalGeoGear.hh"
-#include "BeamCalReco/BeamCalCluster.hh"
-#include "BeamCalReco/BCPCuts.hh"
-#include "BeamCalReco/BCRootUtilities.hh"
+#include "BeamCal.hh"
+#include "BCPadEnergies.hh"
+#include "BeamCalGeoCached.hh"
+#include "BeamCalGeoGear.hh"
+#include "BeamCalCluster.hh"
+#include "BCPCuts.hh"
+#include "BCRootUtilities.hh"
 
 //GEAR
 #include <gearxml/GearXML.h>
