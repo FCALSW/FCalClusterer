@@ -84,15 +84,13 @@ namespace BCUtil{
   //Or we write a class which either uses Gear or DD4hep accesses and point to that...
 
 
-
-
-
-
-
-
-
-
-
+  inline bool areCloseTogether(double theta1, double phi1, double theta2, double phi2) {
+  const double DegToRad = M_PI/180.0;
+  return (
+	  ( fabs( theta1 - theta2 ) < 5.0 )
+	  and (( fabs ( sin(phi1*DegToRad) - sin(phi2*DegToRad) ) < 0.35 ))
+	  and (( fabs ( cos(phi1*DegToRad) - cos(phi2*DegToRad) ) < 0.35 )));
+}
 
 }//Namespace
 
