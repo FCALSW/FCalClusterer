@@ -1,6 +1,6 @@
 // Local
-#include "LumiCalClusterer.h"
 #include "Global.hh"
+#include "LumiCalClusterer.h"
 #include "SortingFunctions.hh"
 // Root
 #include <TF1.h>
@@ -8,12 +8,12 @@
 // LCIO
 #include <IMPL/CalorimeterHitImpl.h>
 // stdlib
-#include <cmath>
-#include <map>
-#include <string>
-#include <vector>
-#include <stdexcept>
 #include <algorithm>
+#include <iomanip>
+#include <map>
+#include <stdexcept>
+#include <vector>
+
 
 
 /* =========================================================================
@@ -441,7 +441,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
       // ???????? DECIDE/FIX - incorparate the parameters given here better in the code ????????
       // ???????? DECIDE/FIX - consider a different middle layer for the else condition ????????
       // extrapolated cluster radius around CM position
-#pragma message("Fix these parameters")
+#warning "Fix these parameters"
       if(avrgCM[clusterNow].getE() > 1)     { fitPar0 = 236.7; fitPar1 = 9.11; hitLayerRatio = 22/2618.; }
       else                              { fitPar0 = 226.5; fitPar1 = 10.3; hitLayerRatio = 22/2570.; }
 

@@ -7,13 +7,4 @@
 #define _BHABHA_SELECTION_CUTS_DEBUG 1
 #define _CLUSTER_RESET_STATS_DEBUG 1
 
-#include "LCCluster.hh"
-
-#include <vector>
-#include <map>
-#include <iostream>
-#include <string>
-#include <iomanip>
-
-
 #endif // Global_hh

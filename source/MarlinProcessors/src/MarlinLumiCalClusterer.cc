@@ -1,16 +1,9 @@
-// include my header file + whatever LCIO classes i use below
-
 #include "MarlinLumiCalClusterer.h"
-#include "MarlinLumiCalClusterer_auxiliary.h"
 
 #include <EVENT/LCEvent.h>
 
-
 #include <string>
 #include <map>
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // GENERAL NOTES:
@@ -148,7 +141,8 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
 	    << std::endl ;
 
 
-  OutputManager.NumEventsTree = 500;	TryMarlinLumiCalClusterer(evt);
+  OutputManager.NumEventsTree = 500;	
+  TryMarlinLumiCalClusterer(evt);
 
 }
 

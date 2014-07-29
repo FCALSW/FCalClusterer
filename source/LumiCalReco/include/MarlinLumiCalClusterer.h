@@ -1,28 +1,20 @@
-// check if this file has already been called:
 #ifndef MarlinLumiCalClusterer_
 #define MarlinLumiCalClusterer_
 
 #include "Global.hh"
 
+#include "GlobalMethodsClass.h"
+#include "LumiCalClusterer.h"
+#include "OutputManagerClass.h"
+
+class ClusterClass;
+
 // Marlin classes:
 #include <marlin/Processor.h>
-#include <marlin/Global.h>
-#include <lcio.h>
-#include <EVENT/LCCollection.h>
-#include <EVENT/MCParticle.h>
-#include <EVENT/SimCalorimeterHit.h>
-#include <IMPL/CalorimeterHitImpl.h>
-#include <IMPL/SimCalorimeterHitImpl.h>
-#include <IMPL/ClusterImpl.h>
 
 namespace EVENT{
   class LCEvent;
 }
-
-// gear
-#include <gear/GEAR.h>
-#include <gear/CalorimeterParameters.h>
-#include <gear/LayerLayout.h>
 
 
 // // cout color definitios
@@ -34,34 +26,6 @@ namespace EVENT{
 // #define coutUnderLine                "\033[4;30m"
 // #define coutWhiteOnBlack     "\33[40;37;1m"
 
-
-// my standard includes:
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <vector>
-
-// ROOT libs
-#include <TMath.h>
-#include <TFile.h>
-#include <TTree.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TF1.h>
-#include <TRandom3.h>
-#include <TColor.h>
-
-#include "GlobalMethodsClass.h"
-#include "ClusterClass.h"
-#include "SortingClass.h"
-#include "OutputManagerClass.h"
-
-#include "LumiCalClusterer.h"
 
 
 

@@ -13,6 +13,8 @@ SET( LumiCalReco_SOURCES
   src/LumiCalClusterer_getCalHits.cpp
   src/SuperTrueClusterWeights.cpp
   src/VirtualCluster.cpp
+  src/MarlinLumiCalClusterer.cpp
+  src/OutputManagerClass.cpp
 )
 
 INCLUDE_DIRECTORIES ( ./include )

@@ -1,9 +1,7 @@
 #ifndef VirtualCluster_hh
 #define VirtualCluster_hh 1
 
-
-#include "GlobalMethodsClass.h"
-
+#include <iosfwd>
 
 class VirtualCluster
 {

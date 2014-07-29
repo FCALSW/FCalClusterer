@@ -1,10 +1,22 @@
-#include <map>
-#include <vector>
+#include "MarlinLumiCalClusterer.h"
+
+#include "SortingClass.h"
+#include "ClusterClass.h"
 
 #include <IMPL/ReconstructedParticleImpl.h>
 #include <IMPL/ClusterImpl.h>
 #include <EVENT/LCCollection.h>
 #include <IMPL/LCCollectionVec.h>
+
+#include <TH1F.h>
+#include <TH2F.h>
+#include <TTree.h>
+
+#include <algorithm>
+#include <map>
+#include <vector>
+
+
 /* >> */ 
 
   /* --------------------------------------------------------------------------

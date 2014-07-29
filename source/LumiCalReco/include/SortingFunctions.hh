@@ -1,10 +1,10 @@
 #ifndef SortingFunctions_hh
 #define SortingFunctions_hh 1
 
+#include <IMPL/CalorimeterHitImpl.h>
 
 #include <vector>
 
-#include <IMPL/CalorimeterHitImpl.h>
 
 /* =========================================================================
    Auxiliary functions

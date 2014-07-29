@@ -1,9 +1,10 @@
 #ifndef LCCluster_hh
 #define LCCluster_hh 1
 
-
 #include "GlobalMethodsClass.h"
+
 #include <cmath>
+#include <ostream>
 
 class VirtualCluster;
 

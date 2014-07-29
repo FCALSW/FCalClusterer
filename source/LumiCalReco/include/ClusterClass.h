@@ -6,7 +6,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <iomanip>
 
 namespace EVENT {
   class MCParticle;
