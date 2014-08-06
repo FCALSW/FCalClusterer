@@ -14,7 +14,6 @@
 #include <TCanvas.h>
 #include <TCrown.h>
 #include <TH2D.h>
-#include <TH3D.h>
 #include <TList.h>
 #include <TMath.h>
 #include <TPad.h>
@@ -502,6 +501,7 @@ void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, const BCPadEnergies *
 }//SetBeamCalHisto
 
 
+
 TH3D* BeamCal::getBeamCalHistogram(TString title){
   //#pragma "FIXME: Fix the getBeamCalHistogram Function"
 
@@ -518,6 +518,8 @@ TH3D *histo = new TH3D(title, title,
  histo->SetDirectory(0);
  return histo;
 }
+
+
 
 
  BeamCal::BeamCal(const BeamCal& rhs):

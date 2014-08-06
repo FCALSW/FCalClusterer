@@ -6,11 +6,13 @@
 
 #include <lcio.h>
 #include <marlin/Processor.h>
+#include "showerTemplates.hh"
 
 class TChain;
 class TEfficiency;
 class TFile;
 class TH1;
+class TH3D;
 class TRandom3;
 class TString;
 
@@ -20,7 +22,7 @@ class BCRecoObject;
 class BeamCal;
 class BeamCalGeo;
 
-class BeamCalClusterReco : public marlin::Processor {
+class BeamCalClusterReco : public marlin::Processor , protected ProfileTester {
   
  public:
   
@@ -68,6 +70,13 @@ class BeamCalClusterReco : public marlin::Processor {
   bool m_usePadCuts;
   bool m_createEfficienyFile;
   double m_sigmaCut;
+  // SL: Parameters for the particle-type distinction
+  double m_EMcorrelThreshold; // Correlation threshold
+  double m_eFactor;				// Energy calibration coefficient
+  double m_p0a;					// Energy dependence of the parameter a
+  double m_p1a;					// Energy dependence of the parameter a
+  double m_p0b;					// Energy dependence of the parameter b
+  double m_p1b;					// Energy dependence of the parameter b
 
   std::vector<float> m_startingRings;
   std::vector<float> m_requiredRemainingEnergy;
@@ -116,6 +125,9 @@ private:
   BeamCalClusterReco(const BeamCalClusterReco&);
   BeamCalClusterReco& operator=(const BeamCalClusterReco&);
 
+  // SL: Added for the purpose of particle-type discrimination
+  // Called within FindClusters to generate a histogram with the shower profile
+  static TH3D* MakeBeamCalHisto(const BCPadEnergies *bcpads, TString title="temp");
 
 } ;
 

@@ -32,6 +32,8 @@
 #include <TEfficiency.h>
 #include <TFile.h>
 #include <TH2F.h>
+#include <TH1D.h>
+#include <TH3D.h>
 #include <TLine.h>
 #include <TPaveText.h>
 #include <TRandom3.h>
@@ -41,6 +43,9 @@
 #include <iomanip>
 #include <iostream>
 #include <set>
+
+#include "showerTemplates.hh"
+
 
 using namespace lcio ;
 using namespace marlin ;
@@ -62,7 +67,7 @@ WrongParameterException(std::string error) : std::runtime_error(error) { }
 };
 
 
-BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
+BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"), ProfileTester(),
 					   m_colNameMC(""),
 					   m_colNameBCal(""),
 					   m_files(),
@@ -75,6 +80,9 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 					   m_usePadCuts(true),
 					   m_createEfficienyFile(false),
 					   m_sigmaCut(1.0),
+					   m_EMcorrelThreshold(.98),
+					   m_eFactor(56.72),
+					   m_p0a(0.737), m_p1a(1.75), m_p0b(0.02209), m_p1b(1.8e6),
 					   m_startingRings(),
 					   m_requiredRemainingEnergy(),
 					   m_requiredClusterEnergy(),
@@ -135,6 +143,36 @@ std::vector<float> startingRing, padCut, clusterCut;
 startingRing.push_back(0.0);  padCut.push_back(0.5);  clusterCut.push_back(3.0);
 startingRing.push_back(1.0);  padCut.push_back(0.3);  clusterCut.push_back(2.0);
 startingRing.push_back(2.0);  padCut.push_back(0.2);  clusterCut.push_back(1.0);
+
+registerProcessorParameter ("EMcorrelThreshold",
+			      "Minimum correlation coefficient with the typical EM shower profile required to tag a cluster as an EM shower",
+			      m_EMcorrelThreshold,
+			      double(0.98) ) ;
+
+registerProcessorParameter ("EnergyFactor",
+			      "Calibration factor for the total energy deposit in a cluster",
+			      m_eFactor,
+			      double(56.72) ) ;
+
+registerProcessorParameter ("p0a",
+			      "Calibration parameter p0 for the energy dependence of parameter a of the typical longitudinal EM shower profile",
+			      m_p0a,
+			      double(0.737) ) ;
+
+registerProcessorParameter ("p1a",
+			      "Calibration parameter p1 for the energy dependence of parameter a of the typical longitudinal EM shower profile",
+			      m_p1a,
+			      double(1.75) ) ;
+
+registerProcessorParameter ("p0b",
+			      "Calibration parameter p0 for the energy dependence of parameter b of the typical longitudinal EM shower profile",
+			      m_p0b,
+			      double(0.02209) ) ;
+
+registerProcessorParameter ("p1b",
+			      "Calibration parameter p1 for the energy dependence of parameter b of the typical longitudinal EM shower profile",
+			      m_p1b,
+			      double(1.8e6) ) ;
 
 registerProcessorParameter ("StartingRing",
 			      "Rings from which onwards the outside Thresholds are used",
@@ -356,6 +394,7 @@ void BeamCalClusterReco::init() {
     m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta adn #Phi", bins, minAngle, maxAngle, 72, 0, 360);
   }//Creating Efficiency objects
 
+  ProfileTester::Calibrate(m_eFactor, m_p0a, m_p1a, m_p0b, m_p1b);
 
 
 }//init
@@ -498,9 +537,12 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     particle->setMomentum ( momentumCluster ) ;
     particle->setEnergy ( energyCluster ) ;
     particle->addCluster( cluster ) ;
+    if((*it)->getCorrelEMShower() > m_EMcorrelThreshold) particle->setType(0); // EM type
+    else particle->setType(1); // hadronic type
 
     BCalClusterCol->addElement(cluster);
     BCalRPCol->addElement(particle);
+
 
 
     if(m_createEfficienyFile) {
@@ -593,6 +635,46 @@ BCPadEnergies* BeamCalClusterReco::getBeamCalErrors(const BCPadEnergies *average
 
 
 
+// SL: Added for the purpose of particle-type distinction
+TH3D* BeamCalClusterReco::MakeBeamCalHisto(const BCPadEnergies *bcpads, TString title)
+{
+
+  TH3D *histo = new TH3D(title, title,
+		       bcpads->m_BCG.getBCLayers()+1, 0.5, bcpads->m_BCG.getBCLayers() + 1.5, //layers start at 1
+		       bcpads->m_BCG.getBCRings(),  -0.5, bcpads->m_BCG.getBCRings()-0.5,      //cylinder, start at 0
+		       bcpads->m_BCG.getPadsInRing( bcpads->m_BCG.getBCRings()-1), -0.5, bcpads->m_BCG.getPadsInRing( bcpads->m_BCG.getBCRings()-1)-0.5 //sectors // start at 0
+  );
+  histo->SetDirectory(0);
+
+  int layer=-1, cylinder=-1, sector=-1;
+  double energy;
+  for (int i = 0; i < bcpads->m_BCG.getPadsPerBeamCal() ;++i) {
+    try {
+      bcpads->m_BCG.getLayerRingPad(i, layer, cylinder, sector);
+      energy = bcpads->getEnergy(i);
+      histo->Fill(layer, cylinder, sector, energy);
+    }  catch(std::out_of_range &e) {
+      std::cout << "ERROR, out of range! " << e.what()
+		<< std::setw(5) << layer
+		<< std::setw(5) << cylinder
+		<< std::setw(5) << sector
+		<<std::endl;
+    }catch (std::logic_error &e) {
+      std::cout << "ERROR, getLayerRingPad is faulty! " << e.what()
+		<< std::setw(5) << layer
+		<< std::setw(5) << cylinder
+		<< std::setw(5) << sector
+		<<std::endl;
+    }
+  }//for all the pads
+
+  return histo;
+
+}//MakeBeamCalHisto
+
+
+
+
 std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies& signalPads,
 							    const BCPadEnergies& backgroundPads,
 							    const BCPadEnergies& backgroundSigma,
@@ -611,6 +693,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
   const std::vector<BeamCalCluster> &bccs =
     signalPads.lookForNeighbouringClustersOverWithVetoAndCheck(backgroundPads, backgroundSigma, *m_bcpCuts);
 
+  int iCluster=0; // SL:DELETE
   for (std::vector<BeamCalCluster>::const_iterator it = bccs.begin(); it != bccs.end(); ++it) {
 
     streamlog_out(MESSAGE2) << title;
@@ -624,12 +707,32 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
       double theta(it->getTheta());
       double phi  (it->getPhi());
 
-      streamlog_out(MESSAGE2) << " found something "
+      // SL: Added for the purpose of particle-type distinction
+      BCPadEnergies bcp(m_BCG);
+      it->getBCPad(bcp);
+//      bcp.subtractEnergies(backgroundPads); (Subtracting from zeros, as well?)
+      TH3D *bch3d = MakeBeamCalHisto(&bcp);
+      TH1D *layers = (TH1D*)bch3d->Project3D("x");
+      TH1D *radial = (TH1D*)bch3d->Project3D("y"); // SL:DELETE
+      TCanvas c("clusterplot", "Cluster Plot", 800, 1200); // SL:DELETE
+      c.Divide(1,2,.01,.01); // SL:DELETE
+      c.cd(1); layers->Draw(); // SL:DELETE
+      c.cd(2); radial->Draw(); // SL:DELETE
+      iCluster++; // SL:DELETE
+      c.Print(Form("plots%i-%i.pdf", m_nEvt, iCluster)); // SL:DELETE
+
+      float xStart=0, correlEMShower=0;
+      // Test correlation with the standard EM shower profile and determine the shower starting position xStart
+      Test(layers, xStart, correlEMShower);
+
+      streamlog_out(MESSAGE2) << " found something at theta = "
 			      << std::setw(10) << theta
-			      << std::setw(10) << phi
+			      << "; phi = " << std::setw(10) << phi
+			      << "\nCorrelation with EM shower = " << std::setw(10) << correlEMShower
+			      << "; xStart = " << std::setw(10) << xStart
 	;//ending the streamlog!
 
-      recoVec.push_back( new BCRecoObject(shouldHaveCluster, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide() ) );
+      recoVec.push_back( new BCRecoObject(shouldHaveCluster, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide(), correlEMShower, xStart ) );
 
     }//if we have enough pads and energy in the clusters
 

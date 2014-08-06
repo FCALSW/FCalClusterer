@@ -2,6 +2,7 @@ INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/include )
 
 ADD_SUBDIRECTORY ( BeamCalReco )
 ADD_SUBDIRECTORY ( LumiCalReco )
+ADD_SUBDIRECTORY ( ShowerTemplates )
 
 if(Marlin_FOUND)
   ADD_SUBDIRECTORY ( MarlinProcessors )
