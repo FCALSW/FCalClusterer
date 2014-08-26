@@ -535,7 +535,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     particle->setMass( mass ) ;
     particle->setCharge( charge ) ;
     particle->setMomentum ( momentumCluster ) ;
-    particle->setEnergy ( energyCluster ) ;
+    particle->setEnergy ( energyCluster * getEFactor()) ;
     particle->addCluster( cluster ) ;
     particle->setGoodnessOfPID((*it)->getCorrelEMShower());
     if((*it)->getCorrelEMShower() > m_EMcorrelThreshold) particle->setType(0); // EM type
@@ -715,13 +715,13 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 //      bcp.subtractEnergies(backgroundPads); (Subtracting from zeros, as well?)
       TH3D *bch3d = MakeBeamCalHisto(&bcp);
       TH1D *layers = (TH1D*)bch3d->Project3D("x");
-/*      TH1D *radial = (TH1D*)bch3d->Project3D("y"); // SL:DELETE
-      TCanvas c("clusterplot", "Cluster Plot", 800, 1200); // SL:DELETE
-      c.Divide(1,2,.01,.01); // SL:DELETE
-      c.cd(1); layers->Draw(); // SL:DELETE
-      c.cd(2); radial->Draw(); // SL:DELETE
-      iCluster++; // SL:DELETE
-      c.Print(Form("plots%i-%i.pdf", m_nEvt, iCluster)); // SL:DELETE
+/*      TH1D *radial = (TH1D*)bch3d->Project3D("y"); 		// SL:DELETE
+      TCanvas c("clusterplot", "Cluster Plot", 800, 1200); 	// SL:DELETE
+      c.Divide(1,2,.01,.01); 								// SL:DELETE
+      c.cd(1); layers->Draw(); 								// SL:DELETE
+      c.cd(2); radial->Draw(); 								// SL:DELETE
+      iCluster++; 											// SL:DELETE
+      c.Print(Form("plots%i-%i.pdf", m_nEvt, iCluster)); 	// SL:DELETE
 */
       float xStart=0, correlEMShower=0;
       // Test correlation with the standard EM shower profile and determine the shower starting position xStart

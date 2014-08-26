@@ -99,7 +99,6 @@ class BeamCalClusterReco : public marlin::Processor , protected ProfileTester {
   BCPCuts* m_bcpCuts;
 
   TEfficiency *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
-
   
 
 private:

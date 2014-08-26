@@ -43,9 +43,9 @@ Double_t eShower1D_varx0 (Double_t *x, Double_t *par)
 
 
 
-ProfileTester::ProfileTester(double eCoeff, double p0a, double p1a, double p0b, double p1b, double loEdge, double hiEdge) :
+ProfileTester::ProfileTester(double eFactor, double p0a, double p1a, double p0b, double p1b, double loEdge, double hiEdge) :
 		TF1("ShowerTemplate", eShower1D_varx0, loEdge, hiEdge, 4),
-		_eCoeff(eCoeff), _p0a(p0a), _p1a(p1a), _p0b(p0b), _p1b(p1b)
+		_eFactor(eFactor), _p0a(p0a), _p1a(p1a), _p0b(p0b), _p1b(p1b)
 {
 	InitParameters(100.);
 }
@@ -53,9 +53,9 @@ ProfileTester::ProfileTester(double eCoeff, double p0a, double p1a, double p0b, 
 
 ProfileTester::~ProfileTester() {}
 
-void ProfileTester::Calibrate(double eCoeff, double p0a, double p1a, double p0b, double p1b)
+void ProfileTester::Calibrate(double eFactor, double p0a, double p1a, double p0b, double p1b)
 {
-	_eCoeff = eCoeff;
+	_eFactor = eFactor;
 	_p0a = p0a;
 	_p1a = p1a;
 	_p0b = p0b;
@@ -65,7 +65,7 @@ void ProfileTester::Calibrate(double eCoeff, double p0a, double p1a, double p0b,
 void ProfileTester::InitParameters(double deposit)
 {
 	if (!(deposit > 1.e-6)) deposit = 1.e-6;
-	double energy = _eCoeff*deposit;
+	double energy = _eFactor*deposit;
 	double a = _p0a*log(_p1a*energy);
 	double b = _p0b*log(_p1b*energy);
 
