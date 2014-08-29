@@ -41,6 +41,46 @@ void BCUtil::ReadRootFile(std::string const& fileName, std::vector<BCPadEnergies
 
 
 
+std::vector<BCPadEnergies>* BCUtil::ReadMultiRootFile(std::string const& fileName, BeamCalGeo* geoCache) {
+
+  TFile* file = TFile::Open(fileName.c_str());
+  if ( not file ) {
+    std::cerr << "File not found: "<< fileName  << std::endl;
+    return NULL;
+  }
+  TTree* tree;
+  file->GetObject("bcTree", tree);
+  if ( not tree ) {
+    std::cerr << "Tree not found in file " << fileName  << std::endl;
+    file->Close();
+    delete file;
+    throw std::invalid_argument("The file does not contain a BCPadenergies Rootfile");
+  }
+
+  std::vector<double> *depositsLeft(NULL), *depositsRight(NULL);
+  tree->SetBranchAddress("vec_left" , &depositsLeft);
+  tree->SetBranchAddress("vec_right", &depositsRight);
+  int nEntries = tree->GetEntries();
+
+  std::vector<BCPadEnergies> *newPads = new std::vector<BCPadEnergies>(2*nEntries, geoCache);
+
+  for( int iEvt=0; iEvt<nEntries; iEvt++)
+  {
+	  tree->GetEntry(iEvt);
+
+	  std::cout << "Processing entry #" << iEvt << "\r";
+
+	  newPads->at(iEvt*2).setEnergies(*depositsLeft);
+	  newPads->at(iEvt*2+1).setEnergies(*depositsRight);
+  }
+
+  file->Close();
+  delete file;
+  return newPads;
+}
+
+
+
 void BCUtil::ReadBecasFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads) {
 
   TFile *becasFile = TFile::Open(TString(fileName));

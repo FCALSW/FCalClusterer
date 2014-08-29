@@ -13,6 +13,7 @@ class BeamCalGeo;
 namespace BCUtil{
 
   void ReadRootFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads);
+  std::vector<BCPadEnergies>* ReadMultiRootFile(std::string const& fileName, BeamCalGeo* geoCache);
   void ReadBecasFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads );
 
 }//end namespace

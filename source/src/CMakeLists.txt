@@ -10,6 +10,9 @@
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/LumiCalReco/include )
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/BeamCalReco/include )
 
+ADD_EXECUTABLE ( longitudinals longitudinals.cpp)
+TARGET_LINK_LIBRARIES ( longitudinals BeamCalReco )
+
 ADD_EXECUTABLE (ReconstructBecas ReconstructBecas.cpp)
 TARGET_LINK_LIBRARIES ( ReconstructBecas BeamCalReco )
 
@@ -17,5 +20,5 @@ ADD_EXECUTABLE ( DrawBeamCals DrawBeamCals.cpp)
 TARGET_LINK_LIBRARIES ( DrawBeamCals BeamCalReco )
 
 INSTALL( TARGETS
-  ReconstructBecas DrawBeamCals
+  longitudinals ReconstructBecas DrawBeamCals
   RUNTIME DESTINATION bin)
