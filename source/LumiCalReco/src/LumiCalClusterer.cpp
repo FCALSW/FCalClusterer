@@ -156,11 +156,13 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 
   int	numArmsToCluster, numSuperClusters;
 
+  //        arm            cluster#   vector of hits
   std::map < int , std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > >	calHits;
-
+  //        arm            cluster# cluster object
   std::map < int , std::map < int , LCCluster > >	superClusterCM;
   std::map < int , LCCluster > :: iterator	superClusterCMIterator;
 
+  //        arm               hit#   hit object
   std::map < int , std::map < int , IMPL::CalorimeterHitImpl* > > calHitsCellIdGlobal;
   std::map < int , IMPL::CalorimeterHitImpl* > :: iterator	calHitsCellIdGlobalIterator;
 
@@ -218,7 +220,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 
 
     /* --------------------------------------------------------------------------
-       Perform fiducial volume cuts
+       Perform fiducial volume cuts (removes clusters with center outside FV)
        -------------------------------------------------------------------------- */
     fiducialVolumeCuts(		_superClusterIdToCellId[armNow],
 				_superClusterIdToCellEngy[armNow],

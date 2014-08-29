@@ -38,7 +38,7 @@ public:
   inline void setY( double y) { _position[1] = y; CalculatePhi(); }
   inline void setWeight (double w) { _weight = w; }
   inline void setTheta  (double t) { _theta = t; }
-  inline void setPhi    (double p) { _phi = p; CalculatePhi(); }
+  inline void setPhi    (double p) { _phi = p; CalculatePhi(); } // p is effectively discarded when CalculatePhi() is invoked.
 
   void addToEnergy( double E) { _energy += E; }
   friend std::ostream& operator<<(std::ostream & o, const LCCluster& rhs);

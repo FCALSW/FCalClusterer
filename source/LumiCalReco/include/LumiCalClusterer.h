@@ -61,7 +61,9 @@ public:
   // main actions in each event -Called for every event - the working horse.
   void processEvent( EVENT::LCEvent * evt ) ;
 
+  //        arm            cluster#   vector of cell#s
   std::map < int , std::map < int , std::vector<int> > >	_superClusterIdToCellId;
+  //        arm            cluster#   vector of cell energies
   std::map < int , std::map < int , std::vector<double> > >	_superClusterIdToCellEngy;
   std::map < int , std::map < int , LCCluster > > _superClusterIdClusterInfo;
 
