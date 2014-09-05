@@ -458,6 +458,17 @@ void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEn
 
 }//ClusterNextToNearestNeighbourTowers
 
+
+BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThreshold(float threshold) const{
+  PadIndexList myPadIndices;
+  for (int k = 0; k < m_BCG.getPadsPerBeamCal();++k) {
+    float padEnergy(getEnergy(k));
+	if(padEnergy > threshold) myPadIndices.push_back(k);
+  }//all pads
+  return myPadIndices;
+}
+
+
 BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThresholds(const BCPadEnergies& testPads, const BCPCuts& cuts) const{
   PadIndexList myPadIndices;
   for (int k = 0; k < testPads.m_BCG.getPadsPerBeamCal();++k) {
@@ -594,3 +605,33 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsFromTowers ( BeamCalGeo const&
   return padsInTowers;
 
 }
+
+
+// Create new BCPadEnergies object with only the largest tower and its neighbors
+// No backgrounds and no cuts
+void BCPadEnergies::truncateToTower(float threshold) {
+
+  //here cuts are applied on the pads
+  PadIndexList myPadIndices = getPadsAboveThreshold(threshold);
+
+  TowerIndexList myTowerIndices = getTowersFromPads( this->m_BCG, myPadIndices );
+
+  //Compare the largest deposit to the others and check if they are neighbours
+  TowerIndexList::iterator largestTower = std::max_element(myTowerIndices.begin(), myTowerIndices.end(),
+							   value_comparer);
+
+  for (TowerIndexList::iterator it = myTowerIndices.begin(); it != myTowerIndices.end(); ++it) {
+    if( it->first == largestTower->first) continue;
+
+    const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
+    if( not isNeighbour ) {
+      //remove padIndices from myPadIndices
+      removeTowerFromPads ( this->m_BCG, myPadIndices, it->first);
+    }
+
+  }// find neighbouring towers/pads
+
+  return;
+} // topAndNeighbouringClusters
+
+

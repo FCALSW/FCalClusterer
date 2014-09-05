@@ -61,6 +61,8 @@ public:
 
   BeamCalClusterList lookForNeighbouringClustersOverSigma( const BCPadEnergies &backgroundSigma, const BCPCuts &cuts, bool detailedPrintout = false) const;
 
+  void truncateToTower(float threshold);
+
 
   inline void setSide(BeamCalSide_t side) { m_side = side; }
   inline BeamCalSide_t getSide() const { return m_side; }
@@ -71,7 +73,9 @@ private:
   BeamCalSide_t m_side;
 
   //Reconstruction functions
+  PadIndexList getPadsAboveThreshold(float threshold) const;
   PadIndexList getPadsAboveThresholds(const BCPadEnergies& testPads, const BCPCuts& cuts) const;
+  PadIndexList getPadsAboveThresholds(const BCPCuts& cuts) const;
   PadIndexList getPadsAboveSigma(const BCPadEnergies& sigmas, const BCPCuts& cuts) const;
   BeamCalCluster getClusterFromAcceptedPads(const BCPadEnergies& testPads, const PadIndexList& myPadIndices, const BCPCuts& cuts) const;
 
