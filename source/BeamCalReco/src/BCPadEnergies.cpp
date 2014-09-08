@@ -608,7 +608,7 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsFromTowers ( BeamCalGeo const&
 
 
 // Create new BCPadEnergies object with only the largest tower and its neighbors
-// No backgrounds and no cuts
+// No backgrounds and cut only with one simple energy threshold
 void BCPadEnergies::truncateToTopAndNeighbourTowers(float threshold) {
 
   //here cuts are applied on the pads
@@ -623,6 +623,46 @@ void BCPadEnergies::truncateToTopAndNeighbourTowers(float threshold) {
   for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
 	if (largestTower->first == i%m_BCG.getPadsPerLayer()) continue;
 	const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, i%m_BCG.getPadsPerLayer());
+	if (!isNeighbour) m_PadEnergies[i] = 0. ;
+  }
+
+  return;
+}
+
+
+// Create new BCPadEnergies object with only the largest tower and its next-to-nearest neighbors
+// No backgrounds.
+void BCPadEnergies::truncateToTopAndNNNeighbourTowers(float threshold) {
+
+  //here cuts are applied on the pads
+  PadIndexList myPadIndices = getPadsAboveThreshold(threshold);
+
+  TowerIndexList myTowerIndices = getTowersFromPads( this->m_BCG, myPadIndices );
+
+  //Compare the largest deposit to the others and check if they are neighbours
+  TowerIndexList::iterator largestTower = std::max_element(myTowerIndices.begin(), myTowerIndices.end(),
+							   value_comparer);
+
+  std::vector<int> firstNeighbours;
+
+  for(TowerIndexList::iterator it=myTowerIndices.begin(); it!=myTowerIndices.end(); it++)
+  {
+	  const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
+	  if(isNeighbour) firstNeighbours.push_back(it->first);
+  }
+  std::cout << "Number of towers: " << myTowerIndices.size() << "\n";
+  std::cout << "Number of first neighbours: " << firstNeighbours.size() << "\n";
+
+
+  for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
+	int iTower = i%m_BCG.getPadsPerLayer();
+	if (largestTower->first == iTower) continue;
+	bool isNeighbour = false;
+	for(std::vector<int>::iterator it=firstNeighbours.begin(); it!=firstNeighbours.end(); it++)
+	{
+		if(m_BCG.arePadsNeighbours((*it), iTower)) { isNeighbour=true; break; }
+	}
+
 	if (!isNeighbour) m_PadEnergies[i] = 0. ;
   }
 

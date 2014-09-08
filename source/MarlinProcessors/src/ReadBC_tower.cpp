@@ -171,8 +171,8 @@ void ReadBC_tower::processEvent( LCEvent * evt ) {
   streamlog_out ( DEBUG ) << "Total energy before truncating to tower: "
 		<< "Left: " << m_padEnergiesLeft->getTotalEnergy()
 		<< "; Right: " << m_padEnergiesRight->getTotalEnergy() << "\n";
-  m_padEnergiesLeft->truncateToTopAndNeighbourTowers(m_threshold);
-  m_padEnergiesRight->truncateToTopAndNeighbourTowers(m_threshold);
+  m_padEnergiesLeft->truncateToTopAndNNNeighbourTowers(m_threshold);
+  m_padEnergiesRight->truncateToTopAndNNNeighbourTowers(m_threshold);
   streamlog_out ( DEBUG ) << "Total energy after truncating to tower: "
 		<< "Left: " << m_padEnergiesLeft->getTotalEnergy()
 		<< "; Right: " << m_padEnergiesRight->getTotalEnergy() << "\n";
