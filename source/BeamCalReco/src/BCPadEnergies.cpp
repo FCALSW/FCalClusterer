@@ -650,8 +650,6 @@ void BCPadEnergies::truncateToTopAndNNNeighbourTowers(float threshold) {
 	  const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
 	  if(isNeighbour) firstNeighbours.push_back(it->first);
   }
-  std::cout << "Number of towers: " << myTowerIndices.size() << "\n";
-  std::cout << "Number of first neighbours: " << firstNeighbours.size() << "\n";
 
 
   for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
