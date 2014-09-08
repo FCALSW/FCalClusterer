@@ -166,10 +166,16 @@ void ReadBC_tower::processEvent( LCEvent * evt ) {
 	<< std::endl;
     }
 
-    m_padEnergiesLeft->truncateToTower(m_threshold);
-    m_padEnergiesRight->truncateToTower(m_threshold);
-    
   }//for all entries in the collection
+
+  streamlog_out ( DEBUG ) << "Total energy before truncating to tower: "
+		<< "Left: " << m_padEnergiesLeft->getTotalEnergy()
+		<< "; Right: " << m_padEnergiesRight->getTotalEnergy() << "\n";
+  m_padEnergiesLeft->truncateToTopAndNeighbourTowers(m_threshold);
+  m_padEnergiesRight->truncateToTopAndNeighbourTowers(m_threshold);
+  streamlog_out ( DEBUG ) << "Total energy after truncating to tower: "
+		<< "Left: " << m_padEnergiesLeft->getTotalEnergy()
+		<< "; Right: " << m_padEnergiesRight->getTotalEnergy() << "\n";
 
   tree->Fill();
 

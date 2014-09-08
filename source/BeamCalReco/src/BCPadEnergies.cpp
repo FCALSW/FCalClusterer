@@ -609,7 +609,7 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsFromTowers ( BeamCalGeo const&
 
 // Create new BCPadEnergies object with only the largest tower and its neighbors
 // No backgrounds and no cuts
-void BCPadEnergies::truncateToTower(float threshold) {
+void BCPadEnergies::truncateToTopAndNeighbourTowers(float threshold) {
 
   //here cuts are applied on the pads
   PadIndexList myPadIndices = getPadsAboveThreshold(threshold);
@@ -620,18 +620,13 @@ void BCPadEnergies::truncateToTower(float threshold) {
   TowerIndexList::iterator largestTower = std::max_element(myTowerIndices.begin(), myTowerIndices.end(),
 							   value_comparer);
 
-  for (TowerIndexList::iterator it = myTowerIndices.begin(); it != myTowerIndices.end(); ++it) {
-    if( it->first == largestTower->first) continue;
-
-    const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
-    if( not isNeighbour ) {
-      //remove padIndices from myPadIndices
-      removeTowerFromPads ( this->m_BCG, myPadIndices, it->first);
-    }
-
-  }// find neighbouring towers/pads
+  for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
+	if (largestTower->first == i%m_BCG.getPadsPerLayer()) continue;
+	const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, i%m_BCG.getPadsPerLayer());
+	if (!isNeighbour) m_PadEnergies[i] = 0. ;
+  }
 
   return;
-} // topAndNeighbouringClusters
+}
 
 

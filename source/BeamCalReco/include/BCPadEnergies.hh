@@ -61,7 +61,7 @@ public:
 
   BeamCalClusterList lookForNeighbouringClustersOverSigma( const BCPadEnergies &backgroundSigma, const BCPCuts &cuts, bool detailedPrintout = false) const;
 
-  void truncateToTower(float threshold);
+  void truncateToTopAndNeighbourTowers(float threshold);
 
 
   inline void setSide(BeamCalSide_t side) { m_side = side; }

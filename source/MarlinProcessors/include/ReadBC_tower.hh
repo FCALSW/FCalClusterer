@@ -66,7 +66,6 @@ class ReadBC_tower : public marlin::Processor {
   TTree *tree;
 
   BeamCalGeo* m_bcg;
-  BCPCuts* m_bcpCuts;
 
 private://to shut the warnings up
   ReadBC_tower(const ReadBC_tower&);
