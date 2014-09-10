@@ -8,6 +8,7 @@
 class BeamCalGeo;
 class BeamCalCluster;
 class BCPCuts;  
+class TH1D;
 
 class BCPadEnergies{
 
@@ -61,8 +62,12 @@ public:
 
   BeamCalClusterList lookForNeighbouringClustersOverSigma( const BCPadEnergies &backgroundSigma, const BCPCuts &cuts, bool detailedPrintout = false) const;
 
-  void truncateToTopAndNeighbourTowers(float threshold);
-  void truncateToTopAndNNNeighbourTowers(float threshold);
+  TowerIndexList* getTopAndNeighbourTowers(float threshold);
+  TowerIndexList* getTopAndNNNeighbourTowers(float threshold);
+
+  TH1D* longitudinalProfile() const;
+  TH1D* longitudinalProfile(PadIndexList*) const;
+  TH1D* longitudinalProfile(TowerIndexList*) const;
 
 
   inline void setSide(BeamCalSide_t side) { m_side = side; }

@@ -3,6 +3,8 @@
 #include "BCPCuts.hh"
 #include "BeamCalGeo.hh"
 
+#include <TH2D.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -607,9 +609,10 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsFromTowers ( BeamCalGeo const&
 }
 
 
-// Create new BCPadEnergies object with only the largest tower and its neighbors
-// No backgrounds and cut only with one simple energy threshold
-void BCPadEnergies::truncateToTopAndNeighbourTowers(float threshold) {
+
+BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNeighbourTowers(float threshold){
+
+  TowerIndexList *outputlist = new TowerIndexList;
 
   //here cuts are applied on the pads
   PadIndexList myPadIndices = getPadsAboveThreshold(threshold);
@@ -619,52 +622,90 @@ void BCPadEnergies::truncateToTopAndNeighbourTowers(float threshold) {
   //Compare the largest deposit to the others and check if they are neighbours
   TowerIndexList::iterator largestTower = std::max_element(myTowerIndices.begin(), myTowerIndices.end(),
 							   value_comparer);
+  outputlist->insert(std::pair<int, int>(largestTower->first, largestTower->second));
 
-  for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
-	if (largestTower->first == i%m_BCG.getPadsPerLayer()) continue;
-	const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, i%m_BCG.getPadsPerLayer());
-	if (!isNeighbour) m_PadEnergies[i] = 0. ;
+  for (TowerIndexList::iterator it=myTowerIndices.begin(); it!=myTowerIndices.end(); it++) {
+	if (it==largestTower) continue;
+	const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
+	if (isNeighbour) outputlist->insert(std::pair<int, int>(it->first, it->second));
   }
 
-  return;
+  return outputlist;
 }
 
 
-// Create new BCPadEnergies object with only the largest tower and its next-to-nearest neighbors
-// No backgrounds.
-void BCPadEnergies::truncateToTopAndNNNeighbourTowers(float threshold) {
+
+BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNNNeighbourTowers(float threshold){
+
+  TowerIndexList *outputlist = new TowerIndexList;
+
+  TowerIndexList firstNeighbours = *(this->getTopAndNeighbourTowers(threshold));
+  for(TowerIndexList::iterator it=firstNeighbours.begin(); it!=firstNeighbours.end(); it++){
+	  outputlist->insert(std::pair<int, int>(it->first, it->second));
+  }
 
   //here cuts are applied on the pads
   PadIndexList myPadIndices = getPadsAboveThreshold(threshold);
 
   TowerIndexList myTowerIndices = getTowersFromPads( this->m_BCG, myPadIndices );
 
-  //Compare the largest deposit to the others and check if they are neighbours
-  TowerIndexList::iterator largestTower = std::max_element(myTowerIndices.begin(), myTowerIndices.end(),
-							   value_comparer);
-
-  std::vector<int> firstNeighbours;
-
-  for(TowerIndexList::iterator it=myTowerIndices.begin(); it!=myTowerIndices.end(); it++)
-  {
-	  const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
-	  if(isNeighbour) firstNeighbours.push_back(it->first);
-  }
-
-
-  for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
-	int iTower = i%m_BCG.getPadsPerLayer();
-	if (largestTower->first == iTower) continue;
+  for (TowerIndexList::iterator it=myTowerIndices.begin(); it!=myTowerIndices.end(); it++) {
 	bool isNeighbour = false;
-	for(std::vector<int>::iterator it=firstNeighbours.begin(); it!=firstNeighbours.end(); it++)
-	{
-		if(m_BCG.arePadsNeighbours((*it), iTower)) { isNeighbour=true; break; }
+	for(TowerIndexList::iterator jt=firstNeighbours.begin(); jt!=firstNeighbours.end(); jt++){
+		if(m_BCG.arePadsNeighbours(jt->first, it->first))
+			{ isNeighbour=true; break;}
 	}
-
-	if (!isNeighbour) m_PadEnergies[i] = 0. ;
+	// The insert method checks for repeated indices itself.
+	if (isNeighbour) outputlist->insert(std::pair<int, int>(it->first, it->second));
   }
 
-  return;
+  return outputlist;
 }
+
+
+
+// Return the pointer to a histogram containing the longitudinal profile of energy deposits in BeamCal
+TH1D* BCPadEnergies::longitudinalProfile() const
+{
+  TH1D *profile = new TH1D("BClongProfile", "BeamCal longitudinal profile; layer; energy (a.u.)", m_BCG.getBCLayers(), 0.5, double(m_BCG.getBCLayers())+0.5);
+
+  for (int i = 0; i < m_BCG.getPadsPerBeamCal();++i) {
+	  profile->Fill(double(m_BCG.getLayer(i)), this->getEnergy(i));
+  }
+
+  return profile;
+}
+
+// Return the pointer to a histogram containing the longitudinal profile of energy deposits in BeamCal
+// Restricted to pads in the padlist
+TH1D* BCPadEnergies::longitudinalProfile(PadIndexList* padlist) const
+{
+  TH1D *profile = new TH1D("BClongProfile", "BeamCal longitudinal profile; layer; energy (a.u.)", m_BCG.getBCLayers(), 0.5, double(m_BCG.getBCLayers())+0.5);
+
+  for (PadIndexList::iterator it=padlist->begin(); it!=padlist->end(); it++) {
+	  profile->Fill(double(m_BCG.getLayer(*it)), this->getEnergy(*it));
+  }
+
+  return profile;
+}
+
+
+// Return the pointer to a histogram containing the longitudinal profile of energy deposits in BeamCal
+// Restricted to pads in the towerlist
+TH1D* BCPadEnergies::longitudinalProfile(TowerIndexList* towerlist) const
+{
+  TH1D *profile = new TH1D("BClongProfile", "BeamCal longitudinal profile; layer; energy (a.u.)", m_BCG.getBCLayers(), 0.5, double(m_BCG.getBCLayers())+0.5);
+
+  for (TowerIndexList::iterator it=towerlist->begin(); it!=towerlist->end(); it++) {
+	  for(int iLayer=0; iLayer < m_BCG.getBCLayers(); iLayer++){
+		  // iLayer is actually the layer number minus 1
+		  int iPad = it->first + iLayer*m_BCG.getPadsPerLayer();
+		  profile->Fill(double(iLayer+1), this->getEnergy(iPad));
+	  }
+  }
+
+  return profile;
+}
+
 
 

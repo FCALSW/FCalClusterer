@@ -41,6 +41,7 @@ int main (int argn, char **argc) {
 
 //  const double ares = 0.03; //Constant relating the width of the deposit distribution in a cell to the square root of the deposition
   const double e0 = 1.e-3; // Effective "unit energy" to express the cell deposit distribution as Poissonian
+  const double threshold = 1.e-3;
 
   //Create the gearmanager from the gearfile
   std::string gearFile ( argc[1] );
@@ -65,66 +66,62 @@ int main (int argn, char **argc) {
   TString outName("longitudinals."); outName += rootFile;
   TFile histograms(outName.Data(), "RECREATE");
 
-  BeamCal bc (gearMgr);
-
   int nEntries = signalBeamCals->size();
 
-  bc.SetBeamCalHisto( &(signalBeamCals->at(0)) );
-  TH1D *BeamCalEnergy = (TH1D*)bc.GetBeamCalHisto()->Project3D("x");
-  TH1D *BCaverage = new TH1D(*BeamCalEnergy);
-  BCaverage->Reset();
+  BCPadEnergies::TowerIndexList *towerlist = signalBeamCals->at(0).getTopAndNNNeighbourTowers(threshold);
+  TH1D *BeamCalEnergy = signalBeamCals->at(0).longitudinalProfile(towerlist);
+  TH1D BCaverage(*BeamCalEnergy);
+  BCaverage.Reset();
   int nAdded=0;
-  if(BeamCalEnergy->Integral() > 0.001)
-	  { BeamCalEnergy->Write("Layers_0"); BCaverage->Add(BeamCalEnergy); nAdded++;}
+  if(BeamCalEnergy->Integral() > threshold)
+	  { BeamCalEnergy->Write("Layers_0"); BCaverage.Add(BeamCalEnergy); nAdded++;}
 
 // Loop to create the average profile
 
   for( int iEvt=1; iEvt<nEntries; iEvt++)
   {
-//	  std::cout << "Sum integral: " << BCaverage->Integral() << std::endl;
-	  bc.SetBeamCalHisto( &(signalBeamCals->at(iEvt)) );
-	  BeamCalEnergy = (TH1D*)bc.GetBeamCalHisto()->Project3D("x");
-	  std::stringstream hname; hname << "Layers_" << iEvt;
-	  if(BeamCalEnergy->Integral() > 1.e-6)
+	  delete towerlist; towerlist = signalBeamCals->at(iEvt).getTopAndNNNeighbourTowers(threshold);
+	  delete BeamCalEnergy; BeamCalEnergy = signalBeamCals->at(iEvt).longitudinalProfile(towerlist);
+	  if(BeamCalEnergy->Integral() > threshold)
 	  {
-		  BeamCalEnergy->Write(hname.str().c_str());
-		  BCaverage->Add(BeamCalEnergy);
+		  BeamCalEnergy->Write(Form("Layers_%i", iEvt));
+		  BCaverage.Add(BeamCalEnergy);
 		  nAdded++;
 	  }
   }
 
-  BCaverage->Scale(1./double(nAdded));
-  TH1D *BCrms = new TH1D(*BCaverage);
-  BCrms->Reset();
-  TH1D BCtemp(*BCrms);
-  TH1D BCsq(*BCrms);
+  BCaverage.Scale(1./double(nAdded));
+  TH1D BCrms(BCaverage);
+  BCrms.Reset();
+  TH1D BCtemp(BCrms);
+  TH1D BCsq(BCrms);
 
 // Loop to create the RMS of the individual bins
   for( int iEvt=0; iEvt<nEntries; iEvt++)
   {
-	  bc.SetBeamCalHisto( &(signalBeamCals->at(iEvt)) );
-	  BeamCalEnergy = (TH1D*)bc.GetBeamCalHisto()->Project3D("x");
-	  if(BeamCalEnergy->Integral() > 1.e-6)
+	  delete towerlist; towerlist = signalBeamCals->at(iEvt).getTopAndNNNeighbourTowers(threshold);
+	  delete BeamCalEnergy; BeamCalEnergy = signalBeamCals->at(iEvt).longitudinalProfile(towerlist);
+	  if(BeamCalEnergy->Integral() > threshold)
 	  {
-		  BCtemp.Add(BeamCalEnergy, BCaverage, 1., -1.);
+		  BCtemp.Add(BeamCalEnergy, &BCaverage, 1., -1.);
 		  BCsq.Multiply(&BCtemp,&BCtemp);
-		  BCrms->Add(&BCsq);
+		  BCrms.Add(&BCsq);
 	  }
   }
-  BCrms->Scale(1./double(nAdded));
+  BCrms.Scale(1./double(nAdded));
 
 // Set the errors of the average and the individual profiles.
   //Calculate the bin factor
-  TH1D *haRes = new TH1D(*BCrms);
-  for( int ibin=1; ibin<=BCaverage->GetNbinsX(); ibin++)
+  TH1D haRes(BCrms);
+  for( int ibin=1; ibin<=BCaverage.GetNbinsX(); ibin++)
   {
-	  if(BCaverage->GetBinContent(ibin) > 0)
-		  haRes->SetBinContent(ibin, sqrt(BCrms->GetBinContent(ibin) / BCaverage->GetBinContent(ibin)));
-	  BCaverage->SetBinError(ibin, sqrt(BCrms->GetBinContent(ibin) / double(nAdded)));
+	  if(BCaverage.GetBinContent(ibin) > 0)
+		  haRes.SetBinContent(ibin, sqrt(BCrms.GetBinContent(ibin) / BCaverage.GetBinContent(ibin)));
+	  BCaverage.SetBinError(ibin, sqrt(BCrms.GetBinContent(ibin) / double(nAdded)));
   }
 
-  BCaverage->Write("Layers_average");
-  haRes->Write("ares");
+  BCaverage.Write("Layers_average");
+  haRes.Write("ares");
 
   for( int iEvt=0; iEvt<nEntries; iEvt++)
   {
@@ -132,9 +129,6 @@ int main (int argn, char **argc) {
     histograms.GetObject(hname.str().c_str(), BeamCalEnergy);
     if(BeamCalEnergy)
     {
-/*	  for( int ibin=1; ibin<=BeamCalEnergy->GetNbinsX(); ibin++)
-		  BeamCalEnergy->SetBinError(ibin, /*haRes->GetBinContent(ibin)*/
-//				  ares * sqrt(BeamCalEnergy->GetBinContent(ibin)));
       BeamCalEnergy->Scale(1./e0);
       BeamCalEnergy->Sumw2();
       BeamCalEnergy->Scale(e0);
