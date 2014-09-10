@@ -62,8 +62,8 @@ public:
 
   BeamCalClusterList lookForNeighbouringClustersOverSigma( const BCPadEnergies &backgroundSigma, const BCPCuts &cuts, bool detailedPrintout = false) const;
 
-  TowerIndexList* getTopAndNeighbourTowers(float threshold);
-  TowerIndexList* getTopAndNNNeighbourTowers(float threshold);
+  TowerIndexList* getTopAndNeighbourTowers(float threshold) const;
+  TowerIndexList* getTopAndNNNeighbourTowers(float threshold) const;
 
   TH1D* longitudinalProfile() const;
   TH1D* longitudinalProfile(PadIndexList*) const;

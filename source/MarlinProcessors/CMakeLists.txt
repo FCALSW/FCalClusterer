@@ -4,7 +4,7 @@ INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/LumiCalReco/include )
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/ShowerTemplates/include )
 
 ## BeamCalReco Processors
-SET( BeamCalProcessor_SOURCE src/ReadBeamCal.cpp src/ReadBC_SepEvt.cpp src/ReadBC_tower.cpp src/BeamCalClusterReco.cpp)
+SET( BeamCalProcessor_SOURCE src/ReadBeamCal.cpp src/ReadBC_SepEvt.cpp src/BeamCalClusterReco.cpp)
 
 #LumiCalReco Processors
 SET( LumiCalProcessor_SOURCE src/MarlinLumiCalClusterer.cc)

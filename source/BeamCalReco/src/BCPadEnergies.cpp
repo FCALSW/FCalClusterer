@@ -610,7 +610,7 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsFromTowers ( BeamCalGeo const&
 
 
 
-BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNeighbourTowers(float threshold){
+BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNeighbourTowers(float threshold) const{
 
   TowerIndexList *outputlist = new TowerIndexList;
 
@@ -635,7 +635,7 @@ BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNeighbourTowers(float thr
 
 
 
-BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNNNeighbourTowers(float threshold){
+BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNNNeighbourTowers(float threshold) const{
 
   TowerIndexList *outputlist = new TowerIndexList;
 
