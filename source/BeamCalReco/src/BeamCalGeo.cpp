@@ -226,6 +226,40 @@ bool BeamCalGeo::arePadsNeighbours(int globalPadIndex1, int globalPadIndex2, boo
 }
 
 
+double BeamCalGeo::getTransversalDistancePads(int globalPadIndex1, int globalPadIndex2) const
+{
+	  int layerIndex1, layerIndex2, ringIndex1, ringIndex2, padIndex1, padIndex2;
+	  getLayerRingPad(globalPadIndex1, layerIndex1, ringIndex1, padIndex1);
+	  getLayerRingPad(globalPadIndex2, layerIndex2, ringIndex2, padIndex2);
+
+	  double extents1[6], extents2[6];
+	  getPadExtents(ringIndex1, padIndex1, extents1);
+	  getPadExtents(ringIndex2, padIndex2, extents2);
+
+	  double rho1 = extents1[4];
+	  double phi1 = extents1[5];
+	  double rho2 = extents2[4];
+	  double phi2 = extents2[5];
+
+	  return sqrt( pow(rho1*cos(phi1) - rho2*cos(phi2), 2) + pow(rho1*sin(phi1) - rho2*sin(phi2), 2));
+}
+
+
+double BeamCalGeo::getTransversalDistancePadToPoint(int globalPadIndex, double rho, double phi) const
+{
+	  int layerIndex, ringIndex, padIndex;
+	  getLayerRingPad(globalPadIndex, layerIndex, ringIndex, padIndex);
+
+	  double extents[6];
+	  getPadExtents(ringIndex, padIndex, extents);
+
+	  double rhoPad = extents[4];
+	  double phiPad = extents[5];
+
+	  return sqrt( pow(rho*cos(phi) - rhoPad*cos(phiPad), 2) + pow(rho*sin(phi) - rhoPad*sin(phiPad), 2));
+}
+
+
 int BeamCalGeo::getPadsInRing( int ring ) const {
     if ( ring < getFirstFullRing() ) {
       return getNSegments()[ring] * getSymmetryFold();

@@ -62,9 +62,13 @@ public:
 
   BeamCalClusterList lookForNeighbouringClustersOverSigma( const BCPadEnergies &backgroundSigma, const BCPCuts &cuts, bool detailedPrintout = false) const;
 
-  TowerIndexList* getTopAndNeighbourTowers(float threshold) const;
-  TowerIndexList* getTopAndNNNeighbourTowers(float threshold) const;
-
+  // Functions used for the calibration of the particle distinction algorithm
+  TowerIndexList* getTopAndNeighbourTowers(double threshold) const;
+  TowerIndexList* getTopAndNNNeighbourTowers(double threshold) const;
+  int maxDepositTower() const;
+  TowerIndexList* getMaxTowerAndWithinRadius(double radius) const;
+  void getGlobalCM(double &z, double &rho, double &phi); // z expressed in layers, relative to the front of BeamCal
+  TowerIndexList* getTowersWithinRadiusFromPoint(double rho, double phi, double radius) const;
   TH1D* longitudinalProfile() const;
   TH1D* longitudinalProfile(PadIndexList*) const;
   TH1D* longitudinalProfile(TowerIndexList*) const;
@@ -79,10 +83,11 @@ private:
   BeamCalSide_t m_side;
 
   //Reconstruction functions
-  PadIndexList getPadsAboveThreshold(float threshold) const;
+  PadIndexList getPadsAboveThreshold(double threshold) const;
   PadIndexList getPadsAboveThresholds(const BCPadEnergies& testPads, const BCPCuts& cuts) const;
   PadIndexList getPadsAboveThresholds(const BCPCuts& cuts) const;
   PadIndexList getPadsAboveSigma(const BCPadEnergies& sigmas, const BCPCuts& cuts) const;
+  BeamCalCluster getClusterFromPads(const PadIndexList& myPadIndices) const;
   BeamCalCluster getClusterFromAcceptedPads(const BCPadEnergies& testPads, const PadIndexList& myPadIndices, const BCPCuts& cuts) const;
 
 

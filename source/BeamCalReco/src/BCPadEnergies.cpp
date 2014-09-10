@@ -461,10 +461,10 @@ void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEn
 }//ClusterNextToNearestNeighbourTowers
 
 
-BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThreshold(float threshold) const{
+BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThreshold(double threshold) const{
   PadIndexList myPadIndices;
   for (int k = 0; k < m_BCG.getPadsPerBeamCal();++k) {
-    float padEnergy(getEnergy(k));
+    double padEnergy(getEnergy(k));
 	if(padEnergy > threshold) myPadIndices.push_back(k);
   }//all pads
   return myPadIndices;
@@ -500,6 +500,51 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveSigma(const BCPadEnergies
   }//all pads
   return myPadIndices;
 }
+
+
+/// Gets a list of indices which make up the cluster myPadIndices
+/// Sums up all the energy of this cluster, calculates the average position of the cluster
+/// operates on *this
+BeamCalCluster BCPadEnergies::getClusterFromPads(const PadIndexList& myPadIndices) const {
+  BeamCalCluster BCCluster;
+  double phi(0.0), ringAverage(0.0), totalEnergy(0.0);
+  double thetaAverage(0.0);
+
+  //Averaging an azimuthal angle is done via sine and cosine
+  double sinStore(0.0), cosStore(0.0);
+
+  //now take all the indices and add them to a cluster
+  for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
+    //Threshold was applied to get the padIndices
+    const double energy(getEnergy(*it));
+    const int ring = m_BCG.getRing(*it);
+    const double thisPhi = m_BCG.getPadPhi(*it)* M_PI / 180.0; //Degrees to Radian
+    BCCluster.addPad(*it, energy);
+    //    phi+= thisPhi*energy;
+    ringAverage += double( ring ) * energy;
+    totalEnergy += energy;
+    sinStore += energy * sin( thisPhi );
+    cosStore += energy * cos( thisPhi );
+    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
+
+  }
+  if(totalEnergy > 0.0) {
+    phi =  atan2(sinStore/totalEnergy,  cosStore/totalEnergy) * 180.0 / M_PI ;
+    if(phi < 0) phi += 360;
+    //    phi /= totalEnergy;
+    ringAverage /= totalEnergy;
+    thetaAverage /= totalEnergy;
+
+    BCCluster.setPhi(phi);
+    BCCluster.setRing(ringAverage);
+    //    BCCluster.setTheta( m_BCG.getThetaFromRing( ringAverage ) * 1000 );
+    BCCluster.setTheta( thetaAverage * 1000 );
+  }
+
+
+  return BCCluster;
+}//getClusterFromPads
+
 
 
 /// Gets a list of padEnergies testPads, and a list of indices which make up the cluster myPadIndices
@@ -610,7 +655,7 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsFromTowers ( BeamCalGeo const&
 
 
 
-BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNeighbourTowers(float threshold) const{
+BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNeighbourTowers(double threshold) const{
 
   TowerIndexList *outputlist = new TowerIndexList;
 
@@ -635,7 +680,7 @@ BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNeighbourTowers(float thr
 
 
 
-BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNNNeighbourTowers(float threshold) const{
+BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNNNeighbourTowers(double threshold) const{
 
   TowerIndexList *outputlist = new TowerIndexList;
 
@@ -662,6 +707,88 @@ BCPadEnergies::TowerIndexList* BCPadEnergies::getTopAndNNNeighbourTowers(float t
   return outputlist;
 }
 
+
+int BCPadEnergies::maxDepositTower() const{
+
+  double maxDepo = 0.;
+  int iMaxTower = 0;
+  for(int iTower=1; iTower<=m_BCG.getPadsPerLayer(); iTower++)
+  {
+	  double depo=0.;
+	  for(int iLayer=0; iLayer<m_BCG.getPadsPerLayer(); iLayer++)
+		  depo += this->getEnergy(iTower+iLayer*m_BCG.getPadsPerLayer());
+
+	  if(depo>maxDepo) { maxDepo=depo; iMaxTower = iTower;}
+  }
+  return iMaxTower;
+}
+
+
+BCPadEnergies::TowerIndexList* BCPadEnergies::getMaxTowerAndWithinRadius(double radius) const
+{
+  TowerIndexList *outputlist = new TowerIndexList;
+//  TowerIndexList::iterator maxTower
+
+  int iMaxTower = maxDepositTower();
+  outputlist->insert(std::pair<int,int>(iMaxTower, m_BCG.getBCLayers()));
+
+  for(int iTower=1; iTower<=m_BCG.getPadsPerLayer(); iTower++)
+  {
+	  if (m_BCG.getTransversalDistancePads(iMaxTower, iTower) < radius)
+		  outputlist->insert(std::pair<int,int>(iTower, m_BCG.getBCLayers()));
+  }
+
+  return outputlist;
+}
+
+
+void BCPadEnergies::getGlobalCM(double &z, double &rho, double &phi)
+{
+	  z = phi = rho = 0.0;
+	  double totalEnergy(0.0);
+
+	  //Averaging is done via cartesian coordinates
+	  double xStore(0.0), yStore(0.0), zStore(0.0);
+	  double extents[6];
+
+	  //now take all the indices and add them to a cluster
+	  for (int iPad=1; iPad<m_BCG.getPadsPerBeamCal(); iPad++) {
+		int layer, ring, pad;
+		m_BCG.getLayerRingPad(iPad, layer, ring, pad);
+	    m_BCG.getPadExtents(ring, pad, extents);
+	    const double energy(getEnergy(iPad));
+	    xStore += energy * extents[4]*cos( extents[5] );
+	    yStore += energy * extents[4]*sin( extents[5] );
+	    zStore += energy * double(layer);
+	    totalEnergy += energy;
+	  }
+
+	  if(totalEnergy > 0.0) {
+		double x = xStore/totalEnergy;
+		double y = yStore/totalEnergy;
+		z = zStore/totalEnergy;
+	    phi =  atan2(y, x) * 180.0 / M_PI ;
+	    rho = sqrt(x*x + y*y);
+	  }
+
+	  return;
+}
+
+
+
+BCPadEnergies::TowerIndexList* BCPadEnergies::getTowersWithinRadiusFromPoint(double rho, double phi, double radius) const
+{
+  TowerIndexList *outputlist = new TowerIndexList;
+//  TowerIndexList::iterator maxTower
+
+  for(int iTower=1; iTower<=m_BCG.getPadsPerLayer(); iTower++)
+  {
+	  if (m_BCG.getTransversalDistancePadToPoint(iTower, rho, phi) < radius)
+		  outputlist->insert(std::pair<int,int>(iTower, m_BCG.getBCLayers()));
+  }
+
+  return outputlist;
+}
 
 
 // Return the pointer to a histogram containing the longitudinal profile of energy deposits in BeamCal

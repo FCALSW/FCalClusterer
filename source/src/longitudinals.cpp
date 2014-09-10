@@ -30,14 +30,96 @@
 #include <iostream>
 #include <sstream>
 
+class profileTaker
+{
+public:
+	profileTaker();
+	~profileAll();
+	TH1D* takeProfile(BCPadEnergies *bcpads) const = 0;
+};
+
+class profileAll : profileTaker
+{
+public:
+	profileAll();
+	~profileAll();
+
+	TH1D* takeProfile(BCPadEnergies *bcpads) const {return bcpads->longitudinalProfile();}
+};
+
+class profileTopAndNNNTowers : profileTaker
+{
+public:
+	profileTopAndNNNTowers(double threshold = 0.001) {m_threshold = threshold;}
+	~profileTopAndNNNTowers();
+	TH1D* takeProfile(BCPadEnergies *bcpads) const
+	{
+	  BCPadEnergies::TowerIndexList *towerlist = bcpads->getTopAndNNNeighbourTowers(m_threshold);
+	  TH1D *profile = bcpads->longitudinalProfile(towerlist);
+	  delete towerlist;
+	  return profile;
+	}
+private:
+	double m_threshold;
+};
+
+class profileInRadiusFromCM : profileTaker
+{
+public:
+	profileInRadiusFromCM(double radius = 1.) {m_radius = radius;};
+	~profileInRadiusFromCM();
+	TH1D* takeProfile(BCPadEnergies *bcpads) const
+	{
+	  double z, rho, phi;
+	  bcpads->getGlobalCM(z, rho, phi);
+	  BCPadEnergies::TowerIndexList *towerlist = bcpads->getTowersWithinRadiusFromPoint(rho, phi, m_radius);
+	  TH1D *profile = bcpads->longitudinalProfile(towerlist);
+	  delete towerlist;
+	  return profile;
+	}
+private:
+	double m_radius;
+};
+
+
 
 int main (int argn, char **argc) {
 
   if ( argn < 3 ) {
     std::cout << "Not enough parameters"  << std::endl;
-    std::cout << "longitudinals <GearFile1> <PRootFile> "  << std::endl;
+    std::cout << "longitudinals <GearFile1> <PRootFile> [profileType] "  << std::endl;
     std::exit(1);
   } 
+
+  profileTaker* profiler;
+  if (argn < 4 ) profiler = new profileAll;
+  else if (TString(argc[3]).Contains("top", TString::kIgnoreCase))
+  {
+	  if(argn < 5)
+	  {
+		std::cout << "Not enough parameters for the ""top"" profile taker. "  << std::endl;
+		std::cout << "longitudinals <GearFile1> <PRootFile> top <threshold> "  << std::endl;
+		std::exit(1);
+	  }
+	  if(atof(argc[4]) <= 0. )
+	  {
+		std::cout << "Please set the threshold above zero." << std::endl;
+		std::cout << "longitudinals <GearFile1> <PRootFile> top <threshold> "  << std::endl;
+		std::exit(1);
+	  }
+	  profiler = new profileTopAndNNNTowers(atof(argc[4]));
+  }
+  else if (TString(argc[3]).Contains("cm", TString::kIgnoreCase))
+  {
+	  if(argn < 5)
+	  {
+		std::cout << "Not enough parameters for the ""cm"" profile taker. "  << std::endl;
+		std::cout << "longitudinals <GearFile1> <PRootFile> cm <radius> "  << std::endl;
+		std::exit(1);
+	  }
+	  profiler = new profileInRadiusFromCM(atof(argc[4]));
+  }
+  else profiler = new profileAll;
 
 //  const double ares = 0.03; //Constant relating the width of the deposit distribution in a cell to the square root of the deposition
   const double e0 = 1.e-3; // Effective "unit energy" to express the cell deposit distribution as Poissonian
@@ -68,24 +150,22 @@ int main (int argn, char **argc) {
 
   int nEntries = signalBeamCals->size();
 
-  BCPadEnergies::TowerIndexList *towerlist = signalBeamCals->at(0).getTopAndNNNeighbourTowers(threshold);
-  TH1D *BeamCalEnergy = signalBeamCals->at(0).longitudinalProfile(towerlist);
-  TH1D BCaverage(*BeamCalEnergy);
+  TH1D *BeamCalProfile = takeProfile(&(signalBeamCals->at(0)));
+  TH1D BCaverage(*BeamCalProfile);
   BCaverage.Reset();
   int nAdded=0;
-  if(BeamCalEnergy->Integral() > threshold)
-	  { BeamCalEnergy->Write("Layers_0"); BCaverage.Add(BeamCalEnergy); nAdded++;}
+  if(BeamCalProfile->Integral() > threshold)
+	  { BeamCalProfile->Write("Layers_0"); BCaverage.Add(BeamCalProfile); nAdded++;}
 
 // Loop to create the average profile
 
   for( int iEvt=1; iEvt<nEntries; iEvt++)
   {
-	  delete towerlist; towerlist = signalBeamCals->at(iEvt).getTopAndNNNeighbourTowers(threshold);
-	  delete BeamCalEnergy; BeamCalEnergy = signalBeamCals->at(iEvt).longitudinalProfile(towerlist);
-	  if(BeamCalEnergy->Integral() > threshold)
+	  delete BeamCalProfile; BeamCalProfile = takeProfile(&(signalBeamCals->at(iEvt)));
+	  if(BeamCalProfile->Integral() > threshold)
 	  {
-		  BeamCalEnergy->Write(Form("Layers_%i", iEvt));
-		  BCaverage.Add(BeamCalEnergy);
+		  BeamCalProfile->Write(Form("Layers_%i", iEvt));
+		  BCaverage.Add(BeamCalProfile);
 		  nAdded++;
 	  }
   }
@@ -99,11 +179,10 @@ int main (int argn, char **argc) {
 // Loop to create the RMS of the individual bins
   for( int iEvt=0; iEvt<nEntries; iEvt++)
   {
-	  delete towerlist; towerlist = signalBeamCals->at(iEvt).getTopAndNNNeighbourTowers(threshold);
-	  delete BeamCalEnergy; BeamCalEnergy = signalBeamCals->at(iEvt).longitudinalProfile(towerlist);
-	  if(BeamCalEnergy->Integral() > threshold)
+	  delete BeamCalProfile; BeamCalProfile = takeProfile(&(signalBeamCals->at(iEvt)));
+	  if(BeamCalProfile->Integral() > threshold)
 	  {
-		  BCtemp.Add(BeamCalEnergy, &BCaverage, 1., -1.);
+		  BCtemp.Add(BeamCalProfile, &BCaverage, 1., -1.);
 		  BCsq.Multiply(&BCtemp,&BCtemp);
 		  BCrms.Add(&BCsq);
 	  }
@@ -126,13 +205,13 @@ int main (int argn, char **argc) {
   for( int iEvt=0; iEvt<nEntries; iEvt++)
   {
     std::stringstream hname; hname << "Layers_" << iEvt;
-    histograms.GetObject(hname.str().c_str(), BeamCalEnergy);
-    if(BeamCalEnergy)
+    histograms.GetObject(hname.str().c_str(), BeamCalProfile);
+    if(BeamCalProfile)
     {
-      BeamCalEnergy->Scale(1./e0);
-      BeamCalEnergy->Sumw2();
-      BeamCalEnergy->Scale(e0);
-	  BeamCalEnergy->Write(hname.str().c_str(), TObject::kOverwrite);
+      BeamCalProfile->Scale(1./e0);
+      BeamCalProfile->Sumw2();
+      BeamCalProfile->Scale(e0);
+	  BeamCalProfile->Write(hname.str().c_str(), TObject::kOverwrite);
     }
   }
 
