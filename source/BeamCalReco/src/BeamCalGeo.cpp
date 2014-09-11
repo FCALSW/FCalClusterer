@@ -256,7 +256,7 @@ double BeamCalGeo::getTransversalDistancePadToPoint(int globalPadIndex, double r
 	  double rhoPad = extents[4];
 	  double phiPad = extents[5];
 
-	  return sqrt( pow(rho*cos(phi) - rhoPad*cos(phiPad), 2) + pow(rho*sin(phi) - rhoPad*sin(phiPad), 2));
+	  return sqrt( pow(rho*cos(phi*M_PI/180.) - rhoPad*cos(phiPad*M_PI/180.), 2) + pow(rho*sin(phi*M_PI/180.) - rhoPad*sin(phiPad*M_PI/180.), 2));
 }
 
 

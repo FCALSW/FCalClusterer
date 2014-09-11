@@ -1,6 +1,8 @@
 #ifndef BEAMCAL_HH
 #define BEAMCAL_HH 1
 
+#include "BCPadEnergies.hh"
+
 #include <TROOT.h>
 #include <TH3D.h>
 #include <TMath.h>
@@ -13,7 +15,7 @@ class TH2D;
 class TPad;
 
 
-class BCPadEnergies;
+//class BCPadEnergies;
 class BeamCalGeo;
 
 #include <EVENT/SimCalorimeterHit.h>
@@ -87,6 +89,8 @@ class BeamCal {
   }
 
   void SetBeamCalHisto(const BCPadEnergies *bchisto, TString title="temp");
+  void SetBeamCalHisto(const BCPadEnergies *bchisto, BCPadEnergies::PadIndexList*, TString title="temp");
+  void SetBeamCalHisto(const BCPadEnergies *bchisto, BCPadEnergies::TowerIndexList*, TString title="temp");
   void SetBeamCalHisto(const BCPadEnergies *bcpads, const BCPadEnergies *bcErrors, TString title="temp");
 
   inline TH3D* GetBeamCalHisto(){ return m_h3BeamCalHisto; }

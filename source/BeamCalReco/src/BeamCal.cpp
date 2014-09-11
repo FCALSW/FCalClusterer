@@ -460,10 +460,74 @@ void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, TString title){
 		<< std::setw(5) << sector
 		<<std::endl;
     }
-    
-
   }//for all the pads
-  
+}//SetBeamCalHisto
+
+void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, BCPadEnergies::PadIndexList *padlist, TString title){
+  if(m_h3BeamCalHisto) delete m_h3BeamCalHisto;
+  m_h3BeamCalHisto = getBeamCalHistogram(title);
+
+  if(!padlist) return;
+  if(padlist->size() == 0) return;
+
+  int layer=-1, cylinder=-1, sector=-1;
+  double energy;
+  for (BCPadEnergies::PadIndexList::iterator it = padlist->begin(); it!=padlist->end(); it++) {
+		try {
+		  m_BCG->getLayerRingPad(*it, layer, cylinder, sector);
+		  energy = bcpads->getEnergy(*it);
+		  m_h3BeamCalHisto->Fill(layer, cylinder, sector, energy);
+		}  catch(std::out_of_range &e) {
+		  std::cout << "ERROR, out of range! " << e.what()
+			<< std::setw(5) << layer
+			<< std::setw(5) << cylinder
+			<< std::setw(5) << sector
+			<<std::endl;
+		}catch (std::logic_error &e) {
+		  std::cout << "ERROR, getLayerRingPad is faulty! " << e.what()
+			<< std::setw(5) << layer
+			<< std::setw(5) << cylinder
+			<< std::setw(5) << sector
+			<<std::endl;
+		}
+  }//loop over the pads
+}//SetBeamCalHisto
+
+void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, BCPadEnergies::TowerIndexList *towers, TString title){
+  if(m_h3BeamCalHisto) delete m_h3BeamCalHisto;
+  m_h3BeamCalHisto = getBeamCalHistogram(title);
+
+  if(!towers) return;
+  std::cout << "Tower list size: " << towers->size() << "\n";
+
+  if(towers->size() == 0) return;
+
+  int layer=-1, cylinder=-1, sector=-1;
+  double energy;
+  for (BCPadEnergies::TowerIndexList::iterator it = towers->begin(); it!=towers->end(); it++) {
+//	  std::cout << "Adding tower #" << it->first << "\n";
+	  for(int iLayer=1; iLayer <= bcpads->m_BCG.getBCLayers(); iLayer++){
+		try {
+		  m_BCG->getLayerRingPad(it->first, layer, cylinder, sector);
+//		  std::cout << "LayerRingPad = (" << iLayer << ", " << cylinder << ", " << sector << ")\n";
+		  energy = bcpads->getEnergy(iLayer, cylinder, sector);
+//		  std::cout << "Energy = " << energy << "\n";
+		  m_h3BeamCalHisto->Fill(iLayer, cylinder, sector, energy);
+		}  catch(std::out_of_range &e) {
+		  std::cout << "ERROR, out of range! " << e.what()
+			<< std::setw(5) << layer
+			<< std::setw(5) << cylinder
+			<< std::setw(5) << sector
+			<<std::endl;
+		}catch (std::logic_error &e) {
+		  std::cout << "ERROR, getLayerRingPad is faulty! " << e.what()
+			<< std::setw(5) << layer
+			<< std::setw(5) << cylinder
+			<< std::setw(5) << sector
+			<<std::endl;
+		}
+	  }//loop over the layers
+  }//loop over the towers
 }//SetBeamCalHisto
 
 

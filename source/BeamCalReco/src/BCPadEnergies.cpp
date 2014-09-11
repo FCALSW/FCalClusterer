@@ -757,8 +757,8 @@ void BCPadEnergies::getGlobalCM(double &z, double &rho, double &phi)
 		m_BCG.getLayerRingPad(iPad, layer, ring, pad);
 	    m_BCG.getPadExtents(ring, pad, extents);
 	    const double energy(getEnergy(iPad));
-	    xStore += energy * extents[4]*cos( extents[5] );
-	    yStore += energy * extents[4]*sin( extents[5] );
+	    xStore += energy * extents[4]*cos( extents[5] * M_PI/180 );
+	    yStore += energy * extents[4]*sin( extents[5] * M_PI/180 );
 	    zStore += energy * double(layer);
 	    totalEnergy += energy;
 	  }

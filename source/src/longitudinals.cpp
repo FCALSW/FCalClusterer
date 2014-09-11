@@ -15,6 +15,7 @@
 #include "BeamCal.hh"
 #include "BCPadEnergies.hh"
 #include "BCRootUtilities.hh"
+#include "ProfileExtractor.hh"
 
 //GEAR
 #include <gearxml/GearXML.h>
@@ -30,69 +31,18 @@
 #include <iostream>
 #include <sstream>
 
-class profileTaker
-{
-public:
-	profileTaker();
-	~profileAll();
-	TH1D* takeProfile(BCPadEnergies *bcpads) const = 0;
-};
-
-class profileAll : profileTaker
-{
-public:
-	profileAll();
-	~profileAll();
-
-	TH1D* takeProfile(BCPadEnergies *bcpads) const {return bcpads->longitudinalProfile();}
-};
-
-class profileTopAndNNNTowers : profileTaker
-{
-public:
-	profileTopAndNNNTowers(double threshold = 0.001) {m_threshold = threshold;}
-	~profileTopAndNNNTowers();
-	TH1D* takeProfile(BCPadEnergies *bcpads) const
-	{
-	  BCPadEnergies::TowerIndexList *towerlist = bcpads->getTopAndNNNeighbourTowers(m_threshold);
-	  TH1D *profile = bcpads->longitudinalProfile(towerlist);
-	  delete towerlist;
-	  return profile;
-	}
-private:
-	double m_threshold;
-};
-
-class profileInRadiusFromCM : profileTaker
-{
-public:
-	profileInRadiusFromCM(double radius = 1.) {m_radius = radius;};
-	~profileInRadiusFromCM();
-	TH1D* takeProfile(BCPadEnergies *bcpads) const
-	{
-	  double z, rho, phi;
-	  bcpads->getGlobalCM(z, rho, phi);
-	  BCPadEnergies::TowerIndexList *towerlist = bcpads->getTowersWithinRadiusFromPoint(rho, phi, m_radius);
-	  TH1D *profile = bcpads->longitudinalProfile(towerlist);
-	  delete towerlist;
-	  return profile;
-	}
-private:
-	double m_radius;
-};
-
 
 
 int main (int argn, char **argc) {
 
   if ( argn < 3 ) {
     std::cout << "Not enough parameters"  << std::endl;
-    std::cout << "longitudinals <GearFile1> <PRootFile> [profileType] "  << std::endl;
+    std::cout << "longitudinals <GearFile1> <PRootFile> [<profileType> <parameter> ] "  << std::endl;
     std::exit(1);
   } 
 
-  profileTaker* profiler;
-  if (argn < 4 ) profiler = new profileAll;
+  ProfileExtractor* profiler;
+  if (argn < 4 ) profiler = new ProfileAll;
   else if (TString(argc[3]).Contains("top", TString::kIgnoreCase))
   {
 	  if(argn < 5)
@@ -107,7 +57,7 @@ int main (int argn, char **argc) {
 		std::cout << "longitudinals <GearFile1> <PRootFile> top <threshold> "  << std::endl;
 		std::exit(1);
 	  }
-	  profiler = new profileTopAndNNNTowers(atof(argc[4]));
+	  profiler = new ProfileTopAndNNNTowers(atof(argc[4]));
   }
   else if (TString(argc[3]).Contains("cm", TString::kIgnoreCase))
   {
@@ -117,9 +67,9 @@ int main (int argn, char **argc) {
 		std::cout << "longitudinals <GearFile1> <PRootFile> cm <radius> "  << std::endl;
 		std::exit(1);
 	  }
-	  profiler = new profileInRadiusFromCM(atof(argc[4]));
+	  profiler = new ProfileInRadiusFromCM(atof(argc[4]));
   }
-  else profiler = new profileAll;
+  else profiler = new ProfileAll;
 
 //  const double ares = 0.03; //Constant relating the width of the deposit distribution in a cell to the square root of the deposition
   const double e0 = 1.e-3; // Effective "unit energy" to express the cell deposit distribution as Poissonian
@@ -150,8 +100,8 @@ int main (int argn, char **argc) {
 
   int nEntries = signalBeamCals->size();
 
-  TH1D *BeamCalProfile = takeProfile(&(signalBeamCals->at(0)));
-  TH1D BCaverage(*BeamCalProfile);
+  TH1D *BeamCalProfile = profiler->extractProfile(&(signalBeamCals->at(0)));
+  TH1D BCaverage(*BeamCalProfile); BCaverage.SetName("Layers_average");
   BCaverage.Reset();
   int nAdded=0;
   if(BeamCalProfile->Integral() > threshold)
@@ -161,7 +111,8 @@ int main (int argn, char **argc) {
 
   for( int iEvt=1; iEvt<nEntries; iEvt++)
   {
-	  delete BeamCalProfile; BeamCalProfile = takeProfile(&(signalBeamCals->at(iEvt)));
+	  if(BeamCalProfile) delete BeamCalProfile;
+	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals->at(iEvt)));
 	  if(BeamCalProfile->Integral() > threshold)
 	  {
 		  BeamCalProfile->Write(Form("Layers_%i", iEvt));
@@ -171,15 +122,16 @@ int main (int argn, char **argc) {
   }
 
   BCaverage.Scale(1./double(nAdded));
-  TH1D BCrms(BCaverage);
+  TH1D BCrms(BCaverage); BCrms.SetName("Layers_RMSdev");
   BCrms.Reset();
-  TH1D BCtemp(BCrms);
-  TH1D BCsq(BCrms);
+  TH1D BCtemp(BCrms); BCtemp.SetName("Layers_temp");
+  TH1D BCsq(BCrms); BCsq.SetName("Layers_square");
 
 // Loop to create the RMS of the individual bins
   for( int iEvt=0; iEvt<nEntries; iEvt++)
   {
-	  delete BeamCalProfile; BeamCalProfile = takeProfile(&(signalBeamCals->at(iEvt)));
+	  if(BeamCalProfile) delete BeamCalProfile;
+	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals->at(iEvt)));
 	  if(BeamCalProfile->Integral() > threshold)
 	  {
 		  BCtemp.Add(BeamCalProfile, &BCaverage, 1., -1.);
