@@ -14,7 +14,7 @@
 #include "BeamCalGeoCached.hh"
 #include "BeamCal.hh"
 #include "BCPadEnergies.hh"
-#include "BCRootUtilities.hh"
+//#include "BCRootUtilities.hh"
 #include "ProfileExtractor.hh"
 
 //GEAR
@@ -81,44 +81,62 @@ int main (int argn, char **argc) {
   gear::GearMgr* gearMgr = gearXML.createGearMgr() ;
   BeamCalGeo* geoCache = new BeamCalGeoCached (gearMgr);
   //  BeamCalGeo* geoGear = new BeamCalGeoGear (gearMgr);
-  std::vector<BCPadEnergies> *signalBeamCals = NULL;
+  std::vector<BCPadEnergies> signalBeamCals(2, geoCache);
 
-  std::string rootFile ( argc[2]);
-  int wrong(0);
-  try {
-    	signalBeamCals = BCUtil::ReadMultiRootFile(rootFile, geoCache);
-    } catch (std::invalid_argument &e) {
-      ++wrong;
-  }
-  if (!signalBeamCals) {
-      std::cerr << "This file has no BCPadEnergies as a tree" << std::endl;
-      return 1;
+  TFile rootfile( argc[2]);
+  if (!rootfile.IsOpen()) {
+	  std::cerr << "Cannot open root file " << argc[2] << "\n";
+	  exit(1);
   }
 
-  TString outName("longitudinals."); outName += rootFile;
+  TTree* tree;
+  rootfile.GetObject("bcTree", tree);
+  if ( not tree ) {
+    std::cerr << "BeamCal tree not found in file " << rootfile.GetName()  << std::endl;
+    exit(1);
+  }
+
+  TString outName("longitudinals."); outName += argc[2];
   TFile histograms(outName.Data(), "RECREATE");
 
-  int nEntries = signalBeamCals->size();
+  int nEntries = tree->GetEntries();
 
-  TH1D *BeamCalProfile = profiler->extractProfile(&(signalBeamCals->at(0)));
+  std::vector<double> *depositsLeft(NULL), *depositsRight(NULL);
+  tree->SetBranchAddress("vec_left" , &depositsLeft);
+  tree->SetBranchAddress("vec_right", &depositsRight);
+  tree->GetEntry(0);
+  signalBeamCals[0].setEnergies(*depositsLeft);
+  signalBeamCals[1].setEnergies(*depositsRight);
+
+  TH1D *BeamCalProfile = profiler->extractProfile(&(signalBeamCals[0]));
   TH1D BCaverage(*BeamCalProfile); BCaverage.SetName("Layers_average");
   BCaverage.Reset();
   int nAdded=0;
   if(BeamCalProfile->Integral() > threshold)
 	  { BeamCalProfile->Write("Layers_0"); BCaverage.Add(BeamCalProfile); nAdded++;}
+  if(BeamCalProfile) delete BeamCalProfile;
+  BeamCalProfile = profiler->extractProfile(&(signalBeamCals[1]));
+  if(BeamCalProfile->Integral() > threshold)
+      { BeamCalProfile->Write(Form("Layers_%i", nAdded)); BCaverage.Add(BeamCalProfile); nAdded++;}
 
 // Loop to create the average profile
-
+  std::cout << "Storing profiles and creating the average profile.\n";
   for( int iEvt=1; iEvt<nEntries; iEvt++)
   {
+	  if(iEvt%100 == 0) std::cout << "Reading entry #" << iEvt << "\n";
+
+	  tree->GetEntry(iEvt);
+	  signalBeamCals[0].setEnergies(*depositsLeft);
+	  signalBeamCals[1].setEnergies(*depositsRight);
+
 	  if(BeamCalProfile) delete BeamCalProfile;
-	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals->at(iEvt)));
+	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals[0]));
 	  if(BeamCalProfile->Integral() > threshold)
-	  {
-		  BeamCalProfile->Write(Form("Layers_%i", iEvt));
-		  BCaverage.Add(BeamCalProfile);
-		  nAdded++;
-	  }
+	    { BeamCalProfile->Write(Form("Layers_%i", nAdded)); BCaverage.Add(BeamCalProfile); nAdded++; }
+	  if(BeamCalProfile) delete BeamCalProfile;
+	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals[1]));
+	  if(BeamCalProfile->Integral() > threshold)
+	    { BeamCalProfile->Write(Form("Layers_%i", nAdded)); BCaverage.Add(BeamCalProfile); nAdded++; }
   }
 
   BCaverage.Scale(1./double(nAdded));
@@ -128,16 +146,23 @@ int main (int argn, char **argc) {
   TH1D BCsq(BCrms); BCsq.SetName("Layers_square");
 
 // Loop to create the RMS of the individual bins
+  std::cout << "Calculating profile standard deviations.\n";
   for( int iEvt=0; iEvt<nEntries; iEvt++)
   {
+	  if(iEvt%100 == 0) std::cout << "Reading entry #" << iEvt << "\n";
+
+	  tree->GetEntry(iEvt);
+	  signalBeamCals[0].setEnergies(*depositsLeft);
+	  signalBeamCals[1].setEnergies(*depositsRight);
+
 	  if(BeamCalProfile) delete BeamCalProfile;
-	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals->at(iEvt)));
+	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals[0]));
 	  if(BeamCalProfile->Integral() > threshold)
-	  {
-		  BCtemp.Add(BeamCalProfile, &BCaverage, 1., -1.);
-		  BCsq.Multiply(&BCtemp,&BCtemp);
-		  BCrms.Add(&BCsq);
-	  }
+	    { BCtemp.Add(BeamCalProfile, &BCaverage, 1., -1.); BCsq.Multiply(&BCtemp,&BCtemp); BCrms.Add(&BCsq); }
+	  if(BeamCalProfile) delete BeamCalProfile;
+	  BeamCalProfile = profiler->extractProfile(&(signalBeamCals[1]));
+	  if(BeamCalProfile->Integral() > threshold)
+	    { BCtemp.Add(BeamCalProfile, &BCaverage, 1., -1.); BCsq.Multiply(&BCtemp,&BCtemp); BCrms.Add(&BCsq); }
   }
   BCrms.Scale(1./double(nAdded));
 
@@ -154,9 +179,12 @@ int main (int argn, char **argc) {
   BCaverage.Write("Layers_average");
   haRes.Write("ares");
 
-  for( int iEvt=0; iEvt<nEntries; iEvt++)
+  std::cout << "Storing estimated uncertainties of profiles.\n";
+  for( int iEvt=0; iEvt<nAdded; iEvt++)
   {
-    std::stringstream hname; hname << "Layers_" << iEvt;
+    if(iEvt%100 == 0) std::cout << "Reading entry #" << iEvt << "\n";
+
+	std::stringstream hname; hname << "Layers_" << iEvt;
     histograms.GetObject(hname.str().c_str(), BeamCalProfile);
     if(BeamCalProfile)
     {

@@ -55,6 +55,7 @@ ReadBC_SepEvt::ReadBC_SepEvt() : Processor("ReadBC_SepEvt"),
 			     m_padEnergiesLeft(NULL),
 			     m_padEnergiesRight(NULL),
 			     tree(NULL),
+			     rootfile(NULL),
 			     m_bcg(NULL) {
 
   // modify processor description
@@ -102,9 +103,13 @@ void ReadBC_SepEvt::init() {
   m_padEnergiesLeft = new BCPadEnergies(m_bcg);
   m_padEnergiesRight = new BCPadEnergies(m_bcg);
  
+  rootfile = TFile::Open((TString)m_nameOutputFile,"RECREATE");
   tree = new TTree("bcTree","bcTree");
+  tree->SetDirectory(rootfile);
   tree->Branch("vec_right",m_padEnergiesRight->getEnergies());
   tree->Branch("vec_left",m_padEnergiesLeft->getEnergies());
+  tree->SetAutoFlush();
+  tree->SetAutoSave();
 
   std::cout << "Declared branches.\n";
 }//init
@@ -116,7 +121,7 @@ void ReadBC_SepEvt::processRunHeader( LCRunHeader* ) {
 
 void ReadBC_SepEvt::processEvent( LCEvent * evt ) {
 
-  std::cout << "Processing event #" << evt->getEventNumber() << std::endl;
+//  std::cout << "Processing event #" << evt->getEventNumber() << std::endl;
 	m_padEnergiesLeft->resetEnergies();
 	m_padEnergiesRight->resetEnergies();
   m_random3->SetSeed(Global::EVENTSEEDER->getSeed(this));
@@ -161,8 +166,9 @@ void ReadBC_SepEvt::processEvent( LCEvent * evt ) {
   }//for all entries in the collection
 
   tree->Fill();
+  std::cout << "Done processing event #" << m_nEvt << ".\n";
 
-    
+
   return;
 }//processEvent
 
@@ -180,7 +186,6 @@ void ReadBC_SepEvt::end(){
 			    << std::endl ;
   //Do the average for every bin, and calculate the maximal difference to the mean, which means, we have to loop twice.
 
-  TFile *rootfile = TFile::Open((TString)m_nameOutputFile,"RECREATE");
 
   // for(unsigned int k = 0; k < bgruns.size(); k++) {
   //   bgruns[k]->Write();
@@ -206,10 +211,12 @@ void ReadBC_SepEvt::end(){
   }//Only draw all the things in DEBUG Mode
 
 
+//  TFile *rootfile = TFile::Open((TString)m_nameOutputFile,"RECREATE");
   tree->Write();
   // background.Write();
   // fluctuation.Write();
   rootfile->Write();
+  tree->SetDirectory(0);
   rootfile->Close();
   std::cout << "Closed file.\n";
   delete tree; tree = NULL;

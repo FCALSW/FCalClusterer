@@ -65,6 +65,7 @@ class ReadBC_SepEvt : public marlin::Processor {
   BCPadEnergies* m_padEnergiesLeft;
   BCPadEnergies* m_padEnergiesRight;
   TTree *tree;
+  TFile *rootfile;
 
   BeamCalGeo* m_bcg;
 
