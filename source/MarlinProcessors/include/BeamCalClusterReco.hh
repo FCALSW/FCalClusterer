@@ -22,12 +22,13 @@ class BCRecoObject;
 class BeamCal;
 class BeamCalGeo;
 
-class BeamCalClusterReco : public marlin::Processor , protected ProfileTester {
+class BeamCalClusterReco : public marlin::Processor {
   
  public:
   
   virtual Processor*  newProcessor() { return new BeamCalClusterReco ; }
   
+  ProfileTester profileTester;
   
   BeamCalClusterReco() ;
 

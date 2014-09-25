@@ -49,7 +49,7 @@ public:
 	double Get_b() const {return GetParameter(2);};
 	double Get_x0() const {return GetParameter(3);};
 
-	  double getEFactor() const {return _eFactor;};
+	double getEFactor() const {return _eFactor;};
 };
 
 

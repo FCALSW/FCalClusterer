@@ -67,7 +67,8 @@ WrongParameterException(std::string error) : std::runtime_error(error) { }
 };
 
 
-BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"), ProfileTester(),
+BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
+					   profileTester(),
 					   m_colNameMC(""),
 					   m_colNameBCal(""),
 					   m_files(),
@@ -394,7 +395,7 @@ void BeamCalClusterReco::init() {
     m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta adn #Phi", bins, minAngle, maxAngle, 72, 0, 360);
   }//Creating Efficiency objects
 
-  ProfileTester::Calibrate(m_eFactor, m_p0a, m_p1a, m_p0b, m_p1b);
+  profileTester.Calibrate(m_eFactor, m_p0a, m_p1a, m_p0b, m_p1b);
 
 
 }//init
@@ -445,7 +446,8 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     padEnergiesLeft.addEnergies(*m_BeamCalDepositsLeft);
   }
 
-  streamlog_out(MESSAGE1) << "*************** Event " << std::setw(6) << m_nEvt << " ***************" << std::endl;
+  if (m_nEvt%100 == 0)
+	  streamlog_out(MESSAGE1) << "*************** Event " << std::setw(6) << m_nEvt << " ***************" << std::endl;
 
   // Some event classification variables
   double depositedEnergy(0);
@@ -535,8 +537,10 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     particle->setMass( mass ) ;
     particle->setCharge( charge ) ;
     particle->setMomentum ( momentumCluster ) ;
-    particle->setEnergy ( energyCluster * getEFactor()) ;
+    particle->setEnergy ( energyCluster * profileTester.getEFactor()) ;
     particle->addCluster( cluster ) ;
+    // This is probably not the right place to store the information on the correlation,
+    // but I know of nothing better in the ReconstructedParticle class
     particle->setGoodnessOfPID((*it)->getCorrelEMShower());
     if((*it)->getCorrelEMShower() > m_EMcorrelThreshold) particle->setType(0); // EM type
     else particle->setType(1); // hadronic type
@@ -698,10 +702,10 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 //  int iCluster=0; // SL:DELETE
   for (std::vector<BeamCalCluster>::const_iterator it = bccs.begin(); it != bccs.end(); ++it) {
 
-    streamlog_out(MESSAGE2) << title;
-    if(signalPads.getSide() == BCPadEnergies::kRight) streamlog_out(MESSAGE2) << LONGSTRING;
-    streamlog_out(MESSAGE2) << " " << (*it);
-    if(signalPads.getSide() == BCPadEnergies::kLeft) streamlog_out(MESSAGE2) << LONGSTRING;
+    streamlog_out(DEBUG2) << title;
+    if(signalPads.getSide() == BCPadEnergies::kRight) streamlog_out(DEBUG2) << LONGSTRING;
+    streamlog_out(DEBUG2) << " " << (*it);
+    if(signalPads.getSide() == BCPadEnergies::kLeft) streamlog_out(DEBUG2) << LONGSTRING;
 
     //Apply cuts on the reconstructed clusters, then calculate angles
     if ( ( it->getNPads() > 2 ) && m_bcpCuts->isClusterAboveThreshold( (*it) ) ) {
@@ -715,23 +719,16 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 //      bcp.subtractEnergies(backgroundPads); (Subtracting from zeros, as well?)
       TH3D *bch3d = MakeBeamCalHisto(&bcp);
       TH1D *layers = (TH1D*)bch3d->Project3D("x");
-/*      TH1D *radial = (TH1D*)bch3d->Project3D("y"); 		// SL:DELETE
-      TCanvas c("clusterplot", "Cluster Plot", 800, 1200); 	// SL:DELETE
-      c.Divide(1,2,.01,.01); 								// SL:DELETE
-      c.cd(1); layers->Draw(); 								// SL:DELETE
-      c.cd(2); radial->Draw(); 								// SL:DELETE
-      iCluster++; 											// SL:DELETE
-      c.Print(Form("plots%i-%i.pdf", m_nEvt, iCluster)); 	// SL:DELETE
-*/
+
       float xStart=0, correlEMShower=0;
       // Test correlation with the standard EM shower profile and determine the shower starting position xStart
-      Test(layers, xStart, correlEMShower);
+      profileTester.Test(layers, xStart, correlEMShower);
 
-      streamlog_out(MESSAGE2) << " found something at theta = "
+      streamlog_out(DEBUG) << " found something at theta = "
 			      << std::setw(10) << theta
 			      << "; phi = " << std::setw(10) << phi
 			      << "\nCorrelation with EM shower = " << std::setw(10) << correlEMShower
-			      << "; xStart = " << std::setw(10) << xStart
+			      << "; xStart = " << std::setw(10) << xStart << std::endl
 	;//ending the streamlog!
 
       recoVec.push_back( new BCRecoObject(shouldHaveCluster, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide(), correlEMShower, xStart ) );
@@ -739,7 +736,6 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
     }//if we have enough pads and energy in the clusters
 
     //Finish the output line
-    streamlog_out(MESSAGE2) << std::endl;
 
   }//clusterloop
 
