@@ -7,6 +7,7 @@
 #include "BeamCalCluster.hh"
 #include "BCUtilities.hh"
 #include "BeamCalGeoCached.hh"
+#include "ProfileExtractor.hh"
 
 //LCIO
 #include <EVENT/LCCollection.h>
@@ -530,7 +531,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 #pragma message "FIXME: Rotate position and momentum of cluster to lab system"
 
     ClusterImpl* cluster = new ClusterImpl;
-    cluster->setEnergy( energyCluster );
+    cluster->setEnergy( energyCluster * profileTester.getEFactor() );
     cluster->setPosition( position );
 
     ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
@@ -714,24 +715,26 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
       double phi  (it->getPhi());
 
       // SL: Added for the purpose of particle-type distinction
-      BCPadEnergies bcp(m_BCG);
-      it->getBCPad(bcp);
-//      bcp.subtractEnergies(backgroundPads); (Subtracting from zeros, as well?)
-      TH3D *bch3d = MakeBeamCalHisto(&bcp);
-      TH1D *layers = (TH1D*)bch3d->Project3D("x");
+      BCPadEnergies bcp(signalPads);
+      bcp.subtractEnergies(backgroundPads);
+      ProfileInRadiusFromCM extractor(20.);
+//      TH3D *bch3d = MakeBeamCalHisto(&bcp);
+//      TH1D *layers = (TH1D*)bch3d->Project3D("x");
+      // Theta is given in mrad
+      TH1D *layers = extractor.extractProfile(&bcp, 0.001*theta*m_BCG->getBCZDistanceToIP(), phi);
 
       float xStart=0, correlEMShower=0;
       // Test correlation with the standard EM shower profile and determine the shower starting position xStart
       profileTester.Test(layers, xStart, correlEMShower);
 
-      streamlog_out(DEBUG) << " found something at theta = "
-			      << std::setw(10) << theta
-			      << "; phi = " << std::setw(10) << phi
+      streamlog_out(MESSAGE) << " found something at theta = "
+			      << std::setw(10) << theta << "mrad; rho = " << 0.001*theta*m_BCG->getBCZDistanceToIP() << "mm"
+			      << "; phi = " << std::setw(10) << phi << "deg"
 			      << "\nCorrelation with EM shower = " << std::setw(10) << correlEMShower
 			      << "; xStart = " << std::setw(10) << xStart << std::endl
 	;//ending the streamlog!
 
-      recoVec.push_back( new BCRecoObject(shouldHaveCluster, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide(), correlEMShower, xStart ) );
+      recoVec.push_back( new BCRecoObject(shouldHaveCluster, true, theta, phi, layers->Integral(), it->getNPads(), signalPads.getSide(), correlEMShower, xStart ) );
 
     }//if we have enough pads and energy in the clusters
 

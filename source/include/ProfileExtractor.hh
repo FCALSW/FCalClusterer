@@ -45,6 +45,10 @@ public:
 	  delete towerlist;
 	  return profile;
 	}
+	TH1D* extractProfile(BCPadEnergies *bcpads, BCPadEnergies::TowerIndexList *towerlist) const
+	{
+	  return bcpads->longitudinalProfile(towerlist);
+	}
 protected:
 	double m_threshold;
 };
@@ -55,10 +59,19 @@ class ProfileInRadiusFromCM : public ProfileExtractor
 public:
 	ProfileInRadiusFromCM(double radius = 1.) : m_radius(radius){};
 	~ProfileInRadiusFromCM() {};
+	// Use global CM
 	TH1D* extractProfile(BCPadEnergies *bcpads) const
 	{
 	  double z, rho, phi;
 	  bcpads->getGlobalCM(z, rho, phi);
+	  BCPadEnergies::TowerIndexList *towerlist = bcpads->getTowersWithinRadiusFromPoint(rho, phi, m_radius);
+	  TH1D *profile = bcpads->longitudinalProfile(towerlist);
+	  delete towerlist;
+	  return profile;
+	}
+	// Use the CM provided in the arguments
+	TH1D* extractProfile(BCPadEnergies *bcpads, double rho, double phi) const
+	{
 	  BCPadEnergies::TowerIndexList *towerlist = bcpads->getTowersWithinRadiusFromPoint(rho, phi, m_radius);
 	  TH1D *profile = bcpads->longitudinalProfile(towerlist);
 	  delete towerlist;

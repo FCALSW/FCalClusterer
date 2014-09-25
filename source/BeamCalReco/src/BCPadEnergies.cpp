@@ -4,6 +4,7 @@
 #include "BeamCalGeo.hh"
 
 #include <TH2D.h>
+#include <TROOT.h>
 
 #include <algorithm>
 #include <cassert>
@@ -511,7 +512,7 @@ BeamCalCluster BCPadEnergies::getClusterFromPads(const PadIndexList& myPadIndice
   double thetaAverage(0.0);
 
   //Averaging an azimuthal angle is done via sine and cosine
-  double sinStore(0.0), cosStore(0.0);
+  double yStore(0.0), xStore(0.0);
 
   //now take all the indices and add them to a cluster
   for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
@@ -523,17 +524,18 @@ BeamCalCluster BCPadEnergies::getClusterFromPads(const PadIndexList& myPadIndice
     //    phi+= thisPhi*energy;
     ringAverage += double( ring ) * energy;
     totalEnergy += energy;
-    sinStore += energy * sin( thisPhi );
-    cosStore += energy * cos( thisPhi );
-    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
+    // Quasi-Cartesian coordinates in units of rad
+    yStore += energy * sin( thisPhi ) * m_BCG.getThetaFromRing( ring ) ;
+    xStore += energy * cos( thisPhi ) * m_BCG.getThetaFromRing( ring ) ;
+//    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
 
   }
   if(totalEnergy > 0.0) {
-    phi =  atan2(sinStore/totalEnergy,  cosStore/totalEnergy) * 180.0 / M_PI ;
+    phi =  atan2(yStore,  xStore) * 180.0 / M_PI ;
     if(phi < 0) phi += 360;
     //    phi /= totalEnergy;
     ringAverage /= totalEnergy;
-    thetaAverage /= totalEnergy;
+    thetaAverage = sqrt(xStore*xStore + yStore*yStore) / totalEnergy;
 
     BCCluster.setPhi(phi);
     BCCluster.setRing(ringAverage);
@@ -556,7 +558,7 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
   double thetaAverage(0.0);
 
   //Averaging an azimuthal angle is done via sine and cosine
-  double sinStore(0.0), cosStore(0.0);
+  double yStore(0.0), xStore(0.0);
 
   //now take all the indices and add them to a cluster
   for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
@@ -568,17 +570,18 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     //    phi+= thisPhi*energy;
     ringAverage += double( ring ) * energy;
     totalEnergy += energy;
-    sinStore += energy * sin( thisPhi );
-    cosStore += energy * cos( thisPhi );
-    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
+    // Quasi-Cartesian coordinates in units of rad
+    yStore += energy * sin( thisPhi ) * m_BCG.getThetaFromRing( ring+1 ) ;
+    xStore += energy * cos( thisPhi ) * m_BCG.getThetaFromRing( ring+1 ) ;
+//    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
 
   }
   if(totalEnergy > 0.0) {
-    phi =  atan2(sinStore/totalEnergy,  cosStore/totalEnergy) * 180.0 / M_PI ;
+    phi =  atan2(yStore,  xStore) * 180.0 / M_PI ;
     if(phi < 0) phi += 360;
     //    phi /= totalEnergy;
     ringAverage /= totalEnergy;
-    thetaAverage /= totalEnergy;
+    thetaAverage = sqrt(xStore*xStore + yStore*yStore) / totalEnergy;
 
     BCCluster.setPhi(phi);
     BCCluster.setRing(ringAverage);
@@ -821,7 +824,9 @@ TH1D* BCPadEnergies::longitudinalProfile(PadIndexList* padlist) const
 // Restricted to pads in the towerlist
 TH1D* BCPadEnergies::longitudinalProfile(TowerIndexList* towerlist) const
 {
-  TH1D *profile = new TH1D("BClongProfile", "BeamCal longitudinal profile; layer; energy (a.u.)", m_BCG.getBCLayers(), 0.5, double(m_BCG.getBCLayers())+0.5);
+  TH1D *profile = dynamic_cast<TH1D*> (gROOT->FindObject("BClongProfile"));
+  if(profile) delete profile;
+  profile = new TH1D("BClongProfile", "BeamCal longitudinal profile; layer; energy (a.u.)", m_BCG.getBCLayers(), 0.5, double(m_BCG.getBCLayers())+0.5);
 
   for (TowerIndexList::iterator it=towerlist->begin(); it!=towerlist->end(); it++) {
 	  for(int iLayer=0; iLayer < m_BCG.getBCLayers(); iLayer++){
