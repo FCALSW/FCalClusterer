@@ -35,6 +35,9 @@ int main (int argn, char **argc) {
   BeamCalGeo* geoCache = new BeamCalGeoCached (gearMgr);
   std::cout << "BeamCal inner radius: " << geoCache->getBCInnerRadius() << " mm\n";
   std::cout << "BeamCal outer radius: " << geoCache->getBCOuterRadius() << " mm\n";
+  std::cout << "BeamCal cutout: " << geoCache->getCutout() << " (units?)\n";
+  std::cout << "BeamCal cutout angle: " << geoCache->getFullKeyHoleCutoutAngle() << " (units?)\n";
+  std::cout << "BeamCal first full ring nr: " << geoCache->getFirstFullRing() << "\n";
   //  BeamCalGeo* geoGear = new BeamCalGeoGear (gearMgr);
   std::vector<BCPadEnergies> signalBeamCals(2, geoCache);
   if (haveEnergy) {

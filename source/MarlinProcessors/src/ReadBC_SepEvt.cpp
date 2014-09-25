@@ -138,7 +138,7 @@ void ReadBC_SepEvt::processEvent( LCEvent * evt ) {
   m_nEvt ++ ;
   if( not colBCal ) { std::cout << "No " << m_colNameBCal << " collection.\n"; return; }
 
-  std::cout << "Found " << colBCal->getTypeName() << " collection " << m_colNameBCal << std::endl;
+  streamlog_out( DEBUG ) << "Found " << colBCal->getTypeName() << " collection " << m_colNameBCal << std::endl;
 
   CellIDDecoder<SimCalorimeterHit> mydecoder(colBCal);
   int nHits = colBCal->getNumberOfElements();
@@ -166,7 +166,7 @@ void ReadBC_SepEvt::processEvent( LCEvent * evt ) {
   }//for all entries in the collection
 
   tree->Fill();
-  std::cout << "Done processing event #" << m_nEvt << ".\n";
+  if (m_nEvt%100 == 0) streamlog_out( MESSAGE ) << "Done processing event #" << m_nEvt << ".\n";
 
 
   return;
