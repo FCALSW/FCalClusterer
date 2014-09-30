@@ -59,6 +59,7 @@ public:
   BeamCalCluster lookForNeighbouringClustersOver(const BCPadEnergies &background, const BCPCuts &cuts) const ;
   BeamCalCluster lookForNeighbouringClustersOverWithVeto(const BCPadEnergies &background, const BCPCuts &cuts) const ;
   BeamCalClusterList lookForNeighbouringClustersOverWithVetoAndCheck(const BCPadEnergies &background, const BCPadEnergies &backgroundSigma, const BCPCuts &cuts) const ;
+  BeamCalClusterList listOfNeighbouringClustersOverWithVeto(const BCPadEnergies &background, const BCPadEnergies &backgroundSigma, const BCPCuts &cuts) const ;
 
   BeamCalClusterList lookForNeighbouringClustersOverSigma( const BCPadEnergies &backgroundSigma, const BCPCuts &cuts, bool detailedPrintout = false) const;
 

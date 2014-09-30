@@ -374,8 +374,12 @@ void BeamCalClusterReco::init() {
   m_BeamCalErrorsRight = getBeamCalErrors(m_BeamCalAverageRight, listOfBunchCrossingsRight, numberForAverage);
 
   //Add one sigma to the averages -- > just do it once here
-  m_BeamCalAverageLeft ->addEnergies( m_BeamCalErrorsLeft );
-  m_BeamCalAverageRight->addEnergies( m_BeamCalErrorsRight);
+// SL: I am commenting this out because Averages are subtracted from the BeamCals later.
+  // If errors are included with averages, the resulting plateau is negative instead of approx. zero.
+  // This disturbs the reconstruction of energy.
+  // The cuts may require higher thresholds if necessary
+//  m_BeamCalAverageLeft ->addEnergies( m_BeamCalErrorsLeft );
+//  m_BeamCalAverageRight->addEnergies( m_BeamCalErrorsRight);
 
 
   streamlog_out(DEBUG1) << std::endl;
@@ -697,8 +701,9 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
   // This calls the clustering function!
   //////////////////////////////////////////
 //  const std::vector<BeamCalCluster> &bccs = signalPads.lookForNeighbouringClustersOverWithVetoAndCheck(backgroundPads, backgroundSigma, *m_bcpCuts);
-  std::vector<BeamCalCluster> bccs;
-  bccs.push_back(signalPads.lookForNeighbouringClustersOverWithVeto(backgroundPads,  *m_bcpCuts));
+  const std::vector<BeamCalCluster> &bccs = signalPads.listOfNeighbouringClustersOverWithVeto(backgroundPads, backgroundSigma, *m_bcpCuts);
+//  std::vector<BeamCalCluster> bccs;
+  //bccs.push_back(signalPads.lookForNeighbouringClustersOverWithVeto(backgroundPads,  *m_bcpCuts));
 
 //  int iCluster=0; // SL:DELETE
   for (std::vector<BeamCalCluster>::const_iterator it = bccs.begin(); it != bccs.end(); ++it) {

@@ -356,6 +356,26 @@ BeamCalCluster BCPadEnergies::lookForNeighbouringClustersOverWithVeto(const BCPa
 
 
 
+BCPadEnergies::BeamCalClusterList BCPadEnergies::listOfNeighbouringClustersOverWithVeto(const BCPadEnergies &background,
+												 const BCPadEnergies &backgroundSigma,
+												 const BCPCuts &cuts) const {
+  BCPadEnergies::BeamCalClusterList BeamCalClusters;
+
+  //We make a copy, because we might want to apply different clustering on the same pads
+  BCPadEnergies testPads(*this);
+  testPads.subtractEnergies(background);
+  //here cuts are applied on the pads
+  PadIndexList myPadIndices = ( cuts.useConstPadCuts() ) ?
+    getPadsAboveThresholds(testPads, cuts) :
+    myPadIndices = testPads.getPadsAboveSigma(backgroundSigma, cuts);
+
+  ClusterNextToNearestNeighbourTowers(testPads, myPadIndices, cuts, BeamCalClusters);
+
+  return BeamCalClusters;
+} // listOfNeighbouringClustersOverWithVeto
+
+
+
 BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOverWithVetoAndCheck(const BCPadEnergies &background,
 												 const BCPadEnergies &backgroundSigma,
 												 const BCPCuts &cuts) const {
