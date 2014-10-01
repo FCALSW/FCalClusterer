@@ -415,7 +415,7 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
 void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEnergies::PadIndexList& myPadIndices, const BCPCuts &cuts, BCPadEnergies::BeamCalClusterList& BeamCalClusters, bool DetailedPrintout)
 {
   // Use only towers that pass cuts
-  BCPadEnergies::TowerIndexList allTowersInBeamCal = BCPadEnergies::getTowersFromPads( testPads.m_BCG, myPadIndices, cuts );
+  BCPadEnergies::TowerIndexList allTowersInBeamCal = BCPadEnergies::getContiguousTowersFromPads( testPads.m_BCG, myPadIndices, cuts );
 
   while( not allTowersInBeamCal.empty() )
   {
@@ -648,24 +648,43 @@ BCPadEnergies::TowerIndexList BCPadEnergies::getContiguousTowersFromPads( BeamCa
   std::map<int, std::vector<bool> > towerMaps;
   for(int iTower=0; iTower<geo.getPadsPerLayer(); iTower++)
   {
-	  std::vector<bool> newTowerMap;
+	  std::vector<bool> *newTowerMap = new std::vector<bool>;
 	  for(int iLayer=0; iLayer<geo.getBCLayers(); iLayer++)
-		  newTowerMap.push_back(false);
-  }
-  TowerIndexList currentTowers, bestTowers, finalTowers;
-
-/* UNDER DEVELOPMENT
- *  for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
-	  int iTower = (*it) % geo.getPadsPerLayer();
-	  if()
+		  newTowerMap->push_back(false);
+	  towerMaps.insert(std::pair<int, std::vector<bool> >(iTower, *newTowerMap));
   }
 
-
-
-  for (TowerIndexList::const_iterator it = myTowerIndices.begin(); it != myTowerIndices.end(); ++it)
+  // Fill tower maps
+  for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it)
   {
-	  if(it->second >= cuts.getMinimumTowerSize()) finalTowerIndices.insert(*it);
-  }*/
+	  int iTower = (*it) % geo.getPadsPerLayer();
+	  int iLayer = (*it) / geo.getPadsPerLayer();
+	  towerMaps[iTower].at(iLayer) = true;
+  }
+
+  // Find maximum uninterrupted series of hits in each tower
+  // and fill the list
+  TowerIndexList contiguousTowers, finalTowers;
+  for(int iTower=0; iTower<geo.getPadsPerLayer(); iTower++)
+  {
+	  int maxSize=0, lastSize=0;
+	  for(int iLayer=0; iLayer < geo.getBCLayers(); iLayer++)
+	  {
+		  if(towerMaps[iTower].at(iLayer)) lastSize++;
+		  else
+		  {
+			  if(maxSize<lastSize) maxSize=lastSize;
+			  lastSize=0;
+		  }
+	  }
+	  contiguousTowers[iTower]=maxSize;
+  }
+
+  // Keep only towers that pass the cuts
+  for (TowerIndexList::const_iterator it = contiguousTowers.begin(); it != contiguousTowers.end(); ++it)
+  {
+	  if(it->second >= cuts.getMinimumTowerSize()) finalTowers.insert(*it);
+  }
   return finalTowers;
 }
 
