@@ -21,6 +21,7 @@ public:
   enum BeamCalSide_t { kUnknown = -1, kLeft = 0 , kRight = 1};
 
   friend void ClusterNextToNearestNeighbourTowers(BCPadEnergies const& testPads, PadIndexList& myPadIndices, const BCPCuts &cuts, BeamCalClusterList& BeamCalClusters, bool DetailedPrintout=false);
+  friend int MoveTower(BCPadEnergies::TowerIndexList &fromList, BCPadEnergies::TowerIndexList &toList, std::pair<int, int>);
 
   BCPadEnergies(const BeamCalGeo& bcg, BeamCalSide_t side = kUnknown);
   BCPadEnergies(const BeamCalGeo* bcg, BeamCalSide_t side = kUnknown);
@@ -84,7 +85,7 @@ private:
   BeamCalSide_t m_side;
 
   //Reconstruction functions
-  PadIndexList getPadsAboveThreshold(double threshold) const;
+  PadIndexList getPadsAboveThreshold(double threshold) const; // SL: Remove this function and all calls to it
   PadIndexList getPadsAboveThresholds(const BCPadEnergies& testPads, const BCPCuts& cuts) const;
   PadIndexList getPadsAboveThresholds(const BCPCuts& cuts) const;
   PadIndexList getPadsAboveSigma(const BCPadEnergies& sigmas, const BCPCuts& cuts) const;
@@ -93,6 +94,8 @@ private:
 
 
   static TowerIndexList getTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices);
+  static TowerIndexList getTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices, const BCPCuts& cuts);
+  static TowerIndexList getContiguousTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices, const BCPCuts& cuts);
   //towerNumber is cellId in Layer i.e. gloadPadID % m_nPadsPerLayer
   static void removeTowerFromPads ( BeamCalGeo const& geo, PadIndexList& myPadIndices, int towerNumber );
   static void removeTowersFromPads( BeamCalGeo const& geo, PadIndexList& myPadIndices, TowerIndexList towerNumbers);

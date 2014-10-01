@@ -367,7 +367,7 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::listOfNeighbouringClustersOverW
   //here cuts are applied on the pads
   PadIndexList myPadIndices = ( cuts.useConstPadCuts() ) ?
     getPadsAboveThresholds(testPads, cuts) :
-    myPadIndices = testPads.getPadsAboveSigma(backgroundSigma, cuts);
+    testPads.getPadsAboveSigma(backgroundSigma, cuts);
 
   ClusterNextToNearestNeighbourTowers(testPads, myPadIndices, cuts, BeamCalClusters);
 
@@ -387,7 +387,7 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
   //here cuts are applied on the pads
   PadIndexList myPadIndices = ( cuts.useConstPadCuts() ) ?
     getPadsAboveThresholds(testPads, cuts) :
-    myPadIndices = testPads.getPadsAboveSigma(backgroundSigma, cuts);
+    testPads.getPadsAboveSigma(backgroundSigma, cuts);
 
   ClusterNextToNearestNeighbourTowers(testPads, myPadIndices, cuts, BeamCalClusters);
 
@@ -402,7 +402,9 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
   BCPadEnergies::BeamCalClusterList BeamCalClusters;
 
   //here cuts are applied on the pads
-  PadIndexList myPadIndices = getPadsAboveSigma(backgroundSigma, cuts);
+  PadIndexList myPadIndices = ( cuts.useConstPadCuts() ) ?
+    getPadsAboveThresholds(cuts) :
+    getPadsAboveSigma(backgroundSigma, cuts);
 
   ClusterNextToNearestNeighbourTowers(*this, myPadIndices, cuts, BeamCalClusters, detailedPrintout);
 
@@ -410,17 +412,18 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
 } // lookForNeighbouringClustersOverWithVetoAndCheck
 
 
-void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEnergies::PadIndexList& myPadIndices, const BCPCuts &cuts, BCPadEnergies::BeamCalClusterList& BeamCalClusters, bool DetailedPrintout) {
+void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEnergies::PadIndexList& myPadIndices, const BCPCuts &cuts, BCPadEnergies::BeamCalClusterList& BeamCalClusters, bool DetailedPrintout)
+{
+  // Use only towers that pass cuts
+  BCPadEnergies::TowerIndexList allTowersInBeamCal = BCPadEnergies::getTowersFromPads( testPads.m_BCG, myPadIndices, cuts );
 
-  BCPadEnergies::TowerIndexList allTowersInBeamCal = BCPadEnergies::getTowersFromPads( testPads.m_BCG, myPadIndices );
-  while( not allTowersInBeamCal.empty() ) {
-
+  while( not allTowersInBeamCal.empty() )
+  {
     //
     //Compare the largest deposit to the others and check if they are neighbours
     //
-
-    BCPadEnergies::TowerIndexList::iterator largestTower = std::max_element( allTowersInBeamCal.begin(), allTowersInBeamCal.end(),
-									     value_comparer);
+    BCPadEnergies::TowerIndexList::iterator largestTower =
+    		std::max_element( allTowersInBeamCal.begin(), allTowersInBeamCal.end(), value_comparer);
 
     if (DetailedPrintout) {
       std::cout << "Largest Tower PadID " << largestTower->first << " : " << std::setw(3) << largestTower->second
@@ -428,38 +431,36 @@ void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEn
 		<< std::endl;
     }
 
-    //If the largest element in smaller than the minimal size we wont find anything else
-    if( largestTower->second < cuts.getMinimumTowerSize() ) { return; }
-
     //We keep all the padIDs making up this tower in here, and we store the neighbors we have to check for additional neighbors
     BCPadEnergies::TowerIndexList towersInThisCluster, checkNextNeighborsList;
     towersInThisCluster.insert( *largestTower );
 
-    do {
-
+    do
+    {
       if( not checkNextNeighborsList.empty() ) {
-	largestTower = checkNextNeighborsList.begin();
+    	  largestTower = checkNextNeighborsList.begin();
       }
 
       //compare largest tower with all other towers
-      for (BCPadEnergies::TowerIndexList::iterator it = allTowersInBeamCal.begin(); it != allTowersInBeamCal.end(); ++it) {
-	if( it->first == largestTower->first ) continue;
+      for (BCPadEnergies::TowerIndexList::iterator it = allTowersInBeamCal.begin(); it != allTowersInBeamCal.end(); ++it)
+      {
+        // If the tower is our largest tower do nothing
+		if( it->first == largestTower->first ) continue;
+		// if the tower is already in the list we do nothing
+		if ( towersInThisCluster.find(it->first) != towersInThisCluster.end() ) continue;
 
-	//if the tower is already in the list we do nothing
-	if ( towersInThisCluster.find(it->first) != towersInThisCluster.end() ) continue;
+		const bool isNeighbour = testPads.m_BCG.arePadsNeighbours(largestTower->first, it->first);
+		if ( isNeighbour ) {
+		  if ( DetailedPrintout ) {
+			std::cout << "Found a neighbor " << std::setw(6) << it->first << " : " << std::setw(3) << it->second
+				  << testPads.streamPad(it->first)
+				  << std::endl;
+		  }//debug output
 
-	const bool isNeighbour = testPads.m_BCG.arePadsNeighbours(largestTower->first, it->first);
-	if ( isNeighbour ) {
-	  if ( DetailedPrintout ) {
-	    std::cout << "Found a neighbor " << std::setw(6) << it->first << " : " << std::setw(3) << it->second
-		      << testPads.streamPad(it->first)
-		      << std::endl;
-	  }//debug output
+		  towersInThisCluster.insert( *it );
+		  checkNextNeighborsList.insert( *it );
 
-	  towersInThisCluster.insert( *it );
-	  checkNextNeighborsList.insert( *it );
-
-	} //if they are neighbours
+		} //if they are neighbours
       }// find neighbouring towers/pads
 
       //remove the tower we just used from the checkNextNeighborsList
@@ -480,6 +481,9 @@ void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEn
   }//while there are towers
 
 }//ClusterNextToNearestNeighbourTowers
+
+
+
 
 
 BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThreshold(double threshold) const{
@@ -507,18 +511,35 @@ BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThresholds
 }
 
 
+BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThresholds(const BCPCuts& cuts) const{
+  PadIndexList myPadIndices;
+  for (int k = 0; k < m_BCG.getPadsPerBeamCal();++k) {
+    if( m_BCG.getLayer(k) >= cuts.getStartingLayer() ) {
+      double padEnergy(getEnergy(k));
+      int padRing = m_BCG.getRing(k);
+      if( cuts.isPadAboveThreshold(padRing, padEnergy) ) {
+	myPadIndices.push_back(k);
+      }
+    }
+  }//all pads
+  return myPadIndices;
+}
+
+
 BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveSigma(const BCPadEnergies& sigma,
 							     const BCPCuts& cuts) const {
   PadIndexList myPadIndices;
+  int nAbove=0;
   for (int k = 0; k < this->m_BCG.getPadsPerBeamCal();++k) {
     if( this->m_BCG.getLayer(k) >=  cuts.getStartingLayer() ) {
       double padEnergy(this->getEnergy(k));
       double padSigma(sigma.getEnergy(k));
       if( padEnergy > cuts.getPadSigmaCut() * padSigma ) {
-	myPadIndices.push_back(k);
+	myPadIndices.push_back(k); nAbove++;
       }
     }
   }//all pads
+  std::cout << double(nAbove)/m_BCG.getPadsPerBeamCal()*100. << " % pads are above " << cuts.getPadSigmaCut() << " sigma.\n";
   return myPadIndices;
 }
 
@@ -619,6 +640,45 @@ BCPadEnergies::TowerIndexList BCPadEnergies::getTowersFromPads( BeamCalGeo const
     myTowerIndices[ *it % geo.getPadsPerLayer() ] += 1;
   }
   return myTowerIndices;
+}
+
+BCPadEnergies::TowerIndexList BCPadEnergies::getContiguousTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices, const BCPCuts& cuts) {
+
+  // Declare and initialize tower maps
+  std::map<int, std::vector<bool> > towerMaps;
+  for(int iTower=0; iTower<geo.getPadsPerLayer(); iTower++)
+  {
+	  std::vector<bool> newTowerMap;
+	  for(int iLayer=0; iLayer<geo.getBCLayers(); iLayer++)
+		  newTowerMap.push_back(false);
+  }
+  TowerIndexList currentTowers, bestTowers, finalTowers;
+
+/* UNDER DEVELOPMENT
+ *  for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
+	  int iTower = (*it) % geo.getPadsPerLayer();
+	  if()
+  }
+
+
+
+  for (TowerIndexList::const_iterator it = myTowerIndices.begin(); it != myTowerIndices.end(); ++it)
+  {
+	  if(it->second >= cuts.getMinimumTowerSize()) finalTowerIndices.insert(*it);
+  }*/
+  return finalTowers;
+}
+
+BCPadEnergies::TowerIndexList BCPadEnergies::getTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices, const BCPCuts& cuts) {
+  TowerIndexList myTowerIndices, finalTowerIndices;
+  for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
+    myTowerIndices[ *it % geo.getPadsPerLayer() ] += 1;
+  }
+  for (TowerIndexList::const_iterator it = myTowerIndices.begin(); it != myTowerIndices.end(); ++it)
+  {
+	  if(it->second >= cuts.getMinimumTowerSize()) finalTowerIndices.insert(*it);
+  }
+  return finalTowerIndices;
 }
 
 void BCPadEnergies::removeTowerFromPads( BeamCalGeo const& geo, BCPadEnergies::PadIndexList& myPadIndices, int towerNumber) {

@@ -319,9 +319,10 @@ void BeamCalClusterReco::init() {
 
 
   // Create the average BCPadEnergies objects used to subtract average backgrounds
+  const int numberForAverage = 10;
   std::vector<BCPadEnergies*> listOfBunchCrossingsRight, listOfBunchCrossingsLeft;
 
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < numberForAverage; ++i) {
     listOfBunchCrossingsLeft.push_back( new BCPadEnergies(m_BCG) );
     listOfBunchCrossingsRight.push_back( new BCPadEnergies(m_BCG) );
   }
@@ -330,13 +331,12 @@ void BeamCalClusterReco::init() {
   const unsigned int nBackgroundBX = m_backgroundBX->GetEntries();
 
   //Check that we have
-  if( int(nBackgroundBX) < m_nBXtoOverlay*10 ) {
+  if( int(nBackgroundBX) < m_nBXtoOverlay*numberForAverage ) {
     throw LackingFilesException("There are not Enough BeamCal Background files to calculate a proper average!");
   }
 
   //we use a set so no duplication occurs
-  const int numberForAverage = 10;
-  while( int(randomNumbers.size()) < m_nBXtoOverlay*numberForAverage ){//do it ten times as often
+  while( int(randomNumbers.size()) < m_nBXtoOverlay*numberForAverage ){//do it numberForAverage times as often
     randomNumbers.insert( int(m_random3->Uniform(0, nBackgroundBX)) );
   }
 
@@ -705,7 +705,6 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 //  std::vector<BeamCalCluster> bccs;
   //bccs.push_back(signalPads.lookForNeighbouringClustersOverWithVeto(backgroundPads,  *m_bcpCuts));
 
-//  int iCluster=0; // SL:DELETE
   for (std::vector<BeamCalCluster>::const_iterator it = bccs.begin(); it != bccs.end(); ++it) {
 
     streamlog_out(DEBUG2) << title;
