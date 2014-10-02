@@ -263,7 +263,7 @@ void BeamCalClusterReco::init() {
   m_random3 = new TRandom3();
 
   // usually a good idea to
-  if( streamlog::out.write< MESSAGE3 >() ) {
+  if( streamlog::out.write< DEBUG >() ) {
     printParameters() ;
   }
 
@@ -731,7 +731,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
       // Test correlation with the standard EM shower profile and determine the shower starting position xStart
       profileTester.Test(layers, xStart, correlEMShower);
 
-      streamlog_out(MESSAGE) << " found something at theta = "
+      streamlog_out(DEBUG) << " found something at theta = "
 			      << std::setw(10) << theta << "mrad; rho = " << 0.001*theta*m_BCG->getBCZDistanceToIP() << "mm"
 			      << "; phi = " << std::setw(10) << phi << "deg"
 			      << "\nCorrelation with EM shower = " << std::setw(10) << correlEMShower

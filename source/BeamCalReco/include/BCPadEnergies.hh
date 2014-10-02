@@ -21,6 +21,7 @@ public:
   enum BeamCalSide_t { kUnknown = -1, kLeft = 0 , kRight = 1};
 
   friend void ClusterNextToNearestNeighbourTowers(BCPadEnergies const& testPads, PadIndexList& myPadIndices, const BCPCuts &cuts, BeamCalClusterList& BeamCalClusters, bool DetailedPrintout=false);
+  friend void ClusterContiguousTowers(BCPadEnergies const& testPads, PadIndexList& myPadIndices, const BCPCuts &cuts, BeamCalClusterList& BeamCalClusters, bool DetailedPrintout=false);
   friend int MoveTower(BCPadEnergies::TowerIndexList &fromList, BCPadEnergies::TowerIndexList &toList, std::pair<int, int>);
 
   BCPadEnergies(const BeamCalGeo& bcg, BeamCalSide_t side = kUnknown);
@@ -95,6 +96,7 @@ private:
 
   static TowerIndexList getTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices);
   static TowerIndexList getTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices, const BCPCuts& cuts);
+  static TowerIndexList getContiguousTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices);
   static TowerIndexList getContiguousTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices, const BCPCuts& cuts);
   //towerNumber is cellId in Layer i.e. gloadPadID % m_nPadsPerLayer
   static void removeTowerFromPads ( BeamCalGeo const& geo, PadIndexList& myPadIndices, int towerNumber );
