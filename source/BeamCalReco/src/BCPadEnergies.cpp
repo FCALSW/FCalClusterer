@@ -14,6 +14,9 @@
 #include <sstream>
 #include <stdexcept>
 
+// ----- include for verbosity dependend logging ---------
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
 
 //typedef std::map<int, int> PadIndexList;
 // typedef BCPadEnergies::PadIndexList;
@@ -539,7 +542,7 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveSigma(const BCPadEnergies
       }
     }
   }//all pads
-  std::cout << double(nAbove)/m_BCG.getPadsPerBeamCal()*100. << " % pads are above " << cuts.getPadSigmaCut() << " sigma.\n";
+  streamlog_out(MESSAGE) << double(nAbove)/m_BCG.getPadsPerBeamCal()*100. << " % pads are above " << cuts.getPadSigmaCut() << " sigma.\n";
   return myPadIndices;
 }
 
