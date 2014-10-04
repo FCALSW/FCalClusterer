@@ -73,11 +73,12 @@ class BeamCalClusterReco : public marlin::Processor {
   double m_sigmaCut;
   // SL: Parameters for the particle-type distinction
   double m_EMcorrelThreshold; // Correlation threshold
-  double m_eFactor;				// Energy calibration coefficient
-  double m_p0a;					// Energy dependence of the parameter a
-  double m_p1a;					// Energy dependence of the parameter a
-  double m_p0b;					// Energy dependence of the parameter b
-  double m_p1b;					// Energy dependence of the parameter b
+  double m_eFactor;			  // Energy calibration coefficient
+  double m_p0a;				  // Energy dependence of the parameter a
+  double m_p1a;				  // Energy dependence of the parameter a
+  double m_p0b;				  // Energy dependence of the parameter b
+  double m_p1b;				  // Energy dependence of the parameter b
+  double m_profileRadius;	  // Radius (mm) of the cylinder in which the longitudinal profile is extracted
 
   std::vector<float> m_startingRings;
   std::vector<float> m_requiredRemainingEnergy;

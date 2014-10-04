@@ -85,6 +85,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 					   m_EMcorrelThreshold(.98),
 					   m_eFactor(56.72),
 					   m_p0a(0.737), m_p1a(1.75), m_p0b(0.02209), m_p1b(1.8e6),
+					   m_profileRadius(20.),
 					   m_startingRings(),
 					   m_requiredRemainingEnergy(),
 					   m_requiredClusterEnergy(),
@@ -175,6 +176,11 @@ registerProcessorParameter ("p1b",
 			      "Calibration parameter p1 for the energy dependence of parameter b of the typical longitudinal EM shower profile",
 			      m_p1b,
 			      double(1.8e6) ) ;
+
+registerProcessorParameter ("ProfileRadius",
+			      "Radius (mm) of the cylinder in which the longitudinal profile is extracted",
+			      m_profileRadius,
+			      double(20.) ) ;
 
 registerProcessorParameter ("StartingRing",
 			      "Rings from which onwards the outside Thresholds are used",
@@ -721,7 +727,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
       // SL: Added for the purpose of particle-type distinction
       BCPadEnergies bcp(signalPads);
       bcp.subtractEnergies(backgroundPads);
-      ProfileInRadiusFromCM extractor(20.);
+      ProfileInRadiusFromCM extractor(m_profileRadius);
 //      TH3D *bch3d = MakeBeamCalHisto(&bcp);
 //      TH1D *layers = (TH1D*)bch3d->Project3D("x");
       // Theta is given in mrad

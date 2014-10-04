@@ -698,14 +698,11 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     const int ring = m_BCG.getRing(*it);
     const double thisPhi = m_BCG.getPadPhi(*it)* M_PI / 180.0; //Degrees to Radian
     BCCluster.addPad(*it, energy);
-    //    phi+= thisPhi*energy;
     ringAverage += double( ring ) * energy;
     totalEnergy += energy;
     // Quasi-Cartesian coordinates in units of rad
     yStore += energy * sin( thisPhi ) * m_BCG.getThetaFromRing( ring+1 ) ;
     xStore += energy * cos( thisPhi ) * m_BCG.getThetaFromRing( ring+1 ) ;
-//    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
-
   }
   if(totalEnergy > 0.0) {
     phi =  atan2(yStore,  xStore) * 180.0 / M_PI ;
@@ -716,10 +713,8 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
 
     BCCluster.setPhi(phi);
     BCCluster.setRing(ringAverage);
-    //    BCCluster.setTheta( m_BCG.getThetaFromRing( ringAverage ) * 1000 );
     BCCluster.setTheta( thetaAverage * 1000 );
   }
-
 
   return BCCluster;
 }//getClusterFromAcceptedPads
