@@ -183,7 +183,8 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2F *frame, Int_t layerNumber){
 TH1D* BeamCal::BeamCalDrawLayers(TPad *pad, Option_t* options){
   TH1D *BeamCalEnergy = (TH1D*)m_h3BeamCalHisto->Project3D("x");
   BeamCalEnergy->SetXTitle("Layer");
-  BeamCalEnergy->SetYTitle("Energy [GeV/BX]");
+//  BeamCalEnergy->SetYTitle("Energy [GeV/BX]");
+  BeamCalEnergy->SetYTitle("Energy [a.u.]");
   BeamCalEnergy->SetLineWidth(3);
   if(m_NormalizePerYear){
     BeamCalEnergy->SetYTitle("Energy [GeV/yr]");
@@ -281,7 +282,8 @@ void BeamCal::FillPadFlux(TH1D *BCPadFlux) {
 TH1D* BeamCal::BeamCalDrawRadial(TPad *pad, Option_t* options){
   TH1D *BeamCalEnergy = (TH1D*)m_h3BeamCalHisto->Project3D("y");
   BeamCalEnergy->SetXTitle("Cylinder");
-  BeamCalEnergy->SetYTitle("Energy [1/BX]");
+//  BeamCalEnergy->SetYTitle("Energy [1/BX]");
+  BeamCalEnergy->SetYTitle("Energy [a.u.]");
   BeamCalEnergy->SetLineWidth(3);
   if(m_NormalizePerYear){
     BeamCalEnergy->Scale(BCUtil::BXperYear());

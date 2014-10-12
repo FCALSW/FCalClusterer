@@ -1072,4 +1072,46 @@ TH1D* BCPadEnergies::longitudinalProfile(TowerIndexList* towerlist) const
 }
 
 
+// Return the pointer to a histogram containing the radial profile of energy deposits in BeamCal
+// Restricted to pads in the towerlist
+TH1D* BCPadEnergies::radialProfile(TowerIndexList* towerlist) const
+{
+  TH1D *profile = dynamic_cast<TH1D*> (gROOT->FindObject("BCradProfile"));
+  if(profile) delete profile;
+  profile = new TH1D("BCradProfile", "BeamCal radial profile; cylinder; energy (a.u.)", m_BCG.getBCRings(), 0.5, double(m_BCG.getBCRings())+0.5);
+
+  for (TowerIndexList::iterator it=towerlist->begin(); it!=towerlist->end(); it++) {
+	  for(int iLayer=0; iLayer < m_BCG.getBCLayers(); iLayer++){
+		  // iLayer is actually the layer number minus 1
+		  int iPad = it->first + iLayer*m_BCG.getPadsPerLayer();
+		  int layer, ring, pad;
+		  m_BCG.getLayerRingPad(iPad, layer, ring, pad);
+		  profile->Fill(double(ring)+.5, this->getEnergy(iPad));
+	  }
+  }
+
+  return profile;
+}
+
+
+// Return the pointer to a histogram containing the azimuthal profile of energy deposits in BeamCal
+// Restricted to pads in the given ring
+TH1D* BCPadEnergies::azimuthalProfile(int ring) const
+{
+  TH1D *profile = dynamic_cast<TH1D*> (gROOT->FindObject("BCphiProfile"));
+  if(profile) delete profile;
+  profile = new TH1D("BCphiProfile", "BeamCal azimuthal profile; pad; energy (a.u.)", m_BCG.getPadsInRing(ring), 0.5, double(m_BCG.getPadsInRing(ring))+0.5);
+
+  for (int iPad = 1; iPad <= m_BCG.getPadsInRing(ring); iPad++) {
+	  for(int iLayer=0; iLayer < m_BCG.getBCLayers(); iLayer++){
+		  // iLayer is actually the layer number minus 1
+		  int iGlobalPad = m_BCG.getPadIndex(iLayer, ring, iPad);
+		  profile->Fill(double(iPad)+.5, this->getEnergy(iGlobalPad));
+	  }
+  }
+
+  return profile;
+}
+
+
 

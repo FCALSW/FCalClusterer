@@ -25,6 +25,7 @@ public:
   bool arePadsNeighbours(int padIndex1, int padIndex2, bool mustBeInSameLayer = false) const;
   double getTransversalDistancePads(int padIndex1, int padIndex2) const;
   double getTransversalDistancePadToPoint(int padIndex, double rho, double phi) const;
+  int getRingFromTheta(double theta) const;
 
   virtual double                getBCInnerRadius()   const = 0;
   virtual double                getBCOuterRadius()   const = 0;

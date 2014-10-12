@@ -73,12 +73,25 @@ int main (int argn, char **argc) {
   BCPadEnergies::TowerIndexList *towers = signalBeamCals[0].getTowersWithinRadiusFromPoint(rhoCM, phiCM, radius);
 //  BCPadEnergies::TowerIndexList *towers = signalBeamCals[0].getTopAndNNNeighbourTowers(.001);
   std::cout << "Tower list size: " << towers->size() << "\n";
-  bc.SetBeamCalHisto( &(signalBeamCals[0]), towers );
+//  bc.SetBeamCalHisto( &(signalBeamCals[0]), towers );
+  bc.SetBeamCalHisto( &(signalBeamCals[0]) );
   bc.SetAxisMin(1e-6);
   bc.SetAxisMax(10.4);
   bc.SetLogz(true);
   bc.BeamCalDraw( &c, &frame );
-  c.SaveAs("BeamCalLayout.eps");
+  c.SaveAs("BeamCalLayout.pdf");
+
+  c.Clear();
+  c.SetCanvasSize(800,600);
+  c.Divide(1,1,.01,.01);
+  c.GetPad(1)->SetLogy();
+  bc.BeamCalDrawRadial((TPad*)c.GetPad(1), "hist");
+  c.Print("BeamCalRadial.pdf");
+
+  c.GetPad(1)->SetLogy();
+  bc.BeamCalDrawLayers((TPad*)c.GetPad(1), "hist");
+  c.Print("BeamCalLayers.pdf");
+
 
   return 0;
 }

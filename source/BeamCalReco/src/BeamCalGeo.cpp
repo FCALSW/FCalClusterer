@@ -260,6 +260,23 @@ double BeamCalGeo::getTransversalDistancePadToPoint(int globalPadIndex, double r
 }
 
 
+int BeamCalGeo::getRingFromTheta(double theta) const
+{
+
+	for(int iRing = 0; iRing<getBCRings(); iRing++)
+	{
+		int iPad = getPadIndex(1,iRing,1);
+		double extents[6];
+		getPadExtents(iRing, 1, extents);
+		double tanThMin = extents[0]/fabs(getBCZDistanceToIP());
+		double tanThMax = extents[1]/fabs(getBCZDistanceToIP());
+
+		if (tan(theta) > tanThMin && tan(theta) < tanThMax) return iRing;
+	}
+	return -1;
+}
+
+
 int BeamCalGeo::getPadsInRing( int ring ) const {
     if ( ring < getFirstFullRing() ) {
       return getNSegments()[ring] * getSymmetryFold();

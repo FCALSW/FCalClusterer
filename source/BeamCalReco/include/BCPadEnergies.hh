@@ -75,6 +75,8 @@ public:
   TH1D* longitudinalProfile() const;
   TH1D* longitudinalProfile(PadIndexList*) const;
   TH1D* longitudinalProfile(TowerIndexList*) const;
+  TH1D* radialProfile(TowerIndexList*) const;
+  TH1D* azimuthalProfile(int cylinder) const;
 
 
   inline void setSide(BeamCalSide_t side) { m_side = side; }

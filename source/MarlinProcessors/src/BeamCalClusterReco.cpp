@@ -734,6 +734,18 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 //      TH1D *layers = (TH1D*)bch3d->Project3D("x");
       // Theta is given in mrad
       TH1D *layers = extractor.extractProfile(&bcp, 0.001*theta*m_BCG->getBCZDistanceToIP(), phi);
+      if( ( m_nEvt == m_specialEvent ) ) {
+        TCanvas c("layers", "Layers", 800, 600);
+        layers->Draw();
+        c.Print(Form("Layers_evt_%i_theta%5.2fmrad_phi%5.2fdeg.pdf", m_nEvt, theta*1000, phi*180./M_PI));
+
+        TH1D* azimuthal = bcp.azimuthalProfile(m_BCG->getRingFromTheta(theta));
+        azimuthal->Draw();
+        c.Print(Form("azimuthal_evt_%i_theta%5.2fmrad_phi%5.2fdeg.pdf", m_nEvt, theta*1000, phi*180./M_PI));
+
+        delete azimuthal;
+      }
+
 
       float xStart=0, correlEMShower=0;
       // Test correlation with the standard EM shower profile and determine the shower starting position xStart
