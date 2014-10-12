@@ -737,11 +737,11 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
       if( ( m_nEvt == m_specialEvent ) ) {
         TCanvas c("layers", "Layers", 800, 600);
         layers->Draw();
-        c.Print(Form("Layers_evt_%i_theta%5.2fmrad_phi%5.2fdeg.pdf", m_nEvt, theta*1000, phi*180./M_PI));
+        c.Print(Form("Layers_evt_%i_theta%5.2fmrad_phi%5.2fdeg.pdf", m_nEvt, theta, phi));
 
-        TH1D* azimuthal = bcp.azimuthalProfile(m_BCG->getRingFromTheta(theta));
+        TH1D* azimuthal = bcp.azimuthalProfile(m_BCG->getRingFromTheta(theta*.001));
         azimuthal->Draw();
-        c.Print(Form("azimuthal_evt_%i_theta%5.2fmrad_phi%5.2fdeg.pdf", m_nEvt, theta*1000, phi*180./M_PI));
+        c.Print(Form("azimuthal_evt_%i_theta%5.2fmrad_phi%5.2fdeg.pdf", m_nEvt, theta, phi));
 
         delete azimuthal;
       }

@@ -1103,7 +1103,7 @@ TH1D* BCPadEnergies::azimuthalProfile(int ring) const
   profile = new TH1D("BCphiProfile", "BeamCal azimuthal profile; pad; energy (a.u.)", m_BCG.getPadsInRing(ring), 0.5, double(m_BCG.getPadsInRing(ring))+0.5);
 
   for (int iPad = 1; iPad <= m_BCG.getPadsInRing(ring); iPad++) {
-	  for(int iLayer=0; iLayer < m_BCG.getBCLayers(); iLayer++){
+	  for(int iLayer=1; iLayer <= m_BCG.getBCLayers(); iLayer++){
 		  // iLayer is actually the layer number minus 1
 		  int iGlobalPad = m_BCG.getPadIndex(iLayer, ring, iPad);
 		  profile->Fill(double(iPad)+.5, this->getEnergy(iGlobalPad));
