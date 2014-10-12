@@ -719,7 +719,9 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
     if(signalPads.getSide() == BCPadEnergies::kLeft) streamlog_out(DEBUG2) << LONGSTRING;
 
     //Apply cuts on the reconstructed clusters, then calculate angles
-    if ( ( it->getNPads() > 2 ) && m_bcpCuts->isClusterAboveThreshold( (*it) ) ) {
+    // SL: These are partly hard-coded cuts, restricting clusters to above 200 GeV, thus commented out
+   // if ( ( it->getNPads() > 2 ) && m_bcpCuts->isClusterAboveThreshold( (*it) ) )
+    {
 
       double theta(it->getTheta());
       double phi  (it->getPhi());
