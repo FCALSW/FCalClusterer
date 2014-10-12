@@ -741,7 +741,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 
         TH1D* azimuthal = bcp.azimuthalProfile(m_BCG->getRingFromTheta(theta*.001));
         azimuthal->Draw();
-        c.Print(Form("azimuthal_evt_%i_theta%5.2fmrad_phi%5.2fdeg.pdf", m_nEvt, theta, phi));
+        c.Print(Form("azimuthal_evt_%i_theta%05.2fmrad_phi%05.2fdeg.pdf", m_nEvt, theta, phi));
 
         delete azimuthal;
       }
