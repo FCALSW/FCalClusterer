@@ -387,7 +387,11 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
 } // lookForNeighbouringClustersOverWithVetoAndCheck
 
 
-void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEnergies::PadIndexList& myPadIndices, const BCPCuts &cuts, BCPadEnergies::BeamCalClusterList& BeamCalClusters, bool DetailedPrintout) {
+void ClusterNextToNearestNeighbourTowers( const BCPadEnergies &testPads,
+					  const BCPadEnergies::PadIndexList &myPadIndices,
+					  const BCPCuts &cuts,
+					  BCPadEnergies::BeamCalClusterList &BeamCalClusters,
+					  bool DetailedPrintout) {
 
   BCPadEnergies::TowerIndexList allTowersInBeamCal = BCPadEnergies::getTowersFromPads( testPads.m_BCG, myPadIndices );
   while( not allTowersInBeamCal.empty() ) {
@@ -396,7 +400,8 @@ void ClusterNextToNearestNeighbourTowers( BCPadEnergies const& testPads, BCPadEn
     //Compare the largest deposit to the others and check if they are neighbours
     //
 
-    BCPadEnergies::TowerIndexList::iterator largestTower = std::max_element( allTowersInBeamCal.begin(), allTowersInBeamCal.end(),
+    BCPadEnergies::TowerIndexList::iterator largestTower = std::max_element( allTowersInBeamCal.begin(),
+									     allTowersInBeamCal.end(),
 									     value_comparer);
 
     if (DetailedPrintout) {

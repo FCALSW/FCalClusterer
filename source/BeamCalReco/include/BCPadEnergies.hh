@@ -19,7 +19,7 @@ public:
 
   enum BeamCalSide_t { kUnknown = -1, kLeft = 0 , kRight = 1};
 
-  friend void ClusterNextToNearestNeighbourTowers(BCPadEnergies const& testPads, PadIndexList& myPadIndices, const BCPCuts &cuts, BeamCalClusterList& BeamCalClusters, bool DetailedPrintout=false);
+  friend void ClusterNextToNearestNeighbourTowers(const BCPadEnergies &testPads, const PadIndexList &myPadIndices, const BCPCuts &cuts, BeamCalClusterList &BeamCalClusters, bool DetailedPrintout=false);
 
   BCPadEnergies(const BeamCalGeo& bcg, BeamCalSide_t side = kUnknown);
   BCPadEnergies(const BeamCalGeo* bcg, BeamCalSide_t side = kUnknown);
