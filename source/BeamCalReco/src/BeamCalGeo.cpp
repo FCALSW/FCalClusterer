@@ -93,12 +93,12 @@ double BeamCalGeo::getPadMiddleTheta(int cylinder, int sector) const {
 
 double BeamCalGeo::getThetaFromRing(double averageRing) const  {
   const double radiusStep = getBCOuterRadius() - getBCInnerRadius();
-  const double radius = getBCInnerRadius() + ( averageRing + 0.5 )  * ( ( radiusStep  ) / double(getBCRings()) );
+  const double radius = getBCInnerRadius() + ( averageRing )  * ( ( radiusStep  ) / double(getBCRings()) );
   return atan( radius / getBCZDistanceToIP() );
 }
 
 double BeamCalGeo::getThetaFromRing(int ring) const  {
-  const double radius = getRadSegmentation()[ring-1];
+  const double radius = getRadSegmentation()[ring];
   return atan( radius / getBCZDistanceToIP() );
 }
 
