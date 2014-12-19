@@ -212,7 +212,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 
   MapIntInt::iterator maxCluster = 
     std::max_element( numClustersCounter.begin(), numClustersCounter.end(), compareByValue<std::pair<int, int> >);
-  int numClustersMajority = maxCluster->second;
+  int numClustersMajority = maxCluster->first;
   numClustersCounter.clear();
 
 #if _CLUSTER_BUILD_DEBUG == 1
