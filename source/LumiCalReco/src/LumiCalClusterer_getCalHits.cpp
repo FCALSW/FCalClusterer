@@ -22,45 +22,42 @@
    of LumiCal.
    -------------------------------------------------------------------------- */
 void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
-					std::map < int, std::map < int, std::vector <IMPL::CalorimeterHitImpl*> > >& calHits) {
+					MapIntMapIntVCalHit & calHits) {
 
-
+  EVENT::LCCollection * col = NULL;
   try {
-    EVENT::LCCollection	* col = evt->getCollection(_lumiName.c_str());
-
-    int	nHitsCol;
-
-    std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > :: iterator		calHitsIterator;
+    col = evt->getCollection(_lumiName.c_str());
+  } // try
+  // if an exception has been thrown (no *col for this event) then do....
+  catch( EVENT::DataNotAvailableException &e){
+#if _GENERAL_CLUSTERER_DEBUG == 1
+    streamlog_out( ERROR ) << "Event has a SimCalorimeterHitImpl exception"<< std::endl;
+#endif
+    return;
+  }
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
     streamlog_out( DEBUG ) << std::endl  << "Getting hit information ...."
 	      << std::endl << std::endl;
 #endif
 
-    nHitsCol = col->getNumberOfElements() ;
     if (not _mydecoder) {
       _mydecoder = new CellIDDecoder<SimCalorimeterHit> (col);
     }
+    const int nHitsCol = col->getNumberOfElements();
     for (int i=0; i<nHitsCol; ++i) {
-
-      // local-loop variables
-      IMPL::SimCalorimeterHitImpl	* calHitIn;      // input CalorimeterHitImpl
-      IMPL::CalorimeterHitImpl	* calHitNew;      // new   CalorimeterHitImpl
-
-      int	cellId, arm, layer, rCell, phiCell;
-      double	engyHit, xHit, yHit, zHit, rHit, phiHit;
-      float	hitPosV[3];
+      
+      int arm(0), layer, rCell, phiCell;
 
       // get the hit from the LCCollection with index i
-      calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
-
+      IMPL::SimCalorimeterHitImpl * calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
 
       // ???????? DECIDE/FIX - the global coordinates are going to change in new Mokka
       // versions, so the z must be extracted from the cellId instead ... ????????
       /// APS: Can be taken from the position of the calohit, when it is stored
 
       // get parameters from the input IMPL::CalorimeterHitImpl
-      engyHit = (double)calHitIn -> getEnergy();
+      const double engyHit = (double)calHitIn -> getEnergy();
 
       layer   = (*_mydecoder)( calHitIn )["K"] ;
       phiCell = (*_mydecoder)( calHitIn )["J"] ;
@@ -69,7 +66,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
 
       ///APS Calculate the cellID with the function from here
-      cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
+      const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
       // detector layer (ring) - count layers from zero and not from one
       layer -= 1 ;
 
@@ -79,22 +76,21 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       if(engyHit < _hitMinEnergy)	continue;
 
 
-      rHit	= (rCell+0.5)   * _rCellLength + _rMin;
-      phiHit	= (phiCell+0.5) * _phiCellLength;
+      const double rHit = (rCell+0.5) * _rCellLength + _rMin;
+      const double phiHit = (phiCell+0.5) * _phiCellLength;
 
-      zHit      = (double)calHitIn -> getPosition()[2];
+      const double zHit = (double)calHitIn -> getPosition()[2];
       // determine the side (arm) of the hit -> (+,-)1
       arm = (( zHit < 0 ) ? -1 : 1);
 
       // compute x.y hit coordinates
-      xHit = rHit * cos(phiHit);
-      yHit = rHit * sin(phiHit);
+      const double xHit = rHit * cos(phiHit);
+      const double yHit = rHit * sin(phiHit);
       // write x,y,z to an array
-      hitPosV[0] = xHit; hitPosV[1] = yHit; hitPosV[2] = zHit;
-
+      float hitPosV[3] = {xHit, yHit, zHit};
 
       // create a new IMPL::CalorimeterHitImpl
-      calHitNew = new IMPL::CalorimeterHitImpl();
+      IMPL::CalorimeterHitImpl *calHitNew = new IMPL::CalorimeterHitImpl();
 
       // write the parameters to the new IMPL::CalorimeterHitImpl
       calHitNew -> setCellID0(cellId);
@@ -105,19 +101,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       // arm, and sum the total collected energy at either arm
       calHits[arm /* arm is variable */ ][layer].push_back( calHitNew );
       _totEngyArm[arm] += engyHit;
-    }
-
-  } // try
-
-
-  // if an exception has been thrown (no *col for this event) then do....
-  catch( EVENT::DataNotAvailableException &e){
-#if _GENERAL_CLUSTERER_DEBUG == 1
-    streamlog_out( ERROR ) << "Event has a SimCalorimeterHitImpl exception"<< std::endl;
-#endif
-  }
-
-
+    }//for all simHits
 
   return;
 }

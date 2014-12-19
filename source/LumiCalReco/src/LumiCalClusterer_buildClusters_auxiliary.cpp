@@ -4,6 +4,9 @@
 #include "SortingFunctions.hh"
 #include "Global.hh"
 #include "ProjectionInfo.hh"
+#include "Distance2D.hh"
+using LCHelper::distance2D;
+
 //LCIO
 #include <IMPL/CalorimeterHitImpl.h>
 // Stdlib
@@ -30,11 +33,6 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 						std::map < int , LCCluster > & clusterCM,
 						std::vector < int > const& controlVar  ) {
 
-  // general variables
-  int	cellIdHit, cellIdNeighbor, nNeighborsConectedToMe;
-
-  const int numElementsInLayer( calHitsCellId.size() );
-
   /* --------------------------------------------------------------------------
      layer parameters
      -------------------------------------------------------------------------- */
@@ -43,6 +41,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
   //	clusters try to be merged into large ones, and then large clusters try to merge small ones into themselvs.
   // ----------------------------------------------------------------------------------------------------------------
   //	(1). definitions of 'small' and 'large' sizes
+  const int numElementsInLayer( calHitsCellId.size() );
   const int numElementsSmallClusterToMerge(0.1 * numElementsInLayer); //5;  // max number of elements in small cluster
   const int numElementsLargeClusterToMerge(.15 * numElementsInLayer); //10; // min number of elements in a large cluster
 
@@ -113,7 +112,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
   std::map <int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator= calHitsCellId.begin(),
     calHitsEnd = calHitsCellId.end();
   for(; calHitsCellIdIterator != calHitsEnd; ++calHitsCellIdIterator){
-    cellIdHit = (int)(*calHitsCellIdIterator).first;
+    const int cellIdHit = (int)(*calHitsCellIdIterator).first;
     calHitsLayer.push_back( calHitsCellIdIterator->second );
     // initialization
     isConnectedToNeighbor[cellIdHit] = 0;
@@ -128,7 +127,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
      -------------------------------------------------------------------------- */
   for(int j=0; j<(int)calHitsLayer.size(); j++) {
 
-    cellIdHit  = (int)calHitsLayer[j]->getCellID0();
+    int cellIdHit  = (int)calHitsLayer[j]->getCellID0();
     const double engyCalHit   = calHitsLayer[j]->getEnergy();
 
     // go on to next cal hit if this hit has already been registered
@@ -139,7 +138,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
     // get the Ids of the neighbor
     for(int neighborIndex=0; neighborIndex < _nNearNeighbor ; neighborIndex++) {
       // find cellId of neighbor
-      cellIdNeighbor = getNeighborId(cellIdHit, neighborIndex);
+      const int cellIdNeighbor = getNeighborId(cellIdHit, neighborIndex);
       if(cellIdNeighbor == 0) continue;
       try {
 	// if the neighbor has a cal hit...
@@ -170,7 +169,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 
     if(maxEngyNeighbor > 0) {
       // check if the neighbor has already been registered
-      cellIdNeighbor = isConnectedToNeighbor[cellIdHit];
+      const int cellIdNeighbor = isConnectedToNeighbor[cellIdHit];
       // modify the conditional control variable
 
       //APS: Does this make sense: When the possible
@@ -197,7 +196,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 
     std::vector <int> neighborFoundId ;
 
-    cellIdHit  = (int)calHitsLayer[j]->getCellID0();
+    int cellIdHit  = (int)calHitsLayer[j]->getCellID0();
 
     // if the cal hit has already been registered in a cluster continue to the next one
     if(cellIdToClusterId[cellIdHit] > 0) continue;
@@ -210,11 +209,11 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
     bool neighborFound = true ;
     while(neighborFound == true) {
       // get the Ids of the connected neighbor
-      nNeighborsConectedToMe = (int)neighborsConectedToMe[cellIdHit].size();
+      const int nNeighborsConectedToMe = (int)neighborsConectedToMe[cellIdHit].size();
       for(int k=0; k<nNeighborsConectedToMe; k++) {
 
 	// register the neighbor in the cluster
-	cellIdNeighbor = neighborsConectedToMe[cellIdHit][k];
+	const int cellIdNeighbor = neighborsConectedToMe[cellIdHit][k];
 	cellIdToClusterId[cellIdNeighbor] = clusterId ;
 	clusterIdToCellId[clusterId].push_back(cellIdNeighbor);
 
@@ -250,8 +249,8 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
       cellIdToClusterIdIterator = cellIdToClusterId.begin(),
       cEnd = cellIdToClusterId.end();
     for(; cellIdToClusterIdIterator != cEnd; ++cellIdToClusterIdIterator) {
-      cellIdHit = (int)(*cellIdToClusterIdIterator).first;	// cellId of cal hit
-      int clusterIdHit = (int)(*cellIdToClusterIdIterator).second;	// cluster Id of cal hit
+      const int cellIdHit = (int)(*cellIdToClusterIdIterator).first; // cellId of cal hit
+      const int clusterIdHit = (int)(*cellIdToClusterIdIterator).second; // cluster Id of cal hit
 
       if(clusterIdToCellId[clusterIdHit].size() == 1) {
 	int	maxEngyNeighborId = 0;
@@ -260,7 +259,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 	// get the Ids of the neighbor
 	for(int neighborIndex=0; neighborIndex < _nNearNeighbor ; neighborIndex++) {
 	  // find cellId of neighbor
-	  cellIdNeighbor = getNeighborId(cellIdHit, neighborIndex);
+	  const int cellIdNeighbor = getNeighborId(cellIdHit, neighborIndex);
 	  if(cellIdNeighbor == 0) continue;
 
 	  // if the neighbor has a cal hit...
@@ -377,7 +376,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 
 	for(size_t j=0; j<clusterIdToCellId[clusterId1].size(); j++){
 	  // add hit from clusterIdToCellId with clusterId to one with maxWDClusterId
-	  cellIdHit = clusterIdToCellId[clusterId1][j];
+	  const int cellIdHit = clusterIdToCellId[clusterId1][j];
 	  clusterIdToCellId[clusterId2].push_back(cellIdHit);
 	  cellIdToClusterId[cellIdHit] = clusterId2;
 
@@ -478,7 +477,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 
 	for(size_t j=0; j<clusterIdToCellId[clusterId1].size(); j++){
 	  // add hit from clusterIdToCellId with clusterId to one with maxWDClusterId
-	  cellIdHit = clusterIdToCellId[clusterId1][j];
+	  const int cellIdHit = clusterIdToCellId[clusterId1][j];
 	  clusterIdToCellId[clusterId2].push_back(cellIdHit);
 	  cellIdToClusterId[cellIdHit] = clusterId2;
 
@@ -560,7 +559,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
 
 	for(size_t k=0; k<clusterIdToCellId[clusterId1].size(); k++){
 	  // add hit from clusterIdToCellId with clusterId to one with maxWDClusterId
-	  cellIdHit = clusterIdToCellId[clusterId1][k];
+	  const int cellIdHit = clusterIdToCellId[clusterId1][k];
 	  clusterIdToCellId[clusterId2].push_back(cellIdHit);
 	  cellIdToClusterId[cellIdHit] = clusterId2;
 

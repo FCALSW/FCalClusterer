@@ -153,24 +153,17 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
   // increment / initialize global variables
   _totEngyArm[-1] = _totEngyArm[1] = 0.;
 
+  MapIntMapIntVCalHit calHits;
+  MapIntMapIntLCCluster superClusterCM;
 
-  int	numArmsToCluster, numSuperClusters;
-
-  std::map < int , std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > >	calHits;
-
-  std::map < int , std::map < int , LCCluster > >	superClusterCM;
-  std::map < int , LCCluster > :: iterator	superClusterCMIterator;
-
-  std::map < int , std::map < int , IMPL::CalorimeterHitImpl* > > calHitsCellIdGlobal;
-  std::map < int , IMPL::CalorimeterHitImpl* > :: iterator	calHitsCellIdGlobalIterator;
-
+  MapIntMapIntCalHit calHitsCellIdGlobal;
 
   _superClusterIdToCellId.clear();
   _superClusterIdToCellEngy.clear();
   _superClusterIdClusterInfo.clear();
 
   /* --------------------------------------------------------------------------
-     Loop over al hits in the LCCollection and write the hits into std::vectors
+     Loop over all hits in the LCCollection and write the hits into std::vectors
      of IMPL::CalorimeterHitImpl. Hits are split in two std::vectors, one for each arm
      of LumiCal.
      -------------------------------------------------------------------------- */
@@ -180,7 +173,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
   /* --------------------------------------------------------------------------
      cccccccccccccc
      -------------------------------------------------------------------------- */
-  numArmsToCluster = _armsToCluster.size();
+  const int numArmsToCluster = _armsToCluster.size();
   for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
     int armNow = _armsToCluster[armToClusterNow];
 
@@ -197,10 +190,10 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 #endif
 
     buildClusters( calHits[armNow],
-		   (calHitsCellIdGlobal[armNow]),
-		   (_superClusterIdToCellId[armNow]),
-		   (_superClusterIdToCellEngy[armNow]),
-		   (superClusterCM[armNow]),
+		   calHitsCellIdGlobal[armNow],
+		   _superClusterIdToCellId[armNow],
+		   _superClusterIdToCellEngy[armNow],
+		   superClusterCM[armNow],
 		   armNow);
 
 
@@ -229,8 +222,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
        Perform energy correction for inter-mixed superClusters
        -------------------------------------------------------------------------- */
 #if _CLUSTER_MIXING_ENERGY_CORRECTIONS == 1
-    numSuperClusters = superClusterCM[armNow].size();
-    if(numSuperClusters == 2) {
+    if(superClusterCM[armNow].size() == 2) {
 #if _GENERAL_CLUSTERER_DEBUG == 1
       streamlog_out( DEBUG ) << "\tRun LumiCalClustererClass::energyCorrections()" << std::endl;
 #endif
@@ -252,20 +244,20 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
   streamlog_out( DEBUG4 ) << "Final clusters:" << std::endl;
 
   for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
-    int armNow = _armsToCluster[armToClusterNow];
+    const int armNow = _armsToCluster[armToClusterNow];
 
-    superClusterCMIterator = superClusterCM[armNow].begin();
-    numSuperClusters       = superClusterCM[armNow].size();
-    for(int superClusterNow = 0; superClusterNow < numSuperClusters; superClusterNow++, superClusterCMIterator++) {
-      int superClusterId = (int)(*superClusterCMIterator).first;
+    for(MapIntLCCluster::iterator superClusterCMIterator = superClusterCM[armNow].begin();
+	superClusterCMIterator != superClusterCM[armNow].end();
+	++superClusterCMIterator) {
+      const int superClusterId = (int)superClusterCMIterator->first;
 
       streamlog_out( DEBUG4 ) << "  Arm:"    << std::setw(4)  << armNow
 			     << "  Id:"     << std::setw(4)  << superClusterId
-			     << superClusterCM[armNow][superClusterId]
+			     << superClusterCMIterator->second
 			     << std::endl;
 
       //Store information of clusters
-      _superClusterIdClusterInfo[armNow][superClusterId] = superClusterCM[armNow][superClusterId];
+      _superClusterIdClusterInfo[armNow][superClusterId] = superClusterCMIterator->second;
     }
   }
 

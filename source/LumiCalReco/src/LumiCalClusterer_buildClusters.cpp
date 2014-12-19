@@ -2,6 +2,8 @@
 #include "Global.hh"
 #include "LumiCalClusterer.h"
 #include "SortingFunctions.hh"
+#include "Distance2D.hh"
+using LCHelper::distance2D;
 // Root
 #include <TF1.h>
 #include <TH1F.h>

@@ -1,5 +1,7 @@
 //Local
 #include "LumiCalClusterer.h"
+#include "Distance2D.hh"
+using LCHelper::distance2D;
 //Root
 #include <TH1F.h>
 //LCIO

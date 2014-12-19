@@ -1,6 +1,9 @@
 //Local
 #include "SortingFunctions.hh"
 #include "LumiCalClusterer.h"
+#include "Distance2D.hh"
+using LCHelper::distance2D;
+
 //LCIO
 #include <IMPL/CalorimeterHitImpl.h>
 // stdlib

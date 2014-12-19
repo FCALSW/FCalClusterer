@@ -13,6 +13,7 @@
 #define _VIRTUALCLUSTER_BUILD_DEBUG 0
 #define _MOL_RAD_CORRECT_DEBUG 0
 
+#include "Global.hh"
 
 #include "GlobalMethodsClass.h"
 #include "LCCluster.hh"
@@ -39,14 +40,35 @@ namespace IMPL{
 
 class LumiCalClustererClass {
 
-  typedef std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > MapIntVCalHit;
-  typedef std::map < int , IMPL::CalorimeterHitImpl* >  MapIntCalHit;
-  typedef std::map < int , ProjectionInfo > MapIntProjectionInfo;
-  typedef std::map < int , LCCluster > MapIntLCCluster;
+  typedef std::vector <IMPL::CalorimeterHitImpl*> VecCalHit;
+  typedef std::vector < double >                  VDouble;
+  typedef std::vector < int >                     VInt;
 
-  typedef std::map < int , std::vector < double > > MapIntVDouble;
-  typedef std::map < int , std::vector < int > > MapIntVInt;
-  typedef std::map < int , int > MapIntInt;
+  typedef std::map < int , IMPL::CalorimeterHitImpl* >  MapIntCalHit;
+  typedef std::map < int , LCCluster >                  MapIntLCCluster;
+
+  typedef std::map < int , VecCalHit >                  MapIntVCalHit;
+  typedef std::map < int , VDouble >                    MapIntVDouble;
+  typedef std::map < int , VInt >                       MapIntVInt;
+
+  typedef std::map < int , MapIntLCCluster >            MapIntMapIntLCCluster;
+  typedef std::map < int , MapIntVCalHit >              MapIntMapIntVCalHit;
+  typedef std::map < int , MapIntVDouble >              MapIntMapIntVDouble; 
+  typedef std::map < int , MapIntVInt >                 MapIntMapIntVInt; 
+  typedef std::map < int , ProjectionInfo >             MapIntProjectionInfo;
+  typedef std::map < int , VirtualCluster >             MapIntVirtualCluster;
+  typedef std::map < int , double >                     MapIntDouble;
+  typedef std::map < int , int >                        MapIntInt;
+
+  typedef std::map < int , MapIntCalHit > MapIntMapIntCalHit;
+
+
+  typedef std::vector < MapIntCalHit >         VMapIntCalHit;
+  typedef std::vector < MapIntInt >            VMapIntInt;
+  typedef std::vector < MapIntLCCluster >      VMapIntLCCluster;
+  typedef std::vector < MapIntVInt >           VMapIntVInt;
+  typedef std::vector < MapIntVirtualCluster > VMapIntVirtualCluster;
+
 
 public:
 
@@ -61,26 +83,11 @@ public:
   // main actions in each event -Called for every event - the working horse.
   void processEvent( EVENT::LCEvent * evt ) ;
 
-  std::map < int , std::map < int , std::vector<int> > >	_superClusterIdToCellId;
-  std::map < int , std::map < int , std::vector<double> > >	_superClusterIdToCellEngy;
-  std::map < int , std::map < int , LCCluster > > _superClusterIdClusterInfo;
+  MapIntMapIntVInt       _superClusterIdToCellId;
+  MapIntMapIntVDouble    _superClusterIdToCellEngy;
+  MapIntMapIntLCCluster  _superClusterIdClusterInfo;
 
   void setLumiCollectionName(std::string const& lumiNameNow) { _lumiName = lumiNameNow; }
-
-  /* --------------------------------------------------------------------------
-     calculate the distance between two poins in 2D (in cartezian coordinates)
-     (first index of arrays is X and the second is Y coordinates {or the other way around})
-     -------------------------------------------------------------------------- */
-  template <class T, class U>
-  static double distance2D(const T *vec1, const U *vec2) {
-    const double diff0 = vec1[0]-vec2[0];
-    const double diff1 = vec1[1]-vec2[1];
-    const double distance = sqrt( diff0*diff0 + diff1*diff1 );
-    //assert (distance >= 0);
-    return distance;
-  }
-
-
 
 protected:
 
@@ -107,90 +114,90 @@ protected:
   double	_thetaContainmentBounds[2];
   double	_minSeparationDistance, _minClusterEngyGeV;
 
-  std::map < int , double >	_totEngyArm;
-  std::vector < int >		_armsToCluster;
+  MapIntDouble _totEngyArm;
+  VInt _armsToCluster;
 
   CellIDDecoder<SimCalorimeterHit> * _mydecoder;
 
   // methods:
   void	getCalHits( EVENT::LCEvent * evt,
-		    std::map < int , std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > > & calHits );
+		    MapIntMapIntVCalHit & calHits );
 
 
-  int	buildClusters(	std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > const& calHits,
-			std::map < int , IMPL::CalorimeterHitImpl* > & calHitsCellIdGlobal,
-			std::map < int , std::vector<int> > & superClusterIdToCellId,
-			std::map < int , std::vector<double> > & superClusterIdToCellEngy,
-			std::map < int , LCCluster > & superClusterCM, 
+  int	buildClusters(	MapIntVCalHit const& calHits,
+			MapIntCalHit & calHitsCellIdGlobal,
+			MapIntVInt & superClusterIdToCellId,
+			MapIntVDouble & superClusterIdToCellEngy,
+			MapIntLCCluster & superClusterCM, 
 			const int detectorArm);
 
-  int	initialClusterBuild( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-			     std::map < int , int >			  & cellIdToClusterId,
-			     std::map < int , std::vector<int> >	  & clusterIdToCellId,
-			     std::map < int , LCCluster > & clusterCM,
-			     std::vector < int > const& controlVar );
+  int	initialClusterBuild( MapIntCalHit const& calHitsCellId,
+			     MapIntInt			  & cellIdToClusterId,
+			     MapIntVInt	  & clusterIdToCellId,
+			     MapIntLCCluster & clusterCM,
+			     VInt const& controlVar );
 
-  int	initialLowEngyClusterBuild( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsSmallEngyCellId,
-				    std::map < int , IMPL::CalorimeterHitImpl* > & calHitsCellId,
-				    std::map < int , int >			 & cellIdToClusterId,
-				    std::map < int , std::vector<int> >		 & clusterIdToCellId,
-				    std::map < int , LCCluster >	 & clusterCM );
-
-
-  int	virtualCMClusterBuild( std::map < int , IMPL::CalorimeterHitImpl* > const&	  calHitsCellId,
-			       std::map < int , int >	&			 cellIdToClusterId,
-			       std::map < int , std::vector<int> > & clusterIdToCellId,
-			       std::map < int , LCCluster >		& clusterCM,
-			       std::map < int , VirtualCluster > const& virtualClusterCM );
-
-  int	virtualCMPeakLayersFix(	std::map < int , IMPL::CalorimeterHitImpl* > const&	calHitsCellId,
-				std::map < int , int >				& cellIdToClusterId,
-				std::map < int , std::vector<int> >		& clusterIdToCellId,
-				std::map < int , LCCluster >		& clusterCM,
-				std::map < int , VirtualCluster > virtualClusterCM );
-
-  int	buildSuperClusters ( std::map <int , IMPL::CalorimeterHitImpl* > & calHitsCellIdGlobal,
-			     std::vector < std::map < int , IMPL::CalorimeterHitImpl* > > const&	calHitsCellId,
-			     std::vector < std::map < int , std::vector<int> > >	const&	clusterIdToCellId,
-			     std::vector < std::map < int , LCCluster > >	const&	clusterCM,
-			     std::vector < std::map < int , VirtualCluster > > const& virtualClusterCM,
-			     std::map < int , int > & cellIdToSuperClusterId,
-			     std::map < int , std::vector<int> > & superClusterIdToCellId,
-			     std::map < int , LCCluster > & superClusterCM );
-
-  int	engyInMoliereCorrections ( std::map <int , IMPL::CalorimeterHitImpl* > const& calHitsCellIdGlobal,
-				   std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > const& calHits,
-				   std::vector < std::map < int , IMPL::CalorimeterHitImpl* > > const& calHitsCellIdLayer,
-				   std::vector < std::map < int , std::vector<int> > > & clusterIdToCellId,
-				   std::vector < std::map < int , LCCluster > >        & clusterCM,
-				   std::vector < std::map < int , int > >	       & cellIdToClusterId,
-				   std::map < int , int >			       & cellIdToSuperClusterId,
-				   std::map < int , std::vector<int> >			       & superClusterIdToCellId,
-				   std::map < int , LCCluster >			& superClusterCM,
-				   double					middleEnergyHitBound,
-				   int							detectorArm );
+  int	initialLowEngyClusterBuild( MapIntCalHit const& calHitsSmallEngyCellId,
+				    MapIntCalHit & calHitsCellId,
+				    MapIntInt			 & cellIdToClusterId,
+				    MapIntVInt		 & clusterIdToCellId,
+				    MapIntLCCluster	 & clusterCM );
 
 
+  int	virtualCMClusterBuild( MapIntCalHit const&	  calHitsCellId,
+			       MapIntInt	&			 cellIdToClusterId,
+			       MapIntVInt & clusterIdToCellId,
+			       MapIntLCCluster		& clusterCM,
+			       MapIntVirtualCluster const& virtualClusterCM );
 
-  void	energyCorrections (	std::map < int , std::vector<int> >		& superClusterIdToCellId,
-				std::map < int , std::vector<double> >			& superClusterIdToCellEngy,
-				std::map < int , LCCluster >		& superClusterCM,
-				std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellIdGlobal ) ;
+  int	virtualCMPeakLayersFix(	MapIntCalHit const&	calHitsCellId,
+				MapIntInt				& cellIdToClusterId,
+				MapIntVInt		& clusterIdToCellId,
+				MapIntLCCluster		& clusterCM,
+				MapIntVirtualCluster virtualClusterCM );
+
+  int	buildSuperClusters ( MapIntCalHit & calHitsCellIdGlobal,
+			     VMapIntCalHit const&	calHitsCellId,
+			     VMapIntVInt const&	clusterIdToCellId,
+			     VMapIntLCCluster const&	clusterCM,
+			     VMapIntVirtualCluster const& virtualClusterCM,
+			     MapIntInt & cellIdToSuperClusterId,
+			     MapIntVInt & superClusterIdToCellId,
+			     MapIntLCCluster & superClusterCM );
+
+  int	engyInMoliereCorrections ( MapIntCalHit const& calHitsCellIdGlobal,
+				   MapIntVCalHit const& calHits,
+				   VMapIntCalHit const& calHitsCellIdLayer,
+				   VMapIntVInt & clusterIdToCellId,
+				   VMapIntLCCluster & clusterCM,
+				   VMapIntInt & cellIdToClusterId,
+				   MapIntInt & cellIdToSuperClusterId,
+				   MapIntVInt & superClusterIdToCellId,
+				   MapIntLCCluster & superClusterCM,
+				   double middleEnergyHitBound,
+				   int detectorArm );
 
 
-  void	clusterMerger (	      std::map < int , std::vector<double> >	& clusterIdToCellEngy,
-			      std::map < int , std::vector<int> >	& clusterIdToCellId,
-			      std::map < int , LCCluster > & clusterCM,
-			      std::map < int , IMPL::CalorimeterHitImpl* >	calHitsCellIdGlobal ) ;
+
+  void	energyCorrections (	MapIntVInt & superClusterIdToCellId,
+				MapIntVDouble & superClusterIdToCellEngy,
+				MapIntLCCluster & superClusterCM,
+				MapIntCalHit const& calHitsCellIdGlobal ) ;
 
 
-  void	fiducialVolumeCuts (	std::map < int , std::vector<int> >		& superClusterIdToCellId,
-				std::map < int , std::vector<double> >			& superClusterIdToCellEngy,
-				std::map < int , LCCluster > & superClusterCM ) ;
+  void	clusterMerger (	      MapIntVDouble & clusterIdToCellEngy,
+			      MapIntVInt & clusterIdToCellId,
+			      MapIntLCCluster & clusterCM,
+			      MapIntCalHit calHitsCellIdGlobal ) ;
 
 
-  void	getThetaPhiZCluster( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-			     std::vector <int> const& clusterIdToCellId,
+  void	fiducialVolumeCuts (	MapIntVInt & superClusterIdToCellId,
+				MapIntVDouble & superClusterIdToCellEngy,
+				MapIntLCCluster & superClusterCM ) ;
+
+
+  void	getThetaPhiZCluster( MapIntCalHit const& calHitsCellId,
+			     VInt const& clusterIdToCellId,
 			     double totEngy,
 			     double * output );
 
@@ -220,53 +227,53 @@ protected:
   double	thetaPhiCell( int	cellId,
 			      GlobalMethodsClass::Coordinate_t	output );
 
-  LCCluster getEngyPosCMValues( std::vector <int> const& cellIdV,
-				std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
+  LCCluster getEngyPosCMValues( VInt const& cellIdV,
+				MapIntCalHit const& calHitsCellId,
 				GlobalMethodsClass::WeightingMethod_t method );
 
-  void	calculateEngyPosCM( std::vector <int> const& cellIdV,
-			    std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-			    //std::map < int , LCCluster > & clusterCM, int clusterId,
+  void	calculateEngyPosCM( VInt const& cellIdV,
+			    MapIntCalHit const& calHitsCellId,
+			    //MapIntLCCluster & clusterCM, int clusterId,
 			    LCCluster & cluster,
 			    GlobalMethodsClass::WeightingMethod_t method );
 
-  void	calculateEngyPosCM_EngyV(      std::vector <int> const& cellIdV,
-				       std::vector <double> const& cellEngyV,
-				       std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-				       std::map < int , LCCluster > & clusterCM,
-				       int clusterId,
-				       GlobalMethodsClass::WeightingMethod_t method );
+  void	calculateEngyPosCM_EngyV( VInt const& cellIdV,
+				  VDouble const& cellEngyV,
+				  MapIntCalHit const& calHitsCellId,
+				  MapIntLCCluster & clusterCM,
+				  int clusterId,
+				  GlobalMethodsClass::WeightingMethod_t method );
 
   void	updateEngyPosCM( IMPL::CalorimeterHitImpl	* calHit,
 			 LCCluster & clusterCM );
 
   int	checkClusterMergeCM( int clusterId1,
 			     int clusterId2,
-			     std::map < int , std::vector<int> > const& clusterIdToCellId,
-			     std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
+			     MapIntVInt const& clusterIdToCellId,
+			     MapIntCalHit const& calHitsCellId,
 			     double				distanceAroundCM,
 			     double				percentOfEngyAroungCM,
 			     GlobalMethodsClass::WeightingMethod_t method );
 
   double	getDistanceAroundCMWithEnergyPercent( LCCluster const& clusterCM,
-						      std::vector < int > const& clusterIdToCellId,
-						      std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
+						      VInt const& clusterIdToCellId,
+						      MapIntCalHit const& calHitsCellId,
 						      double engyPercentage );
 
-  double	getMoliereRadius( std::map < int , IMPL::CalorimeterHitImpl* >	const& calHitsCellId,
-				  std::vector <int> const& clusterIdToCellId,
+  double	getMoliereRadius( MapIntCalHit	const& calHitsCellId,
+				  VInt const& clusterIdToCellId,
 				  LCCluster const& clusterCM );
 
-  double	getEngyInMoliereFraction( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-					  std::vector <int> const& clusterIdToCellId,
+  double	getEngyInMoliereFraction( MapIntCalHit const& calHitsCellId,
+					  VInt const& clusterIdToCellId,
 					  LCCluster const&	clusterCM,
 					  double				moliereFraction );
 
-  double	getEngyInMoliereFraction( std::map < int , IMPL::CalorimeterHitImpl* >	const& calHitsCellId,
-					  std::vector < int > const& clusterIdToCellId,
+  double	getEngyInMoliereFraction( MapIntCalHit	const& calHitsCellId,
+					  VInt const& clusterIdToCellId,
 					  LCCluster const& clusterCM,
 					  double moliereFraction,
-					  std::map < int , int > & flag );
+					  MapIntInt & flag );
 
 };
 

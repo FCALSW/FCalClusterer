@@ -1,4 +1,4 @@
-#include "LumiCalClusterer.h"
+#include "Distance2D.hh"
 #include "SuperTrueClusterWeights.hh"
 
 #include <cmath>
@@ -12,7 +12,7 @@ SuperTrueClusterWeights::SuperTrueClusterWeights(	int superClusterIdNow,
 
   superClusterId(superClusterIdNow),
   trueClusterId(trueClusterIdNow),
-  distance(LumiCalClustererClass::distance2D(superClusterCM.getPosition(),trueClusterCM.getPosition())),
+  distance(LCHelper::distance2D(superClusterCM.getPosition(),trueClusterCM.getPosition())),
   deltaEngy(fabs(superClusterCM.getE() - trueClusterCM.getE())),
   minEngy(std::min(superClusterCM.getE() , trueClusterCM.getE())),
   weight(-1)
