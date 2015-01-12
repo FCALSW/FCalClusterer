@@ -713,7 +713,13 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
     bc.BeamCalDraw((TPad*)canv.GetPad(pad1), &frame, layer);
     gPad->Update();
     DrawElectronMarkers( RecoedObjects );
-    canv.cd(pad1)->SaveAs(Form("SpecialEvent_Pad%i.eps", pad1));
+
+    {
+      TCanvas tCanv("temp1",Form("BeamCal Layer %i", layer));
+      tCanv.cd();
+      bc.BeamCalDraw((TPad*)tCanv.GetPad(0), &frame, layer);
+      tCanv.SaveAs(Form("SpecialEvent_Pad%i.eps", pad1));
+    }
 
     //------------------------------
     // Pad 2
@@ -726,7 +732,18 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
     bc.DrawPhiDistributions((TPad*)canv.GetPad(pad2), layer, "same");
     static_cast<TH1*>(((TPad*)canv.GetPad(pad2))->GetListOfPrimitives()->At(0))->SetMaximum(ymax);
     DrawLineMarkers( RecoedObjects );
-    canv.cd(pad2)->SaveAs(Form("SpecialEvent_Pad%i.eps", pad2));
+
+    {
+      TCanvas tCanv("temp1",Form("PhiDistribution Layer %i", layer));
+      tCanv.cd();
+      bc.SetBeamCalHisto(padAverages, padErrors);
+      bc.DrawPhiDistributions(&tCanv, layer, "dotted,errors");
+      bc.SetBeamCalHisto(padEnergies,"padLeft");
+      bc.DrawPhiDistributions(&tCanv, layer, "same");
+      static_cast<TH1*>(tCanv.GetListOfPrimitives()->At(0))->SetMaximum(ymax);
+      //DrawLineMarkers( RecoedObjects );
+      tCanv.SaveAs(Form("SpecialEvent_Pad%i.eps", pad2));
+    }
 
   }//run over layers
 
