@@ -1,5 +1,5 @@
 #include "BeamCal.hh"
-//#include "CustomRoot.hh"
+#include "RootUtils.hh"
 #include "BCPadEnergies.hh"
 #include "BCUtilities.hh"
 
@@ -318,7 +318,7 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
   std::vector<TH1D> phiHistos;
   
   //Create the histograms
-  //CustomRoot::MyColor mycols;
+  RootUtils::Colors mycols;
   for (Int_t i = 0; i < m_BCG->getBCRings(); ++i) {
     Int_t bins = m_BCG->getPadsInRing(i);
     Double_t extents[6];
@@ -355,7 +355,7 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
       phiHistos.back().Sumw2();
     }
       
-    //CustomRoot::SetAllColors(&(phiHistos[i]), mycols.GetColor() );
+    RootUtils::SetAllColors( &(phiHistos[i]), mycols.GetColor() );
   }
 
   phiHistos[0].SetXTitle("Angle [deg]");
