@@ -1,0 +1,12 @@
+SET( Utilities_SOURCES 
+  src/RootUtils.cpp
+ )
+
+INCLUDE_DIRECTORIES ( ./include )
+
+ADD_LIBRARY( FCalUtils SHARED ${Utilities_SOURCES} )
+TARGET_LINK_LIBRARIES( FCalUtils ${ROOT_LIBRARIES}  )
+
+INSTALL( TARGETS
+  FCalUtils
+  LIBRARY DESTINATION lib)
