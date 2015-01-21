@@ -60,6 +60,10 @@ void BeamCalGeo::getPadExtents(int cylinder, int sector, double *extents) const 
     extents[3] -= 360.0;
   }
 
+  if( extents[5] >= 360.0 ) {
+    extents[5] -= 360.0;
+  }
+
   // if( extents[5] < 0 ) {
   //   extents[5] += 360.0;
   // }

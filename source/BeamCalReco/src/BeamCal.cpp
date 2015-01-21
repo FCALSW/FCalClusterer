@@ -322,7 +322,7 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
   for (Int_t i = 0; i < m_BCG->getBCRings(); ++i) {
     Int_t bins = m_BCG->getPadsInRing(i);
     Double_t extents[6];
-    this->m_BCG->getPadExtents(i+1, 1, extents);
+    this->m_BCG->getPadExtents(i, 1, extents);
     if( not (extents[0] > this->m_BCG->getCutout()) ){
 #warning "FixMe number of bins in drawphidistributions"
       //calculate bins for the limited range
@@ -369,10 +369,11 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
       const Double_t binError   = m_h3BeamCalHisto->GetBinError(layer, j, k);
 
       if(binContent > 0 ) {
-	Double_t phiBin = this->m_BCG->getPadMiddlePhi(j, k);
+	Double_t phiBin = this->m_BCG->getPadMiddlePhi(j-1, k-1);
 	// if( j == 9 ) {
 	//   int binnumber = phiHistos[j-1].FindBin(phiBin);
-	//   std::cout <<  phiHistos[j-1].FindBin(phiBin) 
+	//   std::cout << phiBin
+	// 	    << "  " << phiHistos[j-1].FindBin(phiBin) 
 	// 	    << "  "  << phiHistos[j-1].GetBinLowEdge(binnumber) 
 	// 	    << "  " << binContent
 	// 	    << std::endl;
