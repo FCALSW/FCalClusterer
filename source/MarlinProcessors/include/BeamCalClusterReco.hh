@@ -104,6 +104,7 @@ class BeamCalClusterReco : public marlin::Processor {
 
   TEfficiency *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
   TEfficiency *m_phiFake, *m_thetaFake;
+  std::vector<TH1*> m_checkPlots;
   std::vector<OriginalMC> m_originalParticles;
   
 

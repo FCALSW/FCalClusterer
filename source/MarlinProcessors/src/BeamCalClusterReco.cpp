@@ -92,6 +92,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_phiEfficiency(NULL),
                                            m_twoDEfficiency(NULL),
                                            m_phiFake(NULL),
+                                           m_checkPlots(0),
                                            m_thetaFake(NULL),
                                            m_originalParticles(0),
                                            m_BCalClusterColName(""),
@@ -359,6 +360,19 @@ void BeamCalClusterReco::init() {
     m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta and #Phi", bins, minAngle, maxAngle, 72, 0, 360);
     m_phiFake  = new TEfficiency("phiFake","Fake Rate vs. #Phi", 72, 0, 360);
     m_thetaFake = new TEfficiency("thetaFake","Fake Rate vs. #Theta", bins, minAngle, maxAngle);
+
+    /* 0*/  m_checkPlots.push_back( new TH1D("energyReal","Energy;Energy [GeV];N",100, 0, 20) );
+    /* 1*/  m_checkPlots.push_back( new TH1D("energyFake","Energy;Energy [GeV];N",100, 0, 20) );
+    /* 2*/  m_checkPlots.push_back( new TH1D("clusterReal","Cluster; Cluster; N",40, 0, 40) );
+    /* 3*/  m_checkPlots.push_back( new TH1D("clusterFake","Cluster; Cluster; N",40, 0, 40) );
+    /* 4*/  m_checkPlots.push_back( new TH2D("EvClusterReal","Energy vs. N_{Pads};Energy [GeV]; N_{Pads}",100, 0, 20, 40, 0, 40) );
+    /* 5*/  m_checkPlots.push_back( new TH2D("EvClusterFake","Energy vs. N_{Pads};Energy [GeV]; N_{Pads}",100, 0, 20, 40, 0, 40) );
+    /* 6*/  m_checkPlots.push_back( new TH2D("EnergyRing","Energy vs. Theta;Energy [GeV]; #theta [mrad",100, 0, 20, 60, 0, 60) );
+    /* 7*/  m_checkPlots.push_back( new TH1D("thetaReal","Theta;#theta [mrad];N",200, 0, 40) );
+    /* 8*/  m_checkPlots.push_back( new TH1D("phiReal","Phi;#phi [deg];N",200, 0, 360) );
+    /* 9*/  m_checkPlots.push_back( new TH1D("thetaDiff","Delta Theta;#Delta#theta [mrad];N",200, -10, 10) );
+    /*10*/  m_checkPlots.push_back( new TH1D("phiDiff","Phi;#Delta#phi [deg];N",200, -50, 50) );
+
   }//Creating Efficiency objects
 
 
@@ -543,6 +557,7 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
     for (std::vector<OriginalMC>::iterator mcIt = m_originalParticles.begin(); mcIt != m_originalParticles.end(); ++mcIt) {
       if (BCUtil::areCloseTogether(theta, phi, (*mcIt).m_theta, (*mcIt).m_phi )) {
 	hasRightCluster = true;
+	bco->setOMC(mcIt-m_originalParticles.begin());
 	(*mcIt).m_wasFound = true;
 	break;
       }
@@ -592,6 +607,31 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
     }
   }
 
+
+  for (std::vector<BCRecoObject*>::const_iterator it = RecoedObjects.begin(); it != RecoedObjects.end(); ++it) {
+    BCRecoObject* bco = *it;
+
+    if( bco->hasRightCluster() ) {
+      m_checkPlots[0]->Fill(bco->getEnergy() );
+      m_checkPlots[2]->Fill(bco->getNPads() );
+      m_checkPlots[4]->Fill(bco->getEnergy(), bco->getNPads() );
+
+      //Angles
+      m_checkPlots[7] ->Fill(bco->getThetaMrad());
+      m_checkPlots[8] ->Fill(bco->getPhi());
+      OriginalMC const& omc = m_originalParticles[bco->getOMC()];
+      m_checkPlots[9] ->Fill(omc.m_theta - bco->getThetaMrad());
+      m_checkPlots[10]->Fill(omc.m_phi   - bco->getPhi());
+
+    } else if( bco->hasWrongCluster() )  {
+      m_checkPlots[1]->Fill(bco->getEnergy() );
+      m_checkPlots[3]->Fill(bco->getNPads() );
+      m_checkPlots[5]->Fill(bco->getEnergy(), bco->getNPads() );
+      m_checkPlots[6]->Fill(bco->getEnergy(), bco->getThetaMrad() );
+    }
+
+  }
+
 }//fillEfficiencyObjects
 
 
@@ -616,6 +656,11 @@ void BeamCalClusterReco::end(){
     m_twoDEfficiency->Write();
     m_phiFake->Write();
     m_thetaFake->Write();
+
+    for (int j = 0; j < m_checkPlots.size() ;++j) {
+      m_checkPlots[j]->Write();
+    }//all plots
+
     effFile->Close();
   }
 

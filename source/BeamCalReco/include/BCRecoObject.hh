@@ -15,7 +15,8 @@ public:
     m_phi(phiCluster),
     m_energy(energy),
     m_nPads(nPads),
-    m_side(side)
+    m_side(side),
+    m_omc(-1)
   {}
 
   BCRecoObject (): m_shouldHaveCluster(false), 
@@ -25,7 +26,8 @@ public:
 		   m_phi(-999),
 		   m_energy(0.0),
 		   m_nPads(0),
-		   m_side(0)
+		   m_side(0),
+		   m_omc(-1)
   {}
 
   inline bool shouldHaveCluster() const  { return m_shouldHaveCluster; }
@@ -38,9 +40,12 @@ public:
   inline double getEnergy() const { return m_energy; }
   inline int    getSide() const { return m_side; }
 
-  inline void setHasRightCluster(bool b) { 
-    m_hasRightCluster = b; 
+  inline void setHasRightCluster(bool b) {
+    m_hasRightCluster = b;
     m_hasWrongCluster = !b; }
+
+  inline int  getOMC() const { return m_omc; }
+  inline void setOMC(int o) { m_omc = o ; }
 
 private:
   bool m_shouldHaveCluster;
@@ -51,6 +56,7 @@ private:
   double m_energy;
   int m_nPads;
   int m_side;
+  int m_omc;
 };
 
 #endif
