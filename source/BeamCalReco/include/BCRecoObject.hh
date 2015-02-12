@@ -38,6 +38,10 @@ public:
   inline double getEnergy() const { return m_energy; }
   inline int    getSide() const { return m_side; }
 
+  inline void setHasRightCluster(bool b) { 
+    m_hasRightCluster = b; 
+    m_hasWrongCluster = !b; }
+
 private:
   bool m_shouldHaveCluster;
   bool m_hasRightCluster;

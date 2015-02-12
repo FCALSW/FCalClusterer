@@ -18,7 +18,7 @@
 #include <IMPL/ReconstructedParticleImpl.h>
 #include <IMPL/ClusterImpl.h>
 
-// ----- include for verbosity dependend logging ---------
+// ----- include for verbosity dependent logging ---------
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
@@ -63,37 +63,40 @@ WrongParameterException(std::string error) : std::runtime_error(error) { }
 
 
 BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
-					   m_colNameMC(""),
-					   m_colNameBCal(""),
-					   m_files(),
-					   m_nEvt(0),
-					   m_specialEvent(-1),
-					   m_nBXtoOverlay(0),
-					   m_eventSide(-1),
-					   m_minimumTowerSize(0),
-					   m_startLookingInLayer(0),
-					   m_usePadCuts(true),
-					   m_createEfficienyFile(false),
-					   m_sigmaCut(1.0),
-					   m_startingRings(),
-					   m_requiredRemainingEnergy(),
-					   m_requiredClusterEnergy(),
-					   m_BeamCalDepositsLeft(NULL),
-					   m_BeamCalDepositsRight(NULL),
-					   m_BeamCalAverageLeft(NULL),
-					   m_BeamCalAverageRight(NULL),
-					   m_BeamCalErrorsLeft(NULL),
-					   m_BeamCalErrorsRight(NULL),
-					   m_random3(NULL),
-					   m_backgroundBX(0),
-					   m_BCG(NULL),
-					   m_bcpCuts(NULL),
-					   m_thetaEfficieny(NULL),
-					   m_phiEfficiency(NULL),
-					   m_twoDEfficiency(NULL),
-					   m_BCalClusterColName(""),
-					   m_BCalRPColName(""),
-					   m_EfficiencyFileName("")
+                                           m_colNameMC(""),
+                                           m_colNameBCal(""),
+                                           m_files(),
+                                           m_nEvt(0),
+                                           m_specialEvent(-1),
+                                           m_nBXtoOverlay(0),
+                                           m_eventSide(-1),
+                                           m_minimumTowerSize(0),
+                                           m_startLookingInLayer(0),
+                                           m_usePadCuts(true),
+                                           m_createEfficienyFile(false),
+                                           m_sigmaCut(1.0),
+                                           m_startingRings(),
+                                           m_requiredRemainingEnergy(),
+                                           m_requiredClusterEnergy(),
+                                           m_BeamCalDepositsLeft(NULL),
+                                           m_BeamCalDepositsRight(NULL),
+                                           m_BeamCalAverageLeft(NULL),
+                                           m_BeamCalAverageRight(NULL),
+                                           m_BeamCalErrorsLeft(NULL),
+                                           m_BeamCalErrorsRight(NULL),
+                                           m_random3(NULL),
+                                           m_backgroundBX(0),
+                                           m_BCG(NULL),
+                                           m_bcpCuts(NULL),
+                                           m_thetaEfficieny(NULL),
+                                           m_phiEfficiency(NULL),
+                                           m_twoDEfficiency(NULL),
+                                           m_phiFake(NULL),
+                                           m_thetaFake(NULL),
+                                           m_originalParticles(0),
+                                           m_BCalClusterColName(""),
+                                           m_BCalRPColName(""),
+                                           m_EfficiencyFileName("")
 {
 
 // modify processor description
@@ -353,7 +356,9 @@ void BeamCalClusterReco::init() {
     const int bins = 50;
     m_thetaEfficieny = new TEfficiency("thetaEff","Efficiency vs. #Theta", bins, minAngle, maxAngle);
     m_phiEfficiency  = new TEfficiency("phiEff","Efficiency vs. #Phi", 72, 0, 360);
-    m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta adn #Phi", bins, minAngle, maxAngle, 72, 0, 360);
+    m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta and #Phi", bins, minAngle, maxAngle, 72, 0, 360);
+    m_phiFake  = new TEfficiency("phiFake","Fake Rate vs. #Phi", 72, 0, 360);
+    m_thetaFake = new TEfficiency("thetaFake","Fake Rate vs. #Theta", bins, minAngle, maxAngle);
   }//Creating Efficiency objects
 
 
@@ -366,14 +371,6 @@ void BeamCalClusterReco::processRunHeader( LCRunHeader*) {
 }
 
 void BeamCalClusterReco::processEvent( LCEvent * evt ) {
-
-  //MCInformation to estimate Efficiency
-  double impactTheta(0.0), impactPhi(0.0);
-  bool notFoundAFake(false);
-
-  if(m_createEfficienyFile) {
-    FindOriginalMCParticle(evt, impactTheta, impactPhi, notFoundAFake);
-  }
 
   m_random3->SetSeed(m_nEvt+Global::EVENTSEEDER->getSeed(this));
 
@@ -459,7 +456,10 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     printBeamCalEventDisplay(padEnergiesLeft, padEnergiesRight, maxLayer, maxDeposit, depositedEnergy, LeftSide);
   }//DEBUG
 
-
+  if(m_createEfficienyFile) {
+    findOriginalMCParticles(evt);
+    fillEfficiencyObjects(LeftSide);
+  }
 
   /////////////////////////////////////////////////////////
   // Add the found objects to the RecoParticleCollection //
@@ -502,19 +502,6 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     BCalClusterCol->addElement(cluster);
     BCalRPCol->addElement(particle);
 
-
-    if(m_createEfficienyFile) {
-      if( (*it)->shouldHaveCluster()  ) {//only fill if there should be a cluster on this side
-	bool hasRightCluster = BCUtil::areCloseTogether((*it)->getThetaMrad(), (*it)->getPhi(), impactTheta, impactPhi );
-	m_thetaEfficieny->Fill( hasRightCluster, impactTheta );
-	m_phiEfficiency->Fill ( hasRightCluster, impactPhi );
-	m_twoDEfficiency->Fill( hasRightCluster, impactTheta, impactPhi);
-      } else { //if there should not be a cluster it must be a fake
-	//Fill Fake Cluster
-      }
-    }
-
-
     //CleanUp
     delete *it;
   }//for all found clusters
@@ -537,6 +524,78 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 }//processEvent
 
 
+void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>& RecoedObjects) {
+
+  if( not m_createEfficienyFile ) return;
+
+  //Try to match all clusters and particles, only then can we fill our efficiencies,
+  //this should allow one in principle to estimate efficiencies when there are
+  //multiple particles or cluster, but should be checked!!
+
+  //See if we have a cluster matching one of the MCParticles
+  for (std::vector<BCRecoObject*>::const_iterator it = RecoedObjects.begin(); it != RecoedObjects.end(); ++it) {
+    BCRecoObject* bco = *it;
+
+    bool hasRightCluster = false;
+    const double theta(bco->getThetaMrad());
+    const double phi(bco->getPhi());
+
+    for (std::vector<OriginalMC>::iterator mcIt = m_originalParticles.begin(); mcIt != m_originalParticles.end(); ++mcIt) {
+      if (BCUtil::areCloseTogether(theta, phi, (*mcIt).m_theta, (*mcIt).m_phi )) {
+	hasRightCluster = true;
+	(*mcIt).m_wasFound = true;
+	break;
+      }
+    }
+
+    bco->setHasRightCluster(hasRightCluster);
+    streamlog_out(MESSAGE2) << "Have we found a cluster matching a particle? "
+			    << std::boolalpha << hasRightCluster 
+			    << std::endl;
+  }
+
+
+  //Here we fill the efficiency for reconstructing MCParticles
+  for (std::vector<OriginalMC>::iterator mcIt = m_originalParticles.begin(); mcIt != m_originalParticles.end(); ++mcIt) {
+    OriginalMC const& omc = (*mcIt);
+    m_thetaEfficieny->Fill( omc.m_wasFound, omc.m_theta);
+    m_phiEfficiency->Fill ( omc.m_wasFound, omc.m_phi);
+    m_twoDEfficiency->Fill( omc.m_wasFound, omc.m_theta, omc.m_phi);
+    streamlog_out(MESSAGE2) << "Particle was found? " << std::boolalpha << omc.m_wasFound 
+			    << std::setw(13) << omc.m_theta
+			    << std::setw(13) << omc.m_phi
+			    << std::setw(13) << omc.m_energy
+			    << std::endl;
+  }
+
+  //Here we fill the fake rate, for reconstructed clusters that do not have an MCParticle
+  bool foundFake(false);
+  for (std::vector<BCRecoObject*>::const_iterator it = RecoedObjects.begin(); it != RecoedObjects.end(); ++it) {
+    BCRecoObject* bco = *it;
+    const bool hasRightCluster(bco->hasRightCluster());
+    const double theta(bco->getThetaMrad());
+    const double phi(bco->getPhi());
+    if (not hasRightCluster) {
+      m_thetaFake->Fill(true, theta);
+      m_phiFake->Fill(true, phi);
+      foundFake = true;
+    }
+  }
+
+  if (not foundFake) {
+    const int nbins   = m_thetaFake->GetTotalHistogram()->GetNbinsX();
+    const double low  = m_thetaFake->GetTotalHistogram()->GetBinLowEdge(1);
+    const double high = m_thetaFake->GetTotalHistogram()->GetBinLowEdge(nbins+1);
+    const double step = (high-low)/double(nbins);
+    for (int i = 1; i <= nbins ;++i) {
+      m_thetaFake->Fill( false, i * step + step/2.0 + low );
+    }
+  }
+
+}//fillEfficiencyObjects
+
+
+
 
 void BeamCalClusterReco::check( LCEvent * ) {
   // nothing to check here - could be used to fill checkplots in reconstruction processor
@@ -555,6 +614,8 @@ void BeamCalClusterReco::end(){
     m_thetaEfficieny->Write();
     m_phiEfficiency->Write();
     m_twoDEfficiency->Write();
+    m_phiFake->Write();
+    m_thetaFake->Write();
     effFile->Close();
   }
 
@@ -600,16 +661,12 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 
   std::vector<BCRecoObject*> recoVec;
 
-
-  //Should we have a cluster, based on MC Information, needed for efficiency estimates
-  const bool shouldHaveCluster = ( signalPads.getSide() == m_eventSide );
-
-
   //////////////////////////////////////////
   // This calls the clustering function!
   //////////////////////////////////////////
   const std::vector<BeamCalCluster> &bccs =
     signalPads.lookForNeighbouringClustersOverWithVetoAndCheck(backgroundPads, backgroundSigma, *m_bcpCuts);
+  const bool isRealParticle = false; //always false here, decide later
 
   for (std::vector<BeamCalCluster>::const_iterator it = bccs.begin(); it != bccs.end(); ++it) {
 
@@ -629,7 +686,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 			      << std::setw(10) << phi
 	;//ending the streamlog!
 
-      recoVec.push_back( new BCRecoObject(shouldHaveCluster, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide() ) );
+      recoVec.push_back( new BCRecoObject(isRealParticle, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide() ) );
 
     }//if we have enough pads and energy in the clusters
 
@@ -805,33 +862,50 @@ void BeamCalClusterReco::DrawLineMarkers( const std::vector<BCRecoObject*> & Rec
 }
 
 
-void BeamCalClusterReco::FindOriginalMCParticle(LCEvent *evt, double& impactTheta, double& impactPhi, bool& notFoundAFake) {
-
+void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
+  m_originalParticles.clear();
+  const double maxAngle(1.1*m_BCG->getBCOuterRadius()/m_BCG->getBCZDistanceToIP()*1000); 
   try {
     LCCollection* colMC = evt->getCollection ( m_colNameMC );
-    MCParticle *tempmc = dynamic_cast<MCParticle*>(colMC->getElementAt(0));
-    const double *momentum = tempmc->getMomentum();
-    double momentum2[3];
-    //Rotate to appropriate beamCal System
-#pragma message "Fix the rotation thing"
-    if(momentum[2] > 0) {
-      BCUtil::RotateToBeamCal<10>(momentum, momentum2);
-      m_eventSide = 0;
-    } else {
-      BCUtil::RotateFromBeamCal<10>(momentum, momentum2);
-      m_eventSide = 1;
-    }
-    //    double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
-    impactTheta = BCUtil::AngleToBeamCal<10>(momentum)*1000;//mrad
-    impactPhi   = TMath::ATan2(momentum2[1], momentum2[0]) * TMath::RadToDeg();
-    notFoundAFake = true;
-    if(impactPhi < 0) impactPhi += 360;
+    for (int i =0; i < colMC->getNumberOfElements();++i) {
+      MCParticle *tempmc = dynamic_cast<MCParticle*>(colMC->getElementAt(i));
 
+      //only use particles generated by generator
+      //this does not work, if we used the particle gun, in which case everything was created in simulation
+      // in this case we take only the first
+      if (not ( tempmc->getGeneratorStatus() == 1 || (tempmc->getGeneratorStatus() == 0 && i == 0 ) ) ) continue;
+
+      const double *momentum = tempmc->getMomentum();
+      double momentum2[3];
+    
+      //Check if it inside the BeamCalAcceptance, and has sufficientmomentum(1GeV);
+      const double absMom = sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
+      if ( absMom < 10 ) continue;
+      //Rotate to appropriate beamCal System
+#pragma message "Fix the rotation thing"
+      if(momentum[2] > 0) {
+	BCUtil::RotateToBeamCal<10>(momentum, momentum2);
+	m_eventSide = 0;
+      } else {
+	BCUtil::RotateFromBeamCal<10>(momentum, momentum2);
+	m_eventSide = 1;
+      }
+      //    double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
+      double impactTheta = BCUtil::AngleToBeamCal<10>(momentum)*1000;//mrad
+      if ( impactTheta > maxAngle ) continue; //only particles that are inside the BeamCal acceptance
+
+      double impactPhi   = TMath::ATan2(momentum2[1], momentum2[0]) * TMath::RadToDeg();
+      if(impactPhi < 0) impactPhi += 360;
+      
+      OriginalMC omc(impactTheta, impactPhi, absMom);
+      m_originalParticles.push_back(omc);
+      streamlog_out(MESSAGE2) << "Found MCParticle: (Theta, Phi, Eng) "
+			      << std::setw(13) << impactTheta
+			      << std::setw(13) << impactPhi
+			      << std::setw(13) << absMom
+			      << std::endl;
+    }
   } catch (Exception &e) {
-    impactTheta = -9999.0;
-    impactPhi   = -9999.0;
-    notFoundAFake = true;
-    m_eventSide = -1;
   }
 
   return;

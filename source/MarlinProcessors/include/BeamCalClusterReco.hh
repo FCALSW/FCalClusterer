@@ -23,6 +23,19 @@ class BeamCalGeo;
 class BeamCalClusterReco : public marlin::Processor {
   
  public:
+
+  //Helper class to store information on MCParticles in the BeamCal
+  class OriginalMC {
+  public:
+    double m_theta; 
+    double m_phi; 
+    double m_energy;
+    bool m_wasFound;
+    OriginalMC(double t, double p, double e): m_theta(t), m_phi(p), m_energy(e), m_wasFound(false) {}
+    OriginalMC(): m_theta(0.0), m_phi(0.0), m_energy(0.0), m_wasFound(false) {}
+
+  };
+
   
   virtual Processor*  newProcessor() { return new BeamCalClusterReco ; }
   
@@ -90,12 +103,14 @@ class BeamCalClusterReco : public marlin::Processor {
   BCPCuts* m_bcpCuts;
 
   TEfficiency *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
-
+  TEfficiency *m_phiFake, *m_thetaFake;
+  std::vector<OriginalMC> m_originalParticles;
   
 
 private:
 
-  void FindOriginalMCParticle(LCEvent *evt, double& impactTheta, double& impactPhi, bool& notFoundAFake);
+  void findOriginalMCParticles(LCEvent *evt);
+  void fillEfficiencyObjects(const std::vector<BCRecoObject*>& RecoedObjects);
 
   void printBeamCalEventDisplay(BCPadEnergies& padEnergies_left, BCPadEnergies& padEnergies_right,
 				int maxLayer, double maxDeposit, double depositedEnergy,
