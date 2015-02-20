@@ -30,33 +30,33 @@ namespace BCUtil{
     a[3] += b[3];
   }
 
-  template<int ANGLE, class t> inline void RotateToBeamCal(const t* vector, t* rotated) {
-    const double Cos10mrad = cos(double(ANGLE)/1000.0);
-    const double Sin10mrad = sin(double(ANGLE)/1000.0);
-    rotated[0] = Cos10mrad*vector[0]-Sin10mrad*vector[2];
+  template<class t> inline void RotateToBeamCal(const t* vector, t* rotated, double angle) {
+    const double CosAngle = cos(double(angle)/1000.0);
+    const double SinAngle = sin(double(angle)/1000.0);
+    rotated[0] = CosAngle*vector[0]-SinAngle*vector[2];
     rotated[1] = vector[1];
-    rotated[2] = Sin10mrad*vector[0]+Cos10mrad*vector[2];
+    rotated[2] = SinAngle*vector[0]+CosAngle*vector[2];
   }
 
-  template<int ANGLE,class t> inline t AngleToBeamCal(const t* vec) {
-    const double Cos10mrad = cos(double(ANGLE)/1000);
-    const double Sin10mrad = sin(double(ANGLE)/1000);
+  template<class t> inline t AngleToBeamCal(const t* vec, double angle) {
+    const double CosAngle = cos(double(angle)/1000);
+    const double SinAngle = sin(double(angle)/1000);
     if(vec[2] > 0) {
-      const t zP[3] = {Sin10mrad, 0, Cos10mrad};
+      const t zP[3] = {SinAngle, 0, CosAngle};
       return vectorangle(zP, vec);
     } else {
       //-Cos, because the beamcal is on the other side, but still rotated to plus x
-      const t zP[3] = {Sin10mrad, 0, -Cos10mrad};
+      const t zP[3] = {SinAngle, 0, -CosAngle};
       return vectorangle(zP, vec);
     }  
   }
 
-  template<int ANGLE, class t> void RotateFromBeamCal(const t* vector, t* rotated) {
-    const double Cos10mrad = cos(double(ANGLE)/1000.0);
-    const double Sin10mrad = sin(double(ANGLE)/1000.0);
-    rotated[0] = Cos10mrad*vector[0]+Sin10mrad*vector[2];
+  template<class t> void RotateFromBeamCal(const t* vector, t* rotated, double angle) {
+    const double CosAngle = cos(double(angle)/1000.0);
+    const double SinAngle = sin(double(angle)/1000.0);
+    rotated[0] = CosAngle*vector[0]+SinAngle*vector[2];
     rotated[1] = vector[1];
-    rotated[2] = -Sin10mrad*vector[0]+Cos10mrad*vector[2];
+    rotated[2] = -SinAngle*vector[0]+CosAngle*vector[2];
   }
 
 

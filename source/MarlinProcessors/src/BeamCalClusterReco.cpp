@@ -92,8 +92,8 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_phiEfficiency(NULL),
                                            m_twoDEfficiency(NULL),
                                            m_phiFake(NULL),
-                                           m_checkPlots(0),
                                            m_thetaFake(NULL),
+                                           m_checkPlots(0),
                                            m_originalParticles(0),
                                            m_BCalClusterColName(""),
                                            m_BCalRPColName(""),
@@ -657,7 +657,7 @@ void BeamCalClusterReco::end(){
     m_phiFake->Write();
     m_thetaFake->Write();
 
-    for (int j = 0; j < m_checkPlots.size() ;++j) {
+    for (size_t j = 0; j < m_checkPlots.size() ;++j) {
       m_checkPlots[j]->Write();
     }//all plots
 
@@ -909,6 +909,7 @@ void BeamCalClusterReco::DrawLineMarkers( const std::vector<BCRecoObject*> & Rec
 
 void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
   m_originalParticles.clear();
+  const double halfCrossingAngleMrad(m_BCG->getCrossingAngle()*0.5);
   const double maxAngle(1.1*m_BCG->getBCOuterRadius()/m_BCG->getBCZDistanceToIP()*1000); 
   try {
     LCCollection* colMC = evt->getCollection ( m_colNameMC );
@@ -929,14 +930,14 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
       //Rotate to appropriate beamCal System
 #pragma message "Fix the rotation thing"
       if(momentum[2] > 0) {
-	BCUtil::RotateToBeamCal<10>(momentum, momentum2);
+	BCUtil::RotateToBeamCal(momentum, momentum2, halfCrossingAngleMrad);
 	m_eventSide = 0;
       } else {
-	BCUtil::RotateFromBeamCal<10>(momentum, momentum2);
+	BCUtil::RotateFromBeamCal(momentum, momentum2, halfCrossingAngleMrad);
 	m_eventSide = 1;
       }
       //    double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
-      double impactTheta = BCUtil::AngleToBeamCal<10>(momentum)*1000;//mrad
+      double impactTheta = BCUtil::AngleToBeamCal(momentum, halfCrossingAngleMrad)*1000;//mrad
       if ( impactTheta > maxAngle ) continue; //only particles that are inside the BeamCal acceptance
 
       double impactPhi   = TMath::ATan2(momentum2[1], momentum2[0]) * TMath::RadToDeg();
