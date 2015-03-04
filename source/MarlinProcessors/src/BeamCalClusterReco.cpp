@@ -7,6 +7,7 @@
 #include "BeamCalCluster.hh"
 #include "BCUtilities.hh"
 #include "BeamCalGeoCached.hh"
+#include "BeamCalBackground.hh"
 
 //LCIO
 #include <EVENT/LCCollection.h>
@@ -37,10 +38,10 @@
 #include <TRandom3.h>
 
 //STDLIB
-#include <algorithm>
+//#include <algorithm>
 #include <iomanip>
 #include <iostream>
-#include <set>
+//#include <set>
 
 using namespace lcio ;
 using namespace marlin ;
@@ -65,6 +66,7 @@ WrongParameterException(std::string error) : std::runtime_error(error) { }
 BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_colNameMC(""),
                                            m_colNameBCal(""),
+					   m_bgMethodName(""),
                                            m_files(),
                                            m_nEvt(0),
                                            m_specialEvent(-1),
@@ -78,16 +80,9 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_startingRings(),
                                            m_requiredRemainingEnergy(),
                                            m_requiredClusterEnergy(),
-                                           m_BeamCalDepositsLeft(NULL),
-                                           m_BeamCalDepositsRight(NULL),
-                                           m_BeamCalAverageLeft(NULL),
-                                           m_BeamCalAverageRight(NULL),
-                                           m_BeamCalErrorsLeft(NULL),
-                                           m_BeamCalErrorsRight(NULL),
-                                           m_random3(NULL),
-                                           m_backgroundBX(0),
                                            m_BCG(NULL),
                                            m_bcpCuts(NULL),
+					   m_BCbackground(NULL),
                                            m_thetaEfficieny(NULL),
                                            m_phiEfficiency(NULL),
                                            m_twoDEfficiency(NULL),
@@ -101,8 +96,8 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 {
 
 // modify processor description
-_description = "BeamCalClusterReco takes a list of beamcal background files from the ReadBeamCal"\
-  "processor, adds NumberOfBX of them together and puts the signal hits from the"\
+_description = "BeamCalClusterReco reproduces the beamstrahlung background for a given number of"\
+  "bunch-crossings NumberOfBX and puts the signal hits from the"\
   "lcio input file on top of that, and then clustering is attempted." ;
 
 
@@ -120,6 +115,11 @@ registerInputCollection( LCIO::SIMCALORIMETERHIT,
 			   "Name of BeamCal Collection"  ,
 			   m_colNameBCal ,
 			   std::string("BeamCalCollection") ) ;
+
+registerProcessorParameter ("BackgroundMethod",
+			      "How to estimate background",
+			      m_bgMethodName,
+			      std::string("Parametrised") ) ;
 
 std::vector<std::string> defaultFile;
 defaultFile.push_back("BeamCal.root");
@@ -224,7 +224,6 @@ registerProcessorParameter ("EfficiencyFilename",
 void BeamCalClusterReco::init() {
 
   Global::EVENTSEEDER->registerProcessor(this);
-  m_random3 = new TRandom3();
 
   // usually a good idea to
   if( streamlog::out.write< MESSAGE3 >() ) {
@@ -245,33 +244,9 @@ void BeamCalClusterReco::init() {
     throw WrongParameterException("== Error From BeamCalClusterReco == startingRings must always start with 0");
   }
 
-
-  //Open the Files given as the list into a TChain...
-  m_backgroundBX = new TChain("bcTree");
-
-  //mix up the files, because the random numbers are ordered to avoid repeating
-  std::random_shuffle(m_files.begin(), m_files.end());
-
-  for (std::vector<std::string>::iterator file = m_files.begin(); file != m_files.end(); ++file) {
-    streamlog_out(DEBUG1) << *file << std::endl;
-    m_backgroundBX->Add(TString(*file));
-  }
-
-  //Ready the energy deposit vectors for the tree
-  m_BeamCalDepositsLeft=NULL;
-  m_BeamCalDepositsRight=NULL;
-
-  m_backgroundBX->SetBranchAddress("vec_left" , &m_BeamCalDepositsLeft);
-  m_backgroundBX->SetBranchAddress("vec_right", &m_BeamCalDepositsRight);
-
-  streamlog_out(DEBUG2) << "We have " << m_backgroundBX->GetEntries() << " background BXs" << std::endl;
-
-  //Create an Average BeamCal, needed to setup the BCPadEnergies
   m_BCG = new BeamCalGeoCached(marlin::Global::GEAR);
-
-  m_BeamCalAverageLeft  =  new BCPadEnergies(m_BCG);
-  m_BeamCalAverageRight =  new BCPadEnergies(m_BCG);
-
+  m_BCbackground = new BeamCalBackground(m_bgMethodName, m_BCG);
+  m_BCbackground->init(m_files, m_nBXtoOverlay);
 
   //Fill BCPCuts object with cuts from the processor parameters
   m_bcpCuts = new BCPCuts(m_startingRings,
@@ -280,74 +255,6 @@ void BeamCalClusterReco::init() {
 			  m_startLookingInLayer,
 			  m_usePadCuts,
 			  m_sigmaCut);
-
-
-  // Create the average BCPadEnergies objects used to subtract average backgrounds
-  std::vector<BCPadEnergies*> listOfBunchCrossingsRight, listOfBunchCrossingsLeft;
-
-  for (int i = 0; i < 10; ++i) {
-    listOfBunchCrossingsLeft.push_back( new BCPadEnergies(m_BCG) );
-    listOfBunchCrossingsRight.push_back( new BCPadEnergies(m_BCG) );
-  }
-
-  std::set<int> randomNumbers;
-  const unsigned int nBackgroundBX = m_backgroundBX->GetEntries();
-
-  //Check that we have
-  if( int(nBackgroundBX) < m_nBXtoOverlay*10 ) {
-    throw LackingFilesException("There are not Enough BeamCal Background files to calculate a proper average!");
-  }
-
-  //we use a set so no duplication occurs
-  const int numberForAverage = 10;
-  while( int(randomNumbers.size()) < m_nBXtoOverlay*numberForAverage ){//do it ten times as often
-    randomNumbers.insert( int(m_random3->Uniform(0, nBackgroundBX)) );
-  }
-
-  int counter = 0;
-
-
-  for (std::set<int>::iterator it = randomNumbers.begin(); it != randomNumbers.end();++it) {
-    streamlog_out(DEBUG1) << std::setw(5) << *it << std::flush;
-    m_backgroundBX->GetEntry(*it);
-    m_BeamCalAverageLeft-> addEnergies(*m_BeamCalDepositsLeft);
-    m_BeamCalAverageRight->addEnergies(*m_BeamCalDepositsRight);
-    listOfBunchCrossingsLeft.at(counter/m_nBXtoOverlay)-> addEnergies(*m_BeamCalDepositsLeft);
-    listOfBunchCrossingsRight.at(counter/m_nBXtoOverlay)-> addEnergies(*m_BeamCalDepositsRight);
-    ++counter;
-  }
-
-  //Now divide by ten, to get the average distributions...
-  m_BeamCalAverageLeft ->scaleEnergies(1./double(numberForAverage));
-  m_BeamCalAverageRight->scaleEnergies(1./double(numberForAverage));
-  Double_t totalEnergyMean = m_BeamCalAverageLeft->getTotalEnergy();
-  Double_t varEn(0.0);
-  for (int l = 0; l < numberForAverage;++l) {
-    varEn += (listOfBunchCrossingsRight[l]->getTotalEnergy() - totalEnergyMean) * (listOfBunchCrossingsRight[l]->getTotalEnergy() - totalEnergyMean);
-  }//histograms
-  varEn /= double(numberForAverage);
-  varEn = sqrt(varEn);
-  streamlog_out(MESSAGE4) << "Total Energy " << totalEnergyMean << " +- "
-			  << varEn << " GeV/" << m_nBXtoOverlay <<"BX" << std::endl;
-
-  // m_h3BeamCalAverageLeft = bc.getBeamCalHistogram("AverageLeft");
-  // m_h3BeamCalAverageRight = bc.getBeamCalHistogram("AverageRight");
-
-  //And now calculate the error for every bin....
-  m_BeamCalErrorsLeft  = getBeamCalErrors(m_BeamCalAverageLeft,  listOfBunchCrossingsLeft, numberForAverage);
-  m_BeamCalErrorsRight = getBeamCalErrors(m_BeamCalAverageRight, listOfBunchCrossingsRight, numberForAverage);
-
-  //Add one sigma to the averages -- > just do it once here
-  m_BeamCalAverageLeft ->addEnergies( m_BeamCalErrorsLeft );
-  m_BeamCalAverageRight->addEnergies( m_BeamCalErrorsRight);
-
-
-  streamlog_out(DEBUG1) << std::endl;
-
-  for (int i = 0; i < numberForAverage;++i) {
-    delete listOfBunchCrossingsLeft[i];
-    delete listOfBunchCrossingsRight[i];
-  }
 
   //Create Efficiency Objects if required
   if(m_createEfficienyFile) {
@@ -386,8 +293,6 @@ void BeamCalClusterReco::processRunHeader( LCRunHeader*) {
 
 void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 
-  m_random3->SetSeed(m_nEvt+Global::EVENTSEEDER->getSeed(this));
-
   LCCollection  *colBCal;
 
   try {
@@ -396,26 +301,18 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     colBCal = NULL;
   }
 
+  m_BCbackground->setRandom3Seed(m_nEvt+Global::EVENTSEEDER->getSeed(this));
+
   BCPadEnergies padEnergiesLeft(m_BCG, BCPadEnergies::kLeft);
   BCPadEnergies padEnergiesRight(m_BCG, BCPadEnergies::kRight);
+  BCPadEnergies padAveragesLeft(m_BCG, BCPadEnergies::kLeft);
+  BCPadEnergies padAveragesRight(m_BCG, BCPadEnergies::kRight);
+  BCPadEnergies padErrorsLeft(m_BCG, BCPadEnergies::kLeft);
+  BCPadEnergies padErrorsRight(m_BCG, BCPadEnergies::kRight);
 
-  ////////////////////////////////////////////////////////
-  // Prepare the randomly chosen Background BeamCals... //
-  ////////////////////////////////////////////////////////
-  std::set<int> randomNumbers;
-  unsigned int nBackgroundBX = m_backgroundBX->GetEntries();
-  while( int(randomNumbers.size()) < m_nBXtoOverlay ){
-    randomNumbers.insert( int(m_random3->Uniform(0, nBackgroundBX)) );
-  }
-
-  ////////////////////////
-  // Sum them all up... //
-  ////////////////////////
-  for (std::set<int>::iterator it = randomNumbers.begin(); it != randomNumbers.end();++it) {
-    m_backgroundBX->GetEntry(*it);
-    padEnergiesRight.addEnergies(*m_BeamCalDepositsRight);
-    padEnergiesLeft.addEnergies(*m_BeamCalDepositsLeft);
-  }
+  m_BCbackground->getEventBG(padEnergiesLeft, padEnergiesRight);
+  m_BCbackground->getAverageBG(padAveragesLeft, padAveragesRight);
+  m_BCbackground->getErrorsBG(padErrorsLeft, padErrorsRight);
 
   streamlog_out(MESSAGE1) << "*************** Event " << std::setw(6) << m_nEvt << " ***************" << std::endl;
 
@@ -458,8 +355,8 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   }//if there were hits from the signal
 
   // Run the clustering
-  std::vector<BCRecoObject*> LeftSide  (FindClusters(padEnergiesLeft,  m_BeamCalAverageLeft ,  m_BeamCalErrorsLeft,  "Sig 6 L"));
-  std::vector<BCRecoObject*> RightSide (FindClusters(padEnergiesRight, m_BeamCalAverageRight, m_BeamCalErrorsRight, "Sig 6 R") );
+  std::vector<BCRecoObject*> LeftSide  (FindClusters(padEnergiesLeft,  padAveragesLeft,  padErrorsLeft,  "Sig 6 L"));
+  std::vector<BCRecoObject*> RightSide (FindClusters(padEnergiesRight, padAveragesRight, padErrorsRight, "Sig 6 R") );
 
   //merge the two list of clusters so that we can run in one loop
   LeftSide.insert( LeftSide.end(), RightSide.begin(), RightSide.end() );
@@ -664,38 +561,11 @@ void BeamCalClusterReco::end(){
     effFile->Close();
   }
 
-  delete m_BeamCalAverageLeft;
-  delete m_BeamCalAverageRight;
-  delete m_BeamCalErrorsLeft;
-  delete m_BeamCalErrorsRight;
-
-  delete m_random3;
   delete m_BCG;
+  delete m_BCbackground;
   delete m_bcpCuts;
 
 }
-
-/// Calculate the one sigma errors for the given selected background bunch crossings
-BCPadEnergies* BeamCalClusterReco::getBeamCalErrors(const BCPadEnergies *averages, const std::vector<BCPadEnergies*> singles, int numberForAverage ) {
-
-  BCPadEnergies * BCPErrors = new BCPadEnergies(m_BCG);
-  for (int i = 0; i < m_BCG->getPadsPerBeamCal()  ;++i) {
-    Double_t mean(averages->getEnergy(i));
-    Double_t variance(0);
-    Double_t nHistos(numberForAverage);
-    for (int l = 0; l < nHistos;++l) {
-      Double_t energy( singles[l]->getEnergy(i) );
-      variance += ( energy - mean ) * ( energy - mean );
-    }//histograms
-    variance /= nHistos;
-    variance = sqrt(variance);
-    BCPErrors->setEnergy(i, variance);
-
-  }//for all pads
-
-  return BCPErrors;
-
-}//getBeamCalErrors
 
 
 
@@ -750,14 +620,23 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
 						  const std::vector<BCRecoObject*> & RecoedObjects) const {
 
   BCPadEnergies *padEnergies, *padErrors, *padAverages;
+
+  BCPadEnergies padAveragesLeft(m_BCG, BCPadEnergies::kLeft);
+  BCPadEnergies padAveragesRight(m_BCG, BCPadEnergies::kRight);
+  BCPadEnergies padErrorsLeft(m_BCG, BCPadEnergies::kLeft);
+  BCPadEnergies padErrorsRight(m_BCG, BCPadEnergies::kRight);
+
+  m_BCbackground->getAverageBG(padAveragesLeft, padAveragesRight);
+  m_BCbackground->getErrorsBG(padErrorsLeft, padErrorsRight);
+
   if( m_eventSide == BCPadEnergies::kLeft ) {
     padEnergies = &padEnergiesLeft;
-    padAverages = m_BeamCalAverageLeft;
-    padErrors = m_BeamCalErrorsLeft;
+    padAverages = &padAveragesLeft;
+    padErrors   = &padErrorsLeft;
   } else {
     padEnergies = &padEnergiesRight;
-    padAverages = m_BeamCalAverageRight;
-    padErrors = m_BeamCalErrorsRight;
+    padAverages = &padAveragesRight;
+    padErrors   = &padErrorsRight;
   }
 
   ///////////////////////////////////////
