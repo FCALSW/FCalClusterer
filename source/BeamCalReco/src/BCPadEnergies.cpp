@@ -364,7 +364,7 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
   //here cuts are applied on the pads
   PadIndexList myPadIndices = ( cuts.useConstPadCuts() ) ?
     getPadsAboveThresholds(testPads, cuts) :
-    myPadIndices = testPads.getPadsAboveSigma(backgroundSigma, cuts);
+    testPads.getPadsAboveSigma(backgroundSigma, cuts);
 
   ClusterNextToNearestNeighbourTowers(testPads, myPadIndices, cuts, BeamCalClusters);
 
