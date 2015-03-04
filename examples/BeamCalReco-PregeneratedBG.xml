@@ -1,0 +1,199 @@
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+ <execute>
+  <processor name="BCReco"/>
+ </execute>
+
+ <global>
+   <parameter name="LCIOInputFiles">
+     Signal/ElectronsInBeamCal_1500GEV_1.slcio
+     Signal/ElectronsInBeamCal_1500GEV_2.slcio
+     Signal/ElectronsInBeamCal_1500GEV_3.slcio
+     Signal/ElectronsInBeamCal_1500GEV_4.slcio
+     Signal/ElectronsInBeamCal_1500GEV_5.slcio
+     Signal/ElectronsInBeamCal_1500GEV_6.slcio
+     Signal/ElectronsInBeamCal_1500GEV_7.slcio
+     Signal/ElectronsInBeamCal_1500GEV_8.slcio
+     Signal/ElectronsInBeamCal_1500GEV_9.slcio
+ </parameter>
+  <!-- limit the number of processed records (run+evt): -->
+  <parameter name="MaxRecordNumber" value=" 10 " />
+  <parameter name="SkipNEvents" value="0" />
+  <parameter name="SupressCheck" value="false" />
+  <parameter name="GearXMLFile"> GearCLIC_ILD_CDR_Final.xml </parameter>
+  <parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> DEBUG  </parameter>
+  <parameter name="RandomSeed" value="1234567890" />
+ </global>
+
+ <processor name="BCReco" type="BeamCalClusterReco">
+   <!--BeamCalClusterReco takes a list of beamcal background files from the ReadBeamCalprocessor, adds NumberOfBX of them together and puts the signal hits from thelcio input file on top of that, and then clustering is attempted.-->
+   <!--Name of BeamCal Collection-->
+   <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit">BeamCalCollection </parameter>
+   <!--Flag to create the TEfficiency for fast tagging library-->
+   <parameter name="CreateEfficiencyFile" type="bool"> true </parameter>
+   <!--Energy in a Cluster to consider it an electron-->
+   <parameter name="ETCluster" type="FloatVec">3 2 1  </parameter>
+   <!--Energy in a Pad, after subtraction of background required to consider it for signal-->
+   <parameter name="ETPad" type="FloatVec">0.5 0.3 0.2  </parameter>
+   <!--The name of the rootFile which will contain the TEfficiency objects-->
+   <parameter name="EfficiencyFilename" type="string">TaggingEfficiency.root </parameter>
+   <!--Background simulation method-->
+   <parameter name="BackgroundMethod" type="string">Pregenerated</parameter>
+   <!--Root Inputfile(s)-->
+   <parameter name="InputFileBackgrounds" type="StringVec">
+     ./BXs/BeamCal_100_313.root
+     ./BXs/BeamCal_100_314.root
+     ./BXs/BeamCal_100_315.root
+     ./BXs/BeamCal_100_316.root
+     ./BXs/BeamCal_100_317.root
+     ./BXs/BeamCal_100_318.root
+     ./BXs/BeamCal_100_319.root
+     ./BXs/BeamCal_100_320.root
+     ./BXs/BeamCal_100_321.root
+     ./BXs/BeamCal_100_322.root
+     ./BXs/BeamCal_100_323.root
+     ./BXs/BeamCal_100_324.root
+     ./BXs/BeamCal_100_325.root
+     ./BXs/BeamCal_100_326.root
+     ./BXs/BeamCal_100_327.root
+     ./BXs/BeamCal_100_328.root
+     ./BXs/BeamCal_100_329.root
+     ./BXs/BeamCal_100_330.root
+     ./BXs/BeamCal_100_331.root
+     ./BXs/BeamCal_100_332.root
+     ./BXs/BeamCal_100_333.root
+     ./BXs/BeamCal_100_334.root
+     ./BXs/BeamCal_100_335.root
+     ./BXs/BeamCal_100_336.root
+     ./BXs/BeamCal_100_337.root
+     ./BXs/BeamCal_100_338.root
+     ./BXs/BeamCal_100_339.root
+     ./BXs/BeamCal_100_340.root
+     ./BXs/BeamCal_100_341.root
+     ./BXs/BeamCal_100_342.root
+     ./BXs/BeamCal_100_343.root
+     ./BXs/BeamCal_100_344.root
+     ./BXs/BeamCal_100_345.root
+     ./BXs/BeamCal_100_346.root
+     ./BXs/BeamCal_100_347.root
+     ./BXs/BeamCal_100_348.root
+     ./BXs/BeamCal_100_349.root
+     ./BXs/BeamCal_100_350.root
+     ./BXs/BeamCal_100_351.root
+     ./BXs/BeamCal_100_352.root
+     ./BXs/BeamCal_100_353.root
+     ./BXs/BeamCal_100_354.root
+     ./BXs/BeamCal_100_355.root
+     ./BXs/BeamCal_100_356.root
+     ./BXs/BeamCal_100_357.root
+     ./BXs/BeamCal_100_358.root
+     ./BXs/BeamCal_100_359.root
+     ./BXs/BeamCal_100_360.root
+     ./BXs/BeamCal_100_361.root
+     ./BXs/BeamCal_100_362.root
+     ./BXs/BeamCal_100_363.root
+     ./BXs/BeamCal_100_364.root
+     ./BXs/BeamCal_100_365.root
+     ./BXs/BeamCal_100_366.root
+     ./BXs/BeamCal_100_367.root
+     ./BXs/BeamCal_100_368.root
+     ./BXs/BeamCal_100_369.root
+     ./BXs/BeamCal_100_370.root
+     ./BXs/BeamCal_100_371.root
+     ./BXs/BeamCal_100_372.root
+     ./BXs/BeamCal_100_373.root
+     ./BXs/BeamCal_100_374.root
+     ./BXs/BeamCal_100_375.root
+     ./BXs/BeamCal_100_376.root
+     ./BXs/BeamCal_100_377.root
+     ./BXs/BeamCal_100_378.root
+     ./BXs/BeamCal_100_379.root
+     ./BXs/BeamCal_100_380.root
+     ./BXs/BeamCal_100_381.root
+     ./BXs/BeamCal_100_382.root
+     ./BXs/BeamCal_100_383.root
+     ./BXs/BeamCal_100_384.root
+     ./BXs/BeamCal_100_385.root
+     ./BXs/BeamCal_100_386.root
+     ./BXs/BeamCal_100_387.root
+     ./BXs/BeamCal_100_388.root
+     ./BXs/BeamCal_100_389.root
+     ./BXs/BeamCal_100_390.root
+     ./BXs/BeamCal_100_391.root
+     ./BXs/BeamCal_100_392.root
+     ./BXs/BeamCal_100_393.root
+     ./BXs/BeamCal_100_394.root
+     ./BXs/BeamCal_100_395.root
+     ./BXs/BeamCal_100_396.root
+     ./BXs/BeamCal_100_397.root
+     ./BXs/BeamCal_100_398.root
+     ./BXs/BeamCal_100_399.root
+     ./BXs/BeamCal_100_400.root
+     ./BXs/BeamCal_100_401.root
+     ./BXs/BeamCal_100_402.root
+     ./BXs/BeamCal_100_403.root
+     ./BXs/BeamCal_100_404.root
+     ./BXs/BeamCal_100_405.root
+     ./BXs/BeamCal_100_406.root
+     ./BXs/BeamCal_100_407.root
+     ./BXs/BeamCal_100_408.root
+     ./BXs/BeamCal_100_409.root
+     ./BXs/BeamCal_100_410.root
+     ./BXs/BeamCal_100_411.root
+     ./BXs/BeamCal_100_412.root
+     ./BXs/BeamCal_100_413.root
+     ./BXs/BeamCal_100_414.root
+     ./BXs/BeamCal_100_415.root
+     ./BXs/BeamCal_100_416.root
+     ./BXs/BeamCal_100_417.root
+     ./BXs/BeamCal_100_418.root
+     ./BXs/BeamCal_100_419.root
+     ./BXs/BeamCal_100_420.root
+     ./BXs/BeamCal_100_421.root
+     ./BXs/BeamCal_100_422.root
+     ./BXs/BeamCal_100_423.root
+     ./BXs/BeamCal_100_424.root
+     ./BXs/BeamCal_100_425.root
+     ./BXs/BeamCal_100_426.root
+     ./BXs/BeamCal_100_427.root
+     ./BXs/BeamCal_100_428.root
+     ./BXs/BeamCal_100_429.root
+     ./BXs/BeamCal_100_430.root
+     ./BXs/BeamCal_100_431.root
+     ./BXs/BeamCal_100_432.root
+     ./BXs/BeamCal_100_433.root
+     ./BXs/BeamCal_100_434.root
+     ./BXs/BeamCal_100_435.root
+     ./BXs/BeamCal_100_436.root
+     ./BXs/BeamCal_100_437.root
+     ./BXs/BeamCal_100_438.root
+     ./BXs/BeamCal_100_439.root
+     ./BXs/BeamCal_100_440.root
+     ./BXs/BeamCal_100_441.root
+     ./BXs/BeamCal_100_442.root
+     ./BXs/BeamCal_100_443.root
+   </parameter>
+  <!--Name of the MCParticle Collection-->
+  <parameter name="MCParticle Collection Name, only needed and used to estimate efficiencies" type="string" lcioInType="MCParticle">MCParticle </parameter>
+  <!--Minimum number of pads in a single tower to be considered for signal-->
+  <parameter name="MinimumTowerSize" type="int">4 </parameter>
+  <!--Number of Bunch Crossings of Background-->
+  <parameter name="NumberOfBX" type="int">1 </parameter>
+  <!--Number of Event that should be printed to PDF File-->
+  <parameter name="PrintThisEvent" type="int">-1 </parameter>
+  <!--Name of the Reconstructed Cluster collection-->
+  <parameter name="RecoClusterCollectionname" type="string" lcioOutType="Cluster">BCalClusters </parameter>
+  <!--Name of the Reconstructed Particle collection-->
+  <parameter name="RecoParticleCollectionname" type="string" lcioOutType="ReconstructedParticle">BCalRecoParticle </parameter>
+  <!--If not using ConstPadCuts, each pad SigmaCut*variance is considered for clusters-->
+  <parameter name="SigmaCut" type="double">1 </parameter>
+  <!--Layer (inclusive) from which on we start looking for signal clusters-->
+  <parameter name="StartLookingInLayer" type="int">10 </parameter>
+  <!--Rings from which onwards the outside Thresholds are used-->
+  <parameter name="StartingRing" type="FloatVec">0 1 2  </parameter>
+  <!--Use the cuts for the pads specified in ETPad, if false, the variance in each pad is used times SigmaPad Factor-->
+  <parameter name="UseConstPadCuts" type="bool">true </parameter>
+  <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+  <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+</processor>
+
+</marlin>
