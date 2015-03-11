@@ -326,12 +326,17 @@ int BeamCalBackground::getEventParametrisedBG(BCPadEnergies &pe,
     PadEdepRndPar_t pep = (BCPadEnergies::kLeft == bc_side ? m_padParLeft->at(ip) : m_padParRight->at(ip));
     //std::cout << ip << "\t" << pep.zero_rate << "\t" << pep.mean << "\t" << pep.stdev<< "\t" << pep.par0 << "\t" <<  pep.par1 << "\t" <<  pep.par2 << "\t" << pep.chi2 << endl;
 
+    // put the average to 0 at once by generating fluctiations with stdev*sqrt(nBX)
+    // otherwise the time to generate each event grows too much
+    vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
+    /*
     for (int ibx=0; ibx<m_nBX; ibx++){
       // check if zero
       if (m_random3->Uniform(1.) < pep.zero_rate ) continue ; // == {vedep.at(ip)+=0.};
       // do gauss from mean, stdev
       vedep.at(ip) += m_random3->Gaus(pep.mean, pep.stdev);
     }
+    */
   }
 
   pe.setEnergies(vedep);
@@ -409,17 +414,19 @@ int BeamCalBackground::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergie
     if (BCPadEnergies::kLeft == bc_side )  m_padParLeft->at(ip) = pad_par;
     else m_padParRight->at(ip) = pad_par;
 
-    pad_sigma->push_back(br_cont_map[side_name+"stdev"]->at(ip));
-    pad_mean->push_back(br_cont_map[side_name+"mean"]->at(ip));
+    pad_sigma->push_back(pad_par.stdev*sqrt(m_nBX));
+    pad_mean->push_back(pad_par.mean);
   }
 
 
   if (BCPadEnergies::kLeft == bc_side )  {
     m_BeamCalErrorsLeft->setEnergies(*pad_sigma);
-    m_BeamCalAverageLeft->setEnergies(*pad_mean);
+    //m_BeamCalAverageLeft->setEnergies(*pad_mean);
+    m_BeamCalAverageLeft->resetEnergies();
   } else {
     m_BeamCalErrorsRight->setEnergies(*pad_sigma);
-    m_BeamCalAverageRight->setEnergies(*pad_mean);
+    //m_BeamCalAverageRight->setEnergies(*pad_mean);
+    m_BeamCalAverageRight->resetEnergies();
   }
 
   delete pad_sigma;

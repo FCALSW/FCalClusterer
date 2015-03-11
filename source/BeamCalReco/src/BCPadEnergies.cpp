@@ -360,6 +360,7 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
 
   //We make a copy, because we might want to apply different clustering on the same pads
   BCPadEnergies testPads(*this);
+//   testPads.subtractEnergies(background);
   testPads.subtractEnergiesWithCheck(background, backgroundSigma);
   //here cuts are applied on the pads
   PadIndexList myPadIndices = ( cuts.useConstPadCuts() ) ?
