@@ -64,6 +64,7 @@ public:
   BCPCuts& setStartLayer(int layer) { m_startLookingInLayer = layer; return *this;}
   BCPCuts& setMinimumTowerSize( int tSize) { m_minimumTowerSize = tSize; return *this; }
 
+  inline float getMinPadEnergy() const { return m_requiredRemainingEnergy[0]; }
 
 private:
 

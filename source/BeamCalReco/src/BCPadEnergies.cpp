@@ -484,9 +484,10 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveSigma(const BCPadEnergies
   PadIndexList myPadIndices;
   for (int k = 0; k < this->m_BCG.getPadsPerBeamCal();++k) {
     if( this->m_BCG.getLayer(k) >=  cuts.getStartingLayer() ) {
-      double padEnergy(this->getEnergy(k));
-      double padSigma(sigma.getEnergy(k));
-      if( padEnergy > cuts.getPadSigmaCut() * padSigma ) {
+      const double padEnergy(this->getEnergy(k));
+      const double padSigma(sigma.getEnergy(k));
+      const double cutValue = std::max(cuts.getPadSigmaCut() * padSigma, double(cuts.getMinPadEnergy()));
+      if( padEnergy > cutValue ) {
 	myPadIndices.push_back(k);
       }
     }
