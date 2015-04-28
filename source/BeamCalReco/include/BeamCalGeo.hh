@@ -50,6 +50,7 @@ public:
   double getPadMiddleR(int cylinder, int sector) const;
   double getThetaFromRing(double averageRing) const;
   double getThetaFromRing(int ring) const;
+  int    getRingFromTheta(double theta) const;
 
   double getPadPhi(int ring, int pad) const;
   double getPadPhi(int globalPandIndex) const;

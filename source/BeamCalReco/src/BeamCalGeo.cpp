@@ -106,6 +106,14 @@ double BeamCalGeo::getThetaFromRing(int ring) const  {
   return atan( radius / getBCZDistanceToIP() );
 }
 
+int    BeamCalGeo::getRingFromTheta(double theta) const  {
+  double radius = theta*getBCZDistanceToIP();
+  for(int i=0; i<getRadSegmentation().size(); i++)  {
+    if(getRadSegmentation()[i] > radius) return i;
+  }
+  return getRadSegmentation().size();
+}
+
 //ARG
 double BeamCalGeo::getPadPhi(int ring, int pad) const {
   const double RadToDeg = 180.0 / M_PI;

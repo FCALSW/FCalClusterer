@@ -505,7 +505,7 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
   double thetaAverage(0.0);
 
   //Averaging an azimuthal angle is done via sine and cosine
-  double sinStore(0.0), cosStore(0.0);
+  double yStore(0.0), xStore(0.0);
 
   //now take all the indices and add them to a cluster
   for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
@@ -517,22 +517,23 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     //    phi+= thisPhi*energy;
     ringAverage += double( ring ) * energy;
     totalEnergy += energy;
-    sinStore += energy * sin( thisPhi );
-    cosStore += energy * cos( thisPhi );
-    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
+    yStore += energy * sin( thisPhi ) * m_BCG.getThetaFromRing( ring ) ;
+    xStore += energy * cos( thisPhi ) * m_BCG.getThetaFromRing( ring ) ;
 
   }
   if(totalEnergy > 0.0) {
-    phi =  atan2(sinStore/totalEnergy,  cosStore/totalEnergy) * 180.0 / M_PI ;
+    phi =  atan2(yStore,  xStore) * 180.0 / M_PI ;
     if(phi < 0) phi += 360;
     //    phi /= totalEnergy;
     ringAverage /= totalEnergy;
-    thetaAverage /= totalEnergy;
+    thetaAverage = sqrt(xStore*xStore + yStore*yStore) / totalEnergy;
 
     BCCluster.setPhi(phi);
     BCCluster.setRing(ringAverage);
-    //    BCCluster.setTheta( m_BCG.getThetaFromRing( ringAverage ) * 1000 );
-    BCCluster.setTheta( thetaAverage * 1000 );
+//    BCCluster.setRing(m_BCG.getRingFromTheta(thetaAverage));
+    BCCluster.setTheta( m_BCG.getThetaFromRing( ringAverage ) * 1000 );
+//    BCCluster.setTheta( thetaAverage * 1000 );
+    std::cout << "Average theta: " << thetaAverage * 1000 << "\n";
   }
 
 
