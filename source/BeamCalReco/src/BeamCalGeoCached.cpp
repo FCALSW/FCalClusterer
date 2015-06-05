@@ -77,6 +77,15 @@ inline double                BeamCalGeoCached::getBCZDistanceToIP() const {
   return m_beamCalZPosition;
 }
 
+inline double                BeamCalGeoCached::getLayerZDistanceToIP(const int lr) const {
+  // static const double globalBeamCalDist = 3350; return globalBeamCalDist;
+#pragma message "FIXME: make thickness of garphite shield to be read from GEAR"
+  const double graphiteShield_dZ = 100.;
+  double lr_zdist(graphiteShield_dZ);
+  lr_zdist+=m_BCPs.getLayerLayout().getDistance(lr);
+  return lr_zdist;
+}
+
 
 // void BeamCalGeoCached::countNumberOfPadsInRing(){
 //   //  m_PadsBeforeRing.clear();
@@ -148,4 +157,34 @@ double BeamCalGeoCached::getDeadAngle() const {
 
  double BeamCalGeoCached::getCrossingAngle() const {
   return m_crossingAngle;
+}
+
+void BeamCalGeoCached::getPadExtentsById(int globalPadIndex, double *extents) const
+{
+  // pad index within layer
+  int padIndex = globalPadIndex%this->getPadsPerLayer();
+
+  std::vector<int>::const_iterator it_cylinder = 
+    std::upper_bound(m_padsBeforeRing.begin(), m_padsBeforeRing.end(), padIndex)-1;
+  int cylinder = int(it_cylinder - m_padsBeforeRing.begin());
+  int sector = padIndex - m_padsBeforeRing.at(cylinder);
+
+  this->getPadExtents(cylinder, sector, extents);
+  //std::cout << m_padsBeforeRing.at(cylinder) << "\t" << cylinder << "\t" << sector <<"\t" << extents[4] << "\t" << extents[5]<< std::endl;
+}
+
+
+double BeamCalGeoCached::getPadsDistance(int padIndex1, int padIndex2) const
+{
+  const double DEGRAD=M_PI/180.;
+  static double e1[6], e2[6];
+  static int prev_pi1(-1), prev_pi2(-1);
+  if ( padIndex1 != prev_pi1) getPadExtentsById(padIndex1, e1), prev_pi1 = padIndex1;
+  if ( padIndex2 != prev_pi2) getPadExtentsById(padIndex2, e2), prev_pi2 = padIndex2;
+  //std::cout << padIndex1 << "\t" << padIndex2 << "\t" << e2[4] << "\t" << e2[5] << std::endl;
+
+  double dx = e1[4]*cos(e1[5]*DEGRAD) - e2[4]*cos(e2[5]*DEGRAD);
+  double dy = e1[4]*sin(e1[5]*DEGRAD) - e2[4]*sin(e2[5]*DEGRAD);
+  double d = sqrt(dx*dx+dy*dy);
+  return d;
 }

@@ -21,7 +21,6 @@ public:
   int getRing(int padIndex) const;
   int getLocalPad(int padIndex) const;
 
-
   bool arePadsNeighbours(int padIndex1, int padIndex2, bool mustBeInSameLayer = false) const;
 
   virtual double                getBCInnerRadius()   const = 0;
@@ -33,6 +32,7 @@ public:
   virtual std::vector<int>    const&  getNSegments()       const = 0;
   virtual double                getCutout()          const = 0;
   virtual double                getBCZDistanceToIP() const = 0;
+  virtual double                getLayerZDistanceToIP(const int lr) const = 0;
   virtual double                getDeadAngle()       const = 0;
 
   virtual int                   getFirstFullRing()   const;
@@ -43,17 +43,19 @@ public:
   virtual int getPadsInRing( int ring ) const;
   virtual int getSymmetryFold() const = 0;
 
+  virtual double getPadsDistance(int globalPadIndex1, int globalPadIndex2) const = 0;
+  virtual void   getPadExtentsById(int globalPadIndex, double *extents) const = 0;
 
   void   getPadExtents(int cylinder, int sector, double *extents) const;
   double getPadMiddlePhi(int cylinder, int sector) const;
-  double getPadMiddleTheta(int cylinder, int sector) const;
+  double getPadMiddleTheta(int layer, int cylinder, int sector) const;
   double getPadMiddleR(int cylinder, int sector) const;
-  double getThetaFromRing(double averageRing) const;
+  double getThetaFromRing(int layer, double averageRing) const;
+  double getThetaFromRing(int layer, int ring) const;
   double getThetaFromRing(int ring) const;
 
   double getPadPhi(int ring, int pad) const;
   double getPadPhi(int globalPandIndex) const;
-
 
 protected:
 

@@ -182,8 +182,8 @@ int BeamCalBackground::initPregenerated(vector<string> &bg_files)
   m_BeamCalErrorsRight = getBeamCalErrors(m_BeamCalAverageRight, listOfBunchCrossingsRight, numberForAverage);
 
   //Add one sigma to the averages -- > just do it once here
-  m_BeamCalAverageLeft ->addEnergies( m_BeamCalErrorsLeft );
-  m_BeamCalAverageRight->addEnergies( m_BeamCalErrorsRight);
+  //m_BeamCalAverageLeft ->addEnergies( m_BeamCalErrorsLeft );
+  //m_BeamCalAverageRight->addEnergies( m_BeamCalErrorsRight);
 
 
   streamlog_out(DEBUG1) << std::endl;

@@ -39,18 +39,22 @@ public:
   virtual std::vector<int>    const&  getNSegments()       const;
   virtual double                getCutout()          const;
   virtual double                getBCZDistanceToIP() const;
+  virtual double                getLayerZDistanceToIP(const int lr) const;
   virtual double                getDeadAngle()       const;
 
   //virtual int                   getFirstFullRing()   const;
   virtual double                getFullKeyHoleCutoutAngle() const ;
   virtual int                   getPadsBeforeRing( int ring ) const;
   virtual double                getCrossingAngle()   const;
+//  void			getPadExtents(int cylinder, int sector, double *extents) const;
 
+  void getPadExtentsById(int globalPadIndex, double *extents) const;
 
   virtual int getPadsInRing( int ring ) const;
   //we have 8 full segments
   virtual int getSymmetryFold() const { return 8; }
 
+  double getPadsDistance(int globalPadIndex1, int globalPadIndex2) const;
 
 private:
   const gear::CalorimeterParameters& m_BCPs;

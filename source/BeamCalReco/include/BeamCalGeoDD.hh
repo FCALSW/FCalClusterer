@@ -31,7 +31,7 @@ public:
   virtual double getPadPhi(int ring, int pad) const;
   virtual double getPadPhi(int globalPandIndex) const;
 
-  virtual double getThetaFromRing(double averageRing) const;
+  virtual double getThetaFromRing(int layer, double averageRing) const;
 
 
   virtual double                getBCInnerRadius()   const;

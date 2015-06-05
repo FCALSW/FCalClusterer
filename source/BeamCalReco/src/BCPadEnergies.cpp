@@ -512,6 +512,7 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     //Threshold was applied to get the padIndices
     const double energy(testPads.getEnergy(*it));
     const int ring = m_BCG.getRing(*it);
+    const int layer = m_BCG.getLayer(*it);
     const double thisPhi = m_BCG.getPadPhi(*it)* M_PI / 180.0; //Degrees to Radian
     BCCluster.addPad(*it, energy);
     //    phi+= thisPhi*energy;
@@ -519,7 +520,7 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     totalEnergy += energy;
     sinStore += energy * sin( thisPhi );
     cosStore += energy * cos( thisPhi );
-    thetaAverage += m_BCG.getThetaFromRing( ring ) * energy;
+    thetaAverage += m_BCG.getThetaFromRing( layer, ring ) * energy;
 
   }
   if(totalEnergy > 0.0) {

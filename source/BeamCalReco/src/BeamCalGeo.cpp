@@ -70,6 +70,7 @@ void BeamCalGeo::getPadExtents(int cylinder, int sector, double *extents) const 
 
 }//GetPadExtents
 
+
 double BeamCalGeo::getPadMiddlePhi(int cylinder, int sector) const {
   double extents[6];
   getPadExtents(cylinder, sector, extents);
@@ -85,7 +86,7 @@ double BeamCalGeo::getPadMiddleR(int cylinder, int sector) const {
   return extents[4];
 }
 
-double BeamCalGeo::getPadMiddleTheta(int cylinder, int sector) const {
+double BeamCalGeo::getPadMiddleTheta(int layer, int cylinder, int sector) const {
   double extents[6];
   getPadExtents(cylinder, sector, extents);
   return atan(extents[4]/getBCZDistanceToIP());
@@ -95,10 +96,15 @@ double BeamCalGeo::getPadMiddleTheta(int cylinder, int sector) const {
  * Calculate the theta from the ring ID, ring starts at 0
  */
 
-double BeamCalGeo::getThetaFromRing(double averageRing) const  {
+double BeamCalGeo::getThetaFromRing(int layer, double averageRing) const  {
   const double radiusStep = getBCOuterRadius() - getBCInnerRadius();
   const double radius = getBCInnerRadius() + ( averageRing + 0.5 )  * ( ( radiusStep  ) / double(getBCRings()) );
-  return atan( radius / getBCZDistanceToIP() );
+  return atan( radius / getLayerZDistanceToIP(layer) );
+}
+
+double BeamCalGeo::getThetaFromRing(int layer, int ring) const  {
+  const double radius = (getRadSegmentation()[ring+1]+getRadSegmentation()[ring])*0.5;
+  return atan( radius / getLayerZDistanceToIP(layer) );
 }
 
 double BeamCalGeo::getThetaFromRing(int ring) const  {
@@ -321,7 +327,14 @@ int BeamCalGeo::getLocalPad(int padIndex) const {
 
 int BeamCalGeo::getLayer(int padIndex) const {
   //layer starts at 1
-  return   ( padIndex / getPadsPerLayer() ) + 1;
+  // AS: GEAR documentation says that it starts at 0 and there is boundary
+  // violation otherwise.
+  // Because there are a lot of things done in assumption that it starts form 1, 
+  // I just return last layer when it's out of boundaries
+  int lrnum = ( padIndex / getPadsPerLayer() ) + 1;
+  if (lrnum > this->getBCLayers()-1) lrnum--;
+
+  return  lrnum;
 }
 
  int BeamCalGeo::getFirstFullRing()   const {

@@ -277,8 +277,12 @@ void BeamCalClusterReco::init() {
     /* 6*/  m_checkPlots.push_back( new TH2D("EnergyRing","Energy vs. Theta;Energy [GeV]; #theta [mrad",100, 0, 20, 60, 0, 60) );
     /* 7*/  m_checkPlots.push_back( new TH1D("thetaReal","Theta;#theta [mrad];N",200, 0, 40) );
     /* 8*/  m_checkPlots.push_back( new TH1D("phiReal","Phi;#phi [deg];N",200, 0, 360) );
-    /* 9*/  m_checkPlots.push_back( new TH1D("thetaDiff","Delta Theta;#Delta#theta [mrad];N",200, -10, 10) );
-    /*10*/  m_checkPlots.push_back( new TH1D("phiDiff","Phi;#Delta#phi [deg];N",200, -50, 50) );
+    /* 9*/  m_checkPlots.push_back( new TH1D("thetaDiff","Delta Theta;#Delta#theta [mrad];N",100, -5, 5) );
+    /*10*/  m_checkPlots.push_back( new TH1D("phiDiff","Phi;#Delta#phi [deg];N",100, -20, 20) );
+    /*11*/  m_checkPlots.push_back( new TH2D("spatialRes","Spatial resolution;#Delta(#phi*R) [mm];#Delta R [mm]",60, -30, 30, 60, -30, 30) );
+    /*12*/  m_checkPlots.push_back( new TH2D("dRvsR","dR vs R;R [mm];#Delta R [mm]", 65, 20, 150, 60, -30, 30) );
+    /*13*/  m_checkPlots.push_back( new TH2D("dphiRvsR","d(phi*R) vs R;R [mm];#Delta(#phi*R) [mm]",65, 20, 150, 60, -30, 30) );
+    /*14*/  m_checkPlots.push_back( new TH2D("dphivsR","d(phi) vs R;R [mm];#Delta(#phi) [deg]",65, 20, 150, 100, -20, 20) );
 
   }//Creating Efficiency objects
 
@@ -519,6 +523,13 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
       OriginalMC const& omc = m_originalParticles[bco->getOMC()];
       m_checkPlots[9] ->Fill(omc.m_theta - bco->getThetaMrad());
       m_checkPlots[10]->Fill(omc.m_phi   - bco->getPhi());
+
+      double omcR = omc.m_theta*m_BCG->getBCZDistanceToIP()/1000;
+      double R = bco->getThetaMrad()*m_BCG->getBCZDistanceToIP()/1000;
+      m_checkPlots[11]->Fill((TMath::DegToRad())*(omc.m_phi - bco->getPhi())*omcR, omcR-R);
+      m_checkPlots[12]->Fill(omcR, omcR-R);
+      m_checkPlots[13]->Fill(omcR, (TMath::DegToRad())*(omc.m_phi - bco->getPhi())*omcR);
+      m_checkPlots[14]->Fill(omcR, (TMath::DegToRad())*(omc.m_phi - bco->getPhi()));
 
     } else if( bco->hasWrongCluster() )  {
       m_checkPlots[1]->Fill(bco->getEnergy() );

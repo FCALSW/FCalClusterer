@@ -160,10 +160,10 @@ double BeamCalGeoDD::getPadPhi(int globalPandIndex) const {
   return getPadPhi(ring, pad);
 }
 
-double BeamCalGeoDD::getThetaFromRing(double averageRing) const  {
+double BeamCalGeoDD::getThetaFromRing(int layer, double averageRing) const  {
   const double radiusStep = getBCOuterRadius() - getBCInnerRadius();
   const double radius = getBCInnerRadius() + ( averageRing + 0.5 )  * ( ( radiusStep  ) / double(m_nRings) );
-  return atan( radius / getBCZDistanceToIP() );
+  return atan( radius / getLayerZDistanceToIP(layer) );
 }
 
 
