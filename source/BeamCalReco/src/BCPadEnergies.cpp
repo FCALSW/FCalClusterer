@@ -367,7 +367,7 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
     getPadsAboveThresholds(testPads, cuts) :
     testPads.getPadsAboveSigma(backgroundSigma, cuts);
 
-  ClusterNextToNearestNeighbourTowers(testPads, myPadIndices, cuts, BeamCalClusters);
+  testPads.clusterNextToNearestNeighbourTowers(myPadIndices, cuts, BeamCalClusters);
 
   return BeamCalClusters;
 } // lookForNeighbouringClustersOverWithVetoAndCheck
@@ -382,19 +382,18 @@ BCPadEnergies::BeamCalClusterList BCPadEnergies::lookForNeighbouringClustersOver
   //here cuts are applied on the pads
   PadIndexList myPadIndices = getPadsAboveSigma(backgroundSigma, cuts);
 
-  ClusterNextToNearestNeighbourTowers(*this, myPadIndices, cuts, BeamCalClusters, detailedPrintout);
+  this->clusterNextToNearestNeighbourTowers(myPadIndices, cuts, BeamCalClusters, detailedPrintout);
 
   return BeamCalClusters;
 } // lookForNeighbouringClustersOverWithVetoAndCheck
 
 
-void ClusterNextToNearestNeighbourTowers( const BCPadEnergies &testPads,
-					  const BCPadEnergies::PadIndexList &myPadIndices,
+void BCPadEnergies::clusterNextToNearestNeighbourTowers( const BCPadEnergies::PadIndexList &myPadIndices,
 					  const BCPCuts &cuts,
 					  BCPadEnergies::BeamCalClusterList &BeamCalClusters,
-					  bool DetailedPrintout) {
+					  bool DetailedPrintout) const {
 
-  BCPadEnergies::TowerIndexList allTowersInBeamCal = BCPadEnergies::getTowersFromPads( testPads.m_BCG, myPadIndices );
+  BCPadEnergies::TowerIndexList allTowersInBeamCal = BCPadEnergies::getTowersFromPads( this->m_BCG, myPadIndices );
   while( not allTowersInBeamCal.empty() ) {
 
     //
@@ -407,7 +406,7 @@ void ClusterNextToNearestNeighbourTowers( const BCPadEnergies &testPads,
 
     if (DetailedPrintout) {
       std::cout << "Largest Tower PadID " << largestTower->first << " : " << std::setw(3) << largestTower->second
-		<< testPads.streamPad(largestTower->first)
+		<< this->streamPad(largestTower->first)
 		<< std::endl;
     }
 
@@ -431,11 +430,11 @@ void ClusterNextToNearestNeighbourTowers( const BCPadEnergies &testPads,
 	//if the tower is already in the list we do nothing
 	if ( towersInThisCluster.find(it->first) != towersInThisCluster.end() ) continue;
 
-	const bool isNeighbour = testPads.m_BCG.arePadsNeighbours(largestTower->first, it->first);
+	const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
 	if ( isNeighbour ) {
 	  if ( DetailedPrintout ) {
 	    std::cout << "Found a neighbor " << std::setw(6) << it->first << " : " << std::setw(3) << it->second
-		      << testPads.streamPad(it->first)
+		      << this->streamPad(it->first)
 		      << std::endl;
 	  }//debug output
 
@@ -456,13 +455,13 @@ void ClusterNextToNearestNeighbourTowers( const BCPadEnergies &testPads,
     }
 
     //Create Cluster from the selected pads
-    BCPadEnergies::PadIndexList padsForThisCluster(BCPadEnergies::getPadsFromTowers( testPads.m_BCG, myPadIndices, towersInThisCluster ));
-    BeamCalClusters.push_back( testPads.getClusterFromAcceptedPads( testPads, padsForThisCluster, cuts) );
+    BCPadEnergies::PadIndexList padsForThisCluster(BCPadEnergies::getPadsFromTowers( this->m_BCG, myPadIndices, towersInThisCluster ));
+    BeamCalClusters.push_back( this->getClusterFromAcceptedPads( *this, padsForThisCluster, cuts) );
     BeamCalClusters.back().setPadIndexInLayer(max_element(towersInThisCluster.begin(), towersInThisCluster.end(), value_comparer)->first);
 
   }//while there are towers
 
-}//ClusterNextToNearestNeighbourTowers
+}//clusterNextToNearestNeighbourTowers
 
 BCPadEnergies::BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveThresholds(const BCPadEnergies& testPads, const BCPCuts& cuts) const{
   PadIndexList myPadIndices;

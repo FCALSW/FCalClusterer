@@ -19,7 +19,6 @@ public:
 
   enum BeamCalSide_t { kUnknown = -1, kLeft = 0 , kRight = 1};
 
-  friend void ClusterNextToNearestNeighbourTowers(const BCPadEnergies &testPads, const PadIndexList &myPadIndices, const BCPCuts &cuts, BeamCalClusterList &BeamCalClusters, bool DetailedPrintout=false);
 
   BCPadEnergies(const BeamCalGeo& bcg, BeamCalSide_t side = kUnknown);
   BCPadEnergies(const BeamCalGeo* bcg, BeamCalSide_t side = kUnknown);
@@ -74,7 +73,7 @@ private:
   PadIndexList getPadsAboveThresholds(const BCPadEnergies& testPads, const BCPCuts& cuts) const;
   PadIndexList getPadsAboveSigma(const BCPadEnergies& sigmas, const BCPCuts& cuts) const;
   BeamCalCluster getClusterFromAcceptedPads(const BCPadEnergies& testPads, const PadIndexList& myPadIndices, const BCPCuts& cuts) const;
-
+  void clusterNextToNearestNeighbourTowers(const PadIndexList &myPadIndices, const BCPCuts &cuts, BeamCalClusterList &BeamCalClusters, bool DetailedPrintout=false) const;
 
   static TowerIndexList getTowersFromPads( BeamCalGeo const& geo, const PadIndexList& myPadIndices);
   //towerNumber is cellId in Layer i.e. gloadPadID % m_nPadsPerLayer
