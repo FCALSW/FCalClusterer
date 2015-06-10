@@ -17,7 +17,7 @@ OPTION( FCAL_USE_Marlin  " Build Marlin Processors" True )
 SET( CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} )
 SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "-ggdb" )
 
-LIST( APPEND CMAKE_CXX_FLAGS "-O3 -Wall -Wextra -Weffc++ -Wshadow  -ansi -pedantic -Wno-long-long -Wuninitialized" )
+LIST( APPEND CMAKE_CXX_FLAGS "-O3 -Wall -Wextra -Weffc++ -Wshadow -pedantic -Wno-long-long -Wuninitialized" )
 
 
 FIND_PACKAGE( ILCUTIL REQUIRED COMPONENTS ILCSOFT_CMAKE_MODULES )
