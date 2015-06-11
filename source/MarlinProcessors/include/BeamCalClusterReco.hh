@@ -85,6 +85,7 @@ class BeamCalClusterReco : public marlin::Processor {
   bool m_createEfficienyFile;
 
   double m_sigmaCut;
+  double m_calibrationFactor;
 
   std::vector<float> m_startingRings;
   std::vector<float> m_requiredRemainingEnergy;

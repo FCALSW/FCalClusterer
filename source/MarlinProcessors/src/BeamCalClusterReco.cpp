@@ -77,6 +77,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_usePadCuts(true),
                                            m_createEfficienyFile(false),
                                            m_sigmaCut(1.0),
+                                           m_calibrationFactor(1.0),
                                            m_startingRings(),
                                            m_requiredRemainingEnergy(),
                                            m_requiredClusterEnergy(),
@@ -117,7 +118,7 @@ registerInputCollection( LCIO::SIMCALORIMETERHIT,
 			   std::string("BeamCalCollection") ) ;
 
 registerProcessorParameter ("BackgroundMethod",
-			      "How to estimate background",
+			      "How to estimate background [Parametrised, Pregenerated, Averaged]",
 			      m_bgMethodName,
 			      std::string("Parametrised") ) ;
 
@@ -176,11 +177,15 @@ registerProcessorParameter ("SigmaCut",
 			      m_sigmaCut,
 			      double(1.0) ) ;
 
-
 // registerProcessorParameter ("PDFFile",
 //			      "Title of Output PDF only if verbosity is DEBUG!",
 //			      m_pdftitle,
 //			      std::string("BeamCalClusterReco.pdf") ) ;
+
+registerProcessorParameter ("LinearCalibrationFactor",
+			      "Multiply deposit energy by this factor to account for samplif fraction",
+			      m_calibrationFactor,
+			      double(1.0) ) ;
 
 registerProcessorParameter ("PrintThisEvent",
 			    "Number of Event that should be printed to PDF File",
@@ -318,7 +323,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   m_BCbackground->getAverageBG(padAveragesLeft, padAveragesRight);
   m_BCbackground->getErrorsBG(padErrorsLeft, padErrorsRight);
 
-  streamlog_out(MESSAGE1) << "*************** Event " << std::setw(6) << m_nEvt << " ***************" << std::endl;
+  streamlog_out(DEBUG4) << "*************** Event " << std::setw(6) << m_nEvt << " ***************" << std::endl;
 
   // Some event classification variables
   double depositedEnergy(0);
@@ -348,7 +353,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 	  padEnergiesRight.addEnergy(layer, ring, sector, energy);
 	}
       } catch (std::out_of_range &e){
-	streamlog_out(DEBUG4) << "Filling from signal: " << e.what()
+	streamlog_out(DEBUG1) << "Filling from signal: " << e.what()
 			      << std::setw(10) << layer
 			      << std::setw(10) << ring
 			      << std::setw(10) << sector
@@ -386,7 +391,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   for (std::vector<BCRecoObject*>::iterator it = LeftSide.begin(); it != LeftSide.end(); ++it) {
 
     // Create Reconstructed Particles and Clusters from the BCRecoObjects" )
-    const float energyCluster((*it)->getEnergy());
+    const float energyCluster(m_calibrationFactor * (*it)->getEnergy());
     const float thetaCluster((*it)->getThetaRad());
     const float phiCluster((*it)->getPhi()*TMath::DegToRad());
 
@@ -394,14 +399,26 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     const float charge = 1e+19;
     const float mmBeamCalDistance( m_BCG->getBCZDistanceToIP() );
 
-    float position[3] = { float(mmBeamCalDistance * sin ( thetaCluster ) * cos ( phiCluster )),
+    float tempPos[3] = { float(mmBeamCalDistance * sin ( thetaCluster ) * cos ( phiCluster )),
 			  float(mmBeamCalDistance * sin ( thetaCluster ) * sin ( phiCluster )),
 			  float(mmBeamCalDistance * cos ( thetaCluster )) };
 
-    float momentumCluster[3] = { float(energyCluster * sin ( thetaCluster ) * cos ( phiCluster )),
-				 float(energyCluster * sin ( thetaCluster ) * sin ( phiCluster )),
-				 float(energyCluster * cos ( thetaCluster )) };
-#pragma message "FIXME: Rotate position and momentum of cluster to lab system"
+    float tempMom[3] = { float(energyCluster * sin ( thetaCluster ) * cos ( phiCluster )),
+			 float(energyCluster * sin ( thetaCluster ) * sin ( phiCluster )),
+			 float(energyCluster * cos ( thetaCluster )) };
+
+    const double halfCrossingAngleMrad(m_BCG->getCrossingAngle()*0.5);
+    float position[3] = {0.0, 0.0, 0.0};
+    float momentumCluster[3] = {0.0, 0.0, 0.0};
+
+    if((*it)->getSide()==1) {
+      BCUtil::RotateToBeamCal(tempPos, position, halfCrossingAngleMrad);
+      BCUtil::RotateToBeamCal(tempMom, momentumCluster, halfCrossingAngleMrad);
+    } else {
+      BCUtil::RotateFromBeamCal(tempPos, position, halfCrossingAngleMrad);
+      BCUtil::RotateFromBeamCal(tempMom, momentumCluster, halfCrossingAngleMrad);
+    }
+
 
     ClusterImpl* cluster = new ClusterImpl;
     cluster->setEnergy( energyCluster );
