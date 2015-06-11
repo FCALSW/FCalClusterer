@@ -19,7 +19,7 @@
 #include <iostream>
 
 
-int main (int argn, char **argc) {
+int drawBeamCals(int argn, char **argc) {
 
   if ( argn < 2 ) {
     std::cout << "Not enough parameters"  << std::endl;
@@ -47,13 +47,9 @@ int main (int argn, char **argc) {
       BCUtil::ReadBecasFile(rootFile, signalBeamCals, "tBcDensAverage", "sEdepErr", true);
     } catch (std::invalid_argument &e) {
       ++wrong;
-    } catch (std::out_of_range &e) {
-      std::cerr << "Geometry does not agree with energy in the trees"  << std::endl;
-      exit(1);
     }
     if (wrong==2) {
-      std::cerr << "This file has neither BecAs nor BCPadEnergies as a tree" << std::endl;
-      return 1;
+      throw std::invalid_argument( "This file has neither BecAs nor BCPadEnergies as a tree");
     }
   }
   //Draw The BeamCal Energies::
@@ -70,6 +66,22 @@ int main (int argn, char **argc) {
   bc.SetLogz(true);
   bc.BeamCalDraw( &c, &frame );
   c.SaveAs("BeamCalLayout.eps");
+
+  return 0;
+}
+
+int main (int argn, char **argc) {
+
+  try {
+    return drawBeamCals(argn, argc);
+  } catch (std::out_of_range &e) {
+    std::cerr << "Geometry does not agree with energy in the trees:" << e.what()
+	      << std::endl;
+    return 1;
+  } catch (std::invalid_argument &e) {
+    std::cerr << e.what();
+    return 1;
+  }
 
   return 0;
 }
