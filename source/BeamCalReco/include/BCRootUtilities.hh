@@ -13,7 +13,11 @@ class BeamCalGeo;
 namespace BCUtil{
 
   void ReadRootFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads);
-  void ReadBecasFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads );
+  void ReadBecasFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads,
+		     std::string treeName = "tSegment",
+		     std::string energyField="sEdep",
+		     bool isFromMokka = false
+		     );
 
 }//end namespace
 
