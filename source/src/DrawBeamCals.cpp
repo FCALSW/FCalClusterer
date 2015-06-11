@@ -47,6 +47,9 @@ int main (int argn, char **argc) {
       BCUtil::ReadBecasFile(rootFile, signalBeamCals, "tBcDensAverage", "sEdepErr", true);
     } catch (std::invalid_argument &e) {
       ++wrong;
+    } catch (std::out_of_range &e) {
+      std::cerr << "Geometry does not agree with energy in the trees"  << std::endl;
+      exit(1);
     }
     if (wrong==2) {
       std::cerr << "This file has neither BecAs nor BCPadEnergies as a tree" << std::endl;
