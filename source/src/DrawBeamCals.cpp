@@ -44,7 +44,7 @@ int main (int argn, char **argc) {
       ++wrong;
     }
     try {
-      BCUtil::ReadBecasFile(rootFile, signalBeamCals);
+      BCUtil::ReadBecasFile(rootFile, signalBeamCals, "tBcDensAverage", "sEdepErr", true);
     } catch (std::invalid_argument &e) {
       ++wrong;
     }
