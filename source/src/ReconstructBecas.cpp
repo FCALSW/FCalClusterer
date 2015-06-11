@@ -45,14 +45,27 @@ int main (int argn, char **argc) {
   // Read Becas files into BCPadEnergiesx
   std::cout << "Read Files"  << std::endl;
   std::vector<BCPadEnergies> signalBeamCals(2, geo), backgroundBeamCals(2, geo);
+  try {
+    BCUtil::ReadBecasFile(signalFile, signalBeamCals);
+  } catch (std::invalid_argument &e) {
+    std::cerr << "signalFile " << signalFile << " does not have the right content"  << std::endl;
+    exit(1);
+  }
+  try {
+    BCUtil::ReadBecasFile(backgroundSigmaFile, backgroundBeamCals);
+  } catch (std::invalid_argument &e) {
+    std::cerr << "backgroundSigmaFile " << backgroundSigmaFile << " does not have the right content"  << std::endl;
+    exit(1);
+  }
 
-  BCUtil::ReadBecasFile(signalFile, signalBeamCals);
-
-  BCUtil::ReadBecasFile(backgroundSigmaFile, backgroundBeamCals);
   //subtract sigma from signal
-  signalBeamCals[0].subtractEnergies(backgroundBeamCals[0]);
-  signalBeamCals[1].subtractEnergies(backgroundBeamCals[1]);
-
+  try {
+    signalBeamCals[0].subtractEnergies(backgroundBeamCals[0]);
+    signalBeamCals[1].subtractEnergies(backgroundBeamCals[1]);
+  } catch(std::out_of_range &e ) {
+    std::cerr << "The geometry does not fit to the energy in the pads " << std::endl;
+    exit(1);
+  }
   ////////////////////////////////////////////////////////////////////////////////
   // Reconstruct based on the sigma criterium
   std::cout << "Reconstructing"  << std::endl;
