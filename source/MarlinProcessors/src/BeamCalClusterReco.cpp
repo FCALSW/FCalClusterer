@@ -37,6 +37,7 @@
 #include <TPaveText.h>
 #include <TRandom3.h>
 #include <TStyle.h>
+#include <TMarker.h>
 
 //STDLIB
 //#include <algorithm>
@@ -783,15 +784,15 @@ void BeamCalClusterReco::DrawElectronMarkers ( const std::vector<BCRecoObject*> 
     // electron.SetNextPoint(radius*cos(m_impactAnglePhi*TMath::DegToRad()),
     //			    radius*sin(m_impactAnglePhi*TMath::DegToRad()));
 
-    TCrown electron(circX, circY, 25, 30);
-    electron.SetLineColor(kRed);
-    electron.SetFillColor(kRed);
-    // electron.SetFillStyle(4000);
-    // electron.SetMarkerStyle(kOpenCircle);
-    // electron.SetMarkerSize(5);
-    // electron.SetMarkerColor(kRed);
+    TMarker* electron = new TMarker(circX, circY, 29);
+    // electron->SetLineColor(kRed);
+    // electron->SetFillColor(kRed);
+    // electron->SetFillStyle(4000);
+    // electron->SetMarkerStyle(kOpenCircle);
+    // electron->SetMarkerSize(5);
+    electron->SetMarkerColor(kRed);
     //      Double_t ymin = 0, ymax = 35;
-    electron.Draw();
+    electron->Draw();
 
   }
 
@@ -804,11 +805,11 @@ void BeamCalClusterReco::DrawLineMarkers( const std::vector<BCRecoObject*> & Rec
 
   for( std::vector<BCRecoObject*>::const_iterator it = RecoedObjects.begin();
        it != RecoedObjects.end(); ++it) {
-    TLine line((*it)->getPhi(),ymin,(*it)->getPhi(),ymax);
-    line.SetLineStyle(kDashed);
-    line.SetLineColor(kRed);
-    line.SetLineWidth(0);
-    line.Draw();//on gPad whatever active
+    TLine* line = new TLine((*it)->getPhi(),ymin,(*it)->getPhi(),ymax);
+    line->SetLineStyle(kDashed);
+    line->SetLineColor(kRed);
+    line->SetLineWidth(0);
+    line->Draw();//on gPad whatever active
   }
 
   return;
