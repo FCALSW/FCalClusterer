@@ -60,6 +60,22 @@ namespace BCUtil{
   }
 
 
+  template<class t> void RotateToLabFrame(const t* vector, t* rotated, double angle) {
+    if(vector[2] > 0) {
+      BCUtil::RotateFromBeamCal(vector, rotated, angle);
+    } else {
+      BCUtil::RotateToBeamCal(vector, rotated, angle);
+    }
+  }
+
+  template<class t> void RotateToBCFrame(const t* vector, t* rotated, double angle) {
+    if(vector[2] < 0) {
+      BCUtil::RotateFromBeamCal(vector, rotated, angle);
+    } else {
+      BCUtil::RotateToBeamCal(vector, rotated, angle);
+    }
+  }
+
   void DecodeCellID(lcio::CellIDDecoder<lcio::SimCalorimeterHit> &mydecoder, const lcio::SimCalorimeterHit* hit, 
 		    int& side, int& layer, int& cylinder, int& sector);
  
