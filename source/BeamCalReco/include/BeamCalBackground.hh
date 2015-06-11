@@ -43,7 +43,7 @@ class BeamCalBackground {
   ~BeamCalBackground();
 
  public: 
-  enum BackgroundMethod_t { kPregenerated, kParametrised };
+  enum BackgroundMethod_t { kPregenerated, kParametrised, kAveraged };
 
  private:
 
@@ -70,22 +70,25 @@ class BeamCalBackground {
  public:
   int init(vector<string> &bg_files, const int n_bx);
   void setRandom3Seed(const int seed);
-  int getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
-  int getAverageBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
-  int getErrorsBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
+  void getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
+  void getAverageBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
+  void getErrorsBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
 
  private:
   int initPregenerated(vector<string> &bg_files);
   int initParametrised(vector<string> &bg_files);
+  int initAveraged(vector<string> &bg_files);
 
-  int getEventPregeneratedBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
-  int getEventParametrisedBG(BCPadEnergies &pe, 
+  void getEventPregeneratedBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
+  void getEventParametrisedBG(BCPadEnergies &pe,
         const BCPadEnergies::BeamCalSide_t bc_side);
+  void getEventAveragedBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
+
 
   BCPadEnergies* getBeamCalErrors(const BCPadEnergies *averages, 
                    const std::vector<BCPadEnergies*> singles, int numberForAverage );
 
-  int readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side);
+  void readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side);
 
  public:
   BeamCalBackground(const BeamCalBackground&);

@@ -12,6 +12,8 @@
 #include "BeamCalBackground.hh"
 #include "BeamCalGeoCached.hh"
 #include "BCPadEnergies.hh"
+#include "BCRootUtilities.hh"
+
 
 // ----- include for verbosity dependent logging ---------
 #include <streamlog/loglevels.h>
@@ -36,7 +38,6 @@
 using std::vector;
 using std::string;
 using std::map;
-using std::endl;
 
 using marlin::Global;
 
@@ -56,15 +57,18 @@ BeamCalBackground::BeamCalBackground(const string& bg_method_name,
 					   m_padParRight(NULL),
                                            m_BCG(BCG)
 {
-  if( string("Pregenerated") == bg_method_name ) m_bgMethod = kPregenerated;
-  else if( string("Parametrised") == bg_method_name ) m_bgMethod = kParametrised;
+  if(      string("Pregenerated") == bg_method_name ) {m_bgMethod = kPregenerated;}
+  else if( string("Parametrised") == bg_method_name ) {m_bgMethod = kParametrised;}
+  else if( string("Averaged")     == bg_method_name ) {m_bgMethod = kAveraged;}
   else {
-    streamlog_out(ERROR) <<"== Error From BeamCalBackground == " \
-            "Unknown BeamCal method of background esitmation \""+bg_method_name+"\"!" << endl;;
+    streamlog_out(ERROR) <<"== Error From BeamCalBackground == "
+			 << "Unknown BeamCal method of background esitmation \""
+			 << bg_method_name << "\"" << std::endl;
+    throw std::runtime_error("Unknown BeamCal background method");
   }
 
-  streamlog_out(MESSAGE) << "initialising BeamCal background "\
-    " with \"" << bg_method_name << "\" method" << endl;
+  streamlog_out(MESSAGE) << "initialising BeamCal background with \""
+			 << bg_method_name << "\" method" << std::endl;
 }
 
 BeamCalBackground::~BeamCalBackground()
@@ -88,13 +92,33 @@ int BeamCalBackground::init(vector<string> &bg_files, const int n_bx)
   m_nBX = n_bx;
 
   switch (m_bgMethod) {
-    case kPregenerated     : initPregenerated(bg_files); break;
-    case kParametrised     : initParametrised(bg_files); break;
+    case kPregenerated     : return initPregenerated(bg_files);
+    case kParametrised     : return initParametrised(bg_files);
+    case kAveraged         : return initAveraged(bg_files);
   }
+
+  return 1;
+}
+
+
+int BeamCalBackground::initAveraged(vector<string> &bg_files) {
+
+
+  //We don't have any average energy in some cases, and we don't really need it
+  //because we just subtract it after adding it in some cases anyway....
+  m_BeamCalAverageLeft  = new BCPadEnergies(m_BCG);
+  m_BeamCalAverageRight = new BCPadEnergies(m_BCG);
+
+  std::vector<BCPadEnergies> backgroundBeamCals(2, m_BCG);
+
+  BCUtil::ReadBecasFile(bg_files[0], backgroundBeamCals, "tBcDensAverage", "sEdepErr", true);
+
+  m_BeamCalErrorsLeft  = new BCPadEnergies(backgroundBeamCals[0]);
+  m_BeamCalErrorsRight = new BCPadEnergies(backgroundBeamCals[1]);
+
 
   return 0;
 }
-
 
 int BeamCalBackground::initPregenerated(vector<string> &bg_files)
 {
@@ -140,7 +164,7 @@ int BeamCalBackground::initPregenerated(vector<string> &bg_files)
   //Check that we have
   if( int(nBackgroundBX) < m_nBX*10 ) {
     streamlog_out(ERROR) << "There are not enough BeamCal " \
-     " Background files to calculate a proper average!" << endl;
+     " Background files to calculate a proper average!" << std::endl;
   }
 
   //we use a set so no duplication occurs
@@ -260,22 +284,39 @@ int BeamCalBackground::initParametrised(vector<string> &bg_files)
   return 0;
 }
 
-int BeamCalBackground::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
+void BeamCalBackground::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 {
 
   switch (m_bgMethod) {
-    case kPregenerated: getEventPregeneratedBG(peLeft, peRight); break;
-    case kParametrised: {
-      getEventParametrisedBG(peLeft, BCPadEnergies::kLeft); 
-      getEventParametrisedBG(peRight, BCPadEnergies::kRight); 
+  case kPregenerated: {
+      getEventPregeneratedBG(peLeft, peRight);
       break;
-    }
   }
-
-  return 0;
+  case kParametrised: {
+    getEventParametrisedBG(peLeft, BCPadEnergies::kLeft);
+    getEventParametrisedBG(peRight, BCPadEnergies::kRight);
+    break;
+  }
+  case kAveraged: {
+    getEventAveragedBG(peLeft, peRight);
+    break;
+  }
+  }
 }
 
-int BeamCalBackground::getEventPregeneratedBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
+void BeamCalBackground::getEventAveragedBG(BCPadEnergies &peLeft, BCPadEnergies &peRight) {
+
+  const int nBCpads = m_BCG->getPadsPerBeamCal();
+
+  for (int j = 0; j < m_nBX;++j) {  //Add one for each BunchCrossing we want???
+    for (int i = 0; i < nBCpads ;++i) { //Add gaussian randomisation of background to each cell
+      peRight.addEnergy(i, m_random3->Gaus(0.0, m_BeamCalErrorsRight->getEnergy(i)));
+      peLeft.addEnergy(i, m_random3->Gaus(0.0, m_BeamCalErrorsLeft->getEnergy(i)));
+    }//for all BXs
+  }//for all pads
+}
+
+void BeamCalBackground::getEventPregeneratedBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 {
   ////////////////////////////////////////////////////////
   // Prepare the randomly chosen Background BeamCals... //
@@ -294,28 +335,22 @@ int BeamCalBackground::getEventPregeneratedBG(BCPadEnergies &peLeft, BCPadEnergi
     peRight.addEnergies(*m_BeamCalDepositsRight);
     peLeft.addEnergies(*m_BeamCalDepositsLeft);
   }
-
-  return 0;
 }
 
-int BeamCalBackground::getAverageBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
+void BeamCalBackground::getAverageBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 {
   peLeft.setEnergies(*m_BeamCalAverageLeft);
   peRight.setEnergies(*m_BeamCalAverageRight);
-
-  return 0;
 }
 
-int BeamCalBackground::getErrorsBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
+void BeamCalBackground::getErrorsBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 {
   peLeft.setEnergies(*m_BeamCalErrorsLeft);
   peRight.setEnergies(*m_BeamCalErrorsRight);
-  
-  return 0;
 }
 
 
-int BeamCalBackground::getEventParametrisedBG(BCPadEnergies &pe, 
+void BeamCalBackground::getEventParametrisedBG(BCPadEnergies &pe,
       const BCPadEnergies::BeamCalSide_t bc_side)
 {
   const int nBCpads = m_BCG->getPadsPerBeamCal();
@@ -326,7 +361,7 @@ int BeamCalBackground::getEventParametrisedBG(BCPadEnergies &pe,
     PadEdepRndPar_t pep = (BCPadEnergies::kLeft == bc_side ? m_padParLeft->at(ip) : m_padParRight->at(ip));
     //std::cout << ip << "\t" << pep.zero_rate << "\t" << pep.mean << "\t" << pep.stdev<< "\t" << pep.par0 << "\t" <<  pep.par1 << "\t" <<  pep.par2 << "\t" << pep.chi2 << endl;
 
-    // put the average to 0 at once by generating fluctiations with stdev*sqrt(nBX)
+    // put the average to 0 at once by generating fluctuations with stdev*sqrt(nBX)
     // otherwise the time to generate each event grows too much
     vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
     /*
@@ -341,15 +376,16 @@ int BeamCalBackground::getEventParametrisedBG(BCPadEnergies &pe,
 
   pe.setEnergies(vedep);
 
-  streamlog_out(DEBUG) << "BeamCalBackground: total energy generated with parametrised method" \
-    " for " << (BCPadEnergies::kLeft == bc_side ? string("Left") : string("Right") ) <<
-    " BeamCal = " << pe.getTotalEnergy() << endl;
+  streamlog_out(DEBUG) << "BeamCalBackground: total energy generated with parametrised method for "
+		       << (BCPadEnergies::kLeft == bc_side ? string("Left") : string("Right") )
+		       << " BeamCal = " << pe.getTotalEnergy()
+		       << std::endl;
 
-  return 0;
+  return;
 }
 
 
-int BeamCalBackground::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side)
+void BeamCalBackground::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side)
 {
   vector<double> *zero_rate(NULL) , *mean(NULL) , *stdev(NULL);
   vector<double> *sum(NULL)       , *minm(NULL) , *maxm(NULL);
