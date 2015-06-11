@@ -399,26 +399,24 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     const float charge = 1e+19;
     const float mmBeamCalDistance( m_BCG->getBCZDistanceToIP() );
 
+#pragma message "make sure rotation to labframe works on both sides and we are not rotating something weird"
+    //which side the Cluster is on
+    double sideFactor = ((*it)->getSide()==BCPadEnergies::kLeft) ? +1.0 : -1.0;
+
     float tempPos[3] = { float(mmBeamCalDistance * sin ( thetaCluster ) * cos ( phiCluster )),
-			  float(mmBeamCalDistance * sin ( thetaCluster ) * sin ( phiCluster )),
-			  float(mmBeamCalDistance * cos ( thetaCluster )) };
+			 float(mmBeamCalDistance * sin ( thetaCluster ) * sin ( phiCluster )),
+			 float(mmBeamCalDistance * cos ( thetaCluster ) * sideFactor) };
 
     float tempMom[3] = { float(energyCluster * sin ( thetaCluster ) * cos ( phiCluster )),
 			 float(energyCluster * sin ( thetaCluster ) * sin ( phiCluster )),
-			 float(energyCluster * cos ( thetaCluster )) };
+			 float(energyCluster * cos ( thetaCluster ) * sideFactor) };
 
     const double halfCrossingAngleMrad(m_BCG->getCrossingAngle()*0.5);
     float position[3] = {0.0, 0.0, 0.0};
     float momentumCluster[3] = {0.0, 0.0, 0.0};
 
-    if((*it)->getSide()==1) {
-      BCUtil::RotateToBeamCal(tempPos, position, halfCrossingAngleMrad);
-      BCUtil::RotateToBeamCal(tempMom, momentumCluster, halfCrossingAngleMrad);
-    } else {
-      BCUtil::RotateFromBeamCal(tempPos, position, halfCrossingAngleMrad);
-      BCUtil::RotateFromBeamCal(tempMom, momentumCluster, halfCrossingAngleMrad);
-    }
-
+    BCUtil::RotateToLabFrame(tempPos, position, halfCrossingAngleMrad);
+    BCUtil::RotateToLabFrame(tempMom, momentumCluster, halfCrossingAngleMrad);
 
     ClusterImpl* cluster = new ClusterImpl;
     cluster->setEnergy( energyCluster );
@@ -836,13 +834,9 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
       if ( absMom < 10 ) continue;
       //Rotate to appropriate beamCal System
 #pragma message "Fix the rotation thing"
-      if(momentum[2] > 0) {
-	BCUtil::RotateToBeamCal(momentum, momentum2, halfCrossingAngleMrad);
-	m_eventSide = 0;
-      } else {
-	BCUtil::RotateFromBeamCal(momentum, momentum2, halfCrossingAngleMrad);
-	m_eventSide = 1;
-      }
+      BCUtil::RotateToBCFrame(momentum, momentum2, halfCrossingAngleMrad);
+      m_eventSide = (momentum[2] > 0) ? BCPadEnergies::kLeft  : BCPadEnergies::kRight;
+
       //    double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
       double impactTheta = BCUtil::AngleToBeamCal(momentum, halfCrossingAngleMrad)*1000;//mrad
       if ( impactTheta > maxAngle ) continue; //only particles that are inside the BeamCal acceptance
