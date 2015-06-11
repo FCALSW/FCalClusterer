@@ -18,8 +18,8 @@ BeamCalGeoCached::BeamCalGeoCached(gear::GearMgr* gearMgr): m_BCPs(gearMgr->getB
 							    m_layers(m_BCPs.getLayerLayout().getNLayers()),
 							    m_rings(m_BCPs.getDoubleVals("phi_segmentation").size()),
 							    m_phiSegmentation(m_BCPs.getDoubleVals("phi_segmentation")),
-							    m_radSegmentation(m_BCPs.getDoubleVals("rad_segmentation")),
-			                                    m_nPhiSegments(m_BCPs.getIntVals("nPhi_segmentation")),
+							    m_radSegmentation(0),
+			                                    m_nPhiSegments(0),
                                                             m_cutOut(m_BCPs.getDoubleVal("dead_area_outer_r")+0.1),
                                                             m_beamCalZPosition(m_BCPs.getExtent()[2]),
   m_deadAngle(2.0 * ( m_BCPs.getDoubleVal("cylinder_starting_phi") - M_PI )),
@@ -29,6 +29,24 @@ BeamCalGeoCached::BeamCalGeoCached(gear::GearMgr* gearMgr): m_BCPs(gearMgr->getB
   m_padsPerLayer(-1),
   m_padsPerBeamCal(-1)
 {
+
+  try {
+    m_radSegmentation = m_BCPs.getDoubleVals("rad_segmentation");
+  } catch (gear::UnknownParameterException &e) {
+    const double step = (m_outerRadius - m_innerRadius) / double(m_rings);
+    for (int i = 0; i < m_rings ;++i) {
+      m_radSegmentation.push_back(m_innerRadius+i*step);
+    }
+  }
+
+  try {
+    m_nPhiSegments = m_BCPs.getIntVals("nPhi_segmentation");
+  } catch (gear::UnknownParameterException &e) {
+    for (int i = 0; i < m_rings;++i) {
+      m_nPhiSegments.push_back(int(2*M_PI/m_phiSegmentation[i]+0.5)/9);
+    }
+  }
+
   if ( m_radSegmentation.size()-1 != m_phiSegmentation.size()) {
     m_radSegmentation.push_back(m_outerRadius);
   }
