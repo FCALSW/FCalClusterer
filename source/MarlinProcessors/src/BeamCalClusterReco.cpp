@@ -36,6 +36,7 @@
 #include <TLine.h>
 #include <TPaveText.h>
 #include <TRandom3.h>
+#include <TStyle.h>
 
 //STDLIB
 //#include <algorithm>
@@ -669,6 +670,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   // Deal with the Canvas and its pads //
   ///////////////////////////////////////
   TCanvas canv("canv","canv", 3200, 1600);
+  gStyle->SetOptStat(0.0);
   TPad *pads[9];
   Double_t padSizeX = canv.GetWindowWidth()/4;
   Double_t padSizeY = (canv.GetWindowHeight()-200)/2;
@@ -691,7 +693,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   pads[8]->Draw();
 
   //Draw one before and two after maxLayer
-  if(maxDeposit < 0.1) maxLayer = 10;
+  if(maxDeposit < 0.01) maxLayer = 10;
   const int startLayer = (maxLayer - 1 <= 37) ? maxLayer - 1 : 37 ;
   ////////////////////////
   // Deal with the data //
@@ -701,7 +703,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   bc.SetLogz(1);
   bc.SetBeamCalHisto(padEnergies,"tempLeft");
 
-  Double_t ymax = 5;
+  Double_t ymax = 0.4;
 
 
   for (int layer = startLayer; layer < startLayer + 4; ++layer) {
@@ -829,7 +831,7 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
       const double *momentum = tempmc->getMomentum();
       double momentum2[3];
     
-      //Check if it inside the BeamCalAcceptance, and has sufficientmomentum(1GeV);
+      //Check if it inside the BeamCalAcceptance, and has sufficientmomentum(10GeV);
       const double absMom = sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
       if ( absMom < 10 ) continue;
       //Rotate to appropriate beamCal System
