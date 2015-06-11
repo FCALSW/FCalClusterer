@@ -21,7 +21,7 @@ BeamCalGeoCached::BeamCalGeoCached(gear::GearMgr* gearMgr): m_BCPs(gearMgr->getB
 							    m_radSegmentation(0),
 			                                    m_nPhiSegments(0),
                                                             m_cutOut(m_BCPs.getDoubleVal("dead_area_outer_r")+0.1),
-                                                            m_beamCalZPosition(m_BCPs.getExtent()[2]),
+  m_beamCalZPosition(m_BCPs.getExtent()[2]+100.0), //add distance from graphite shield
   m_deadAngle(2.0 * ( m_BCPs.getDoubleVal("cylinder_starting_phi") - M_PI )),
   m_crossingAngle(m_BCPs.getDoubleVal("beam_crossing_angle")),
   m_padsPerRing(m_rings),
@@ -95,12 +95,12 @@ inline double                BeamCalGeoCached::getBCZDistanceToIP() const {
   return m_beamCalZPosition;
 }
 
-inline double                BeamCalGeoCached::getLayerZDistanceToIP(const int lr) const {
+inline double                BeamCalGeoCached::getLayerZDistanceToIP(int layer) const {
   // static const double globalBeamCalDist = 3350; return globalBeamCalDist;
-#pragma message "FIXME: make thickness of garphite shield to be read from GEAR"
+#pragma message "FIXME: make thickness of graphite shield to be read from GEAR"
   const double graphiteShield_dZ = 100.;
   double lr_zdist(graphiteShield_dZ);
-  lr_zdist+=m_BCPs.getLayerLayout().getDistance(lr);
+  lr_zdist+=m_BCPs.getLayerLayout().getDistance(layer);
   return lr_zdist;
 }
 
