@@ -99,25 +99,35 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 {
 
 // modify processor description
-_description = "BeamCalClusterReco reproduces the beamstrahlung background for a given number of"\
-  "bunch-crossings NumberOfBX and puts the signal hits from the"\
-  "lcio input file on top of that, and then clustering is attempted." ;
+  _description = "BeamCalClusterReco reproduces the beamstrahlung background for a given number of " \
+    "bunch-crossings NumberOfBX and puts the signal hits from the "	\
+    "lcio input file on top of that, and then clustering is attempted." ;
 
 
-// register steering parameters: name, description, class-variable, default value
 
-registerInputCollection( LCIO::MCPARTICLE,
-			   "MCParticle Collection Name, only needed and used to estimate efficiencies" ,
-			   "Name of the MCParticle Collection"  ,
-			   m_colNameMC ,
-			   std::string("MCParticle") ) ;
+ registerInputCollection( LCIO::MCPARTICLE,
+			  "MCParticleCollectionName" ,
+			  "Name of the MCParticle Collection Collection Name, only needed and used to estimate efficiencies",
+			  m_colNameMC ,
+			  std::string("MCParticle") ) ;
 
+ registerInputCollection( LCIO::SIMCALORIMETERHIT,
+			  "BeamCalCollectionName" ,
+			  "Name of BeamCal Collection"  ,
+			  m_colNameBCal ,
+			  std::string("BeamCalCollection") ) ;
 
-registerInputCollection( LCIO::SIMCALORIMETERHIT,
-			   "BeamCalCollectionName" ,
-			   "Name of BeamCal Collection"  ,
-			   m_colNameBCal ,
-			   std::string("BeamCalCollection") ) ;
+ registerOutputCollection( LCIO::RECONSTRUCTEDPARTICLE,
+			   "RecoParticleCollectionname" ,
+			   "Name of the Reconstructed Particle collection"  ,
+			   m_BCalRPColName,
+			   std::string("BCalRecoParticle") ) ;
+
+ registerOutputCollection( LCIO::CLUSTER,
+			   "RecoClusterCollectionname" ,
+			   "Name of the Reconstructed Cluster collection"  ,
+			   m_BCalClusterColName ,
+			   std::string("BCalClusters") ) ;
 
 registerProcessorParameter ("BackgroundMethod",
 			      "How to estimate background [Parametrised, Pregenerated, Averaged]",
@@ -126,7 +136,6 @@ registerProcessorParameter ("BackgroundMethod",
 
 std::vector<std::string> defaultFile;
 defaultFile.push_back("BeamCal.root");
-
 registerProcessorParameter ("InputFileBackgrounds",
 			      "Root Inputfile(s)",
 			      m_files,
@@ -137,11 +146,20 @@ registerProcessorParameter ("NumberOfBX",
 			      m_nBXtoOverlay,
 			      int(1) ) ;
 
-
 std::vector<float> startingRing, padCut, clusterCut;
 startingRing.push_back(0.0);  padCut.push_back(0.5);  clusterCut.push_back(3.0);
 startingRing.push_back(1.0);  padCut.push_back(0.3);  clusterCut.push_back(2.0);
 startingRing.push_back(2.0);  padCut.push_back(0.2);  clusterCut.push_back(1.0);
+
+registerProcessorParameter ("UseConstPadCuts",
+			      "Use the cuts for the pads specified in ETPad, if false, the variance in each pad is used times SigmaPad Factor, the first entry in ETPad is used as a minimum energy to consider a pad at all",
+			      m_usePadCuts,
+			      true ) ;
+
+registerProcessorParameter ("SigmaCut",
+			      "If not using ConstPadCuts, each pad SigmaCut*variance is considered for clusters",
+			      m_sigmaCut,
+			      double(1.0) ) ;
 
 registerProcessorParameter ("StartingRing",
 			      "Rings from which onwards the outside Thresholds are used",
@@ -168,36 +186,10 @@ registerProcessorParameter ("StartLookingInLayer",
 			      m_startLookingInLayer,
 			      int(10) ) ;
 
-
-registerProcessorParameter ("UseConstPadCuts",
-			      "Use the cuts for the pads specified in ETPad, if false, the variance in each pad is used times SigmaPad Factor",
-			      m_usePadCuts,
-			      true ) ;
-
-registerProcessorParameter ("SigmaCut",
-			      "If not using ConstPadCuts, each pad SigmaCut*variance is considered for clusters",
-			      m_sigmaCut,
-			      double(1.0) ) ;
-
-// registerProcessorParameter ("PDFFile",
-//			      "Title of Output PDF only if verbosity is DEBUG!",
-//			      m_pdftitle,
-//			      std::string("BeamCalClusterReco.pdf") ) ;
-
 registerProcessorParameter ("LinearCalibrationFactor",
 			      "Multiply deposit energy by this factor to account for samplif fraction",
 			      m_calibrationFactor,
 			      double(1.0) ) ;
-
-registerProcessorParameter ("PrintThisEvent",
-			    "Number of Event that should be printed to PDF File",
-			    m_specialEvent,
-			    int(-1) ) ;
-
-// registerProcessorParameter ("LimitAreaOfBeamCal",
-//			      "Skips events with electrons at the edge of the BeamCal or near the Keyhole cutout.",
-//			      m_LimitedAreaOfBeamCal,
-//			      bool(true) ) ;
 
 registerProcessorParameter ("CreateEfficiencyFile",
 			    "Flag to create the TEfficiency for fast tagging library",
@@ -209,21 +201,10 @@ registerProcessorParameter ("EfficiencyFilename",
 			    m_EfficiencyFileName,
 			    std::string("TaggingEfficiency.root") ) ;
 
-
- registerOutputCollection( LCIO::RECONSTRUCTEDPARTICLE,
-			   "RecoParticleCollectionname" ,
-			   "Name of the Reconstructed Particle collection"  ,
-			   m_BCalRPColName,
-			   std::string("BCalRecoParticle") ) ;
-
- registerOutputCollection( LCIO::CLUSTER,
-			   "RecoClusterCollectionname" ,
-			   "Name of the Reconstructed Cluster collection"  ,
-			   m_BCalClusterColName ,
-			   std::string("BCalClusters") ) ;
-
-
-
+registerProcessorParameter ("PrintThisEvent",
+			    "Number of Event that should be printed to PDF File",
+			    m_specialEvent,
+			    int(-1) ) ;
 
 
 }
