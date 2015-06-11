@@ -371,14 +371,15 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   //merge the two list of clusters so that we can run in one loop
   LeftSide.insert( LeftSide.end(), RightSide.begin(), RightSide.end() );
 
-
+  if(m_createEfficienyFile) {
+    findOriginalMCParticles(evt);
+  }
 
   if( (streamlog::out.write< DEBUG3 >() && m_nEvt == m_specialEvent ) ) {
     printBeamCalEventDisplay(padEnergiesLeft, padEnergiesRight, maxLayer, maxDeposit, depositedEnergy, LeftSide);
   }//DEBUG
 
   if(m_createEfficienyFile) {
-    findOriginalMCParticles(evt);
     fillEfficiencyObjects(LeftSide);
   }
 
