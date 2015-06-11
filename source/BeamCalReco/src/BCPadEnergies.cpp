@@ -171,7 +171,7 @@ void BCPadEnergies::subtractEnergiesWithCheck(const BCPadEnergies &bcp, const BC
     if( &bcp != &sigma ) {
       m_PadEnergies[i] -= bcp.m_PadEnergies[i] ;
     } else {
-      m_PadEnergies[i] -= 0.10 * bcp.m_PadEnergies[i] ;
+      m_PadEnergies[i] -= 0.10 * sigma.m_PadEnergies[i] ;
     }
 
     if( (m_BCG.getLayer(i) == 10) &&
