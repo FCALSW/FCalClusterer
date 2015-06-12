@@ -82,9 +82,11 @@ class BeamCalClusterReco : public marlin::Processor {
   int m_startLookingInLayer;
 
   bool m_usePadCuts;
+  bool m_useChi2Selection;
   bool m_createEfficienyFile;
 
   double m_sigmaCut;
+  double m_probLimit;
   double m_calibrationFactor;
 
   std::vector<float> m_startingRings;
@@ -97,7 +99,7 @@ class BeamCalClusterReco : public marlin::Processor {
   BCPCuts* m_bcpCuts;
   BeamCalBackground *m_BCbackground;
 
-  TEfficiency *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
+  TEfficiency *m_totalEfficiency, *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
   TEfficiency *m_phiFake, *m_thetaFake;
   std::vector<TH1*> m_checkPlots;
   std::vector<OriginalMC> m_originalParticles;
@@ -113,6 +115,7 @@ private:
 				const std::vector<BCRecoObject*> & RecoedObjects) const;
 
   std::vector<BCRecoObject*> FindClusters(const BCPadEnergies& signalPads, const BCPadEnergies& backgroundPads, const BCPadEnergies& backgroundSigma, const TString& title);
+  std::vector<BCRecoObject*> FindClustersChi2(const BCPadEnergies& signalPads, const BCPadEnergies& backgroundPads, const BCPadEnergies& backgroundSigma, const TString& title);
 
   void DrawElectronMarkers ( const std::vector<BCRecoObject*> & RecoedObjects ) const;
   void DrawLineMarkers ( const std::vector<BCRecoObject*> & RecoedObjects ) const;

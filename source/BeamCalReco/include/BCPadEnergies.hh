@@ -50,6 +50,8 @@ public:
   double getTotalEnergy() const;
 
   std::vector<double>* getEnergies();
+  int getTowerEnergies(int padIndex, std::vector<double> & te) const;
+  double getTowerEnergy(int padIndex, int startLayer) const;
  
   //Here be our reconstruction functions and algorithms?helper
   BeamCalCluster lookForClustersOver(const BCPadEnergies &background, const BCPCuts &cuts) const ;

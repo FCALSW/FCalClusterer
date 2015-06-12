@@ -8,6 +8,7 @@
 #include "BCUtilities.hh"
 #include "BeamCalGeoCached.hh"
 #include "BeamCalBackground.hh"
+#include "BeamCalFitShower.hh"
 
 //LCIO
 #include <EVENT/LCCollection.h>
@@ -40,13 +41,15 @@
 #include <TMarker.h>
 
 //STDLIB
-//#include <algorithm>
+#include <numeric>
 #include <iomanip>
 #include <iostream>
+#include <utility>
 //#include <set>
 
 using namespace lcio ;
 using namespace marlin ;
+using std::pair;
 
 BeamCalClusterReco aBeamCalClusterReco ;
 
@@ -77,8 +80,10 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_minimumTowerSize(0),
                                            m_startLookingInLayer(0),
                                            m_usePadCuts(true),
+					   m_useChi2Selection(false),
                                            m_createEfficienyFile(false),
                                            m_sigmaCut(1.0),
+                                           m_probLimit(1.e-3),
                                            m_calibrationFactor(1.0),
                                            m_startingRings(),
                                            m_requiredRemainingEnergy(),
@@ -86,6 +91,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_BCG(NULL),
                                            m_bcpCuts(NULL),
 					   m_BCbackground(NULL),
+                                           m_totalEfficiency(NULL),
                                            m_thetaEfficieny(NULL),
                                            m_phiEfficiency(NULL),
                                            m_twoDEfficiency(NULL),
@@ -191,6 +197,17 @@ registerProcessorParameter ("LinearCalibrationFactor",
 			      m_calibrationFactor,
 			      double(1.0) ) ;
 
+registerProcessorParameter ("UseChi2Selection",
+			      "Use Chi2 selection criteria to detect high energy electron in the signal.",
+			      m_useChi2Selection,
+			      false ) ;
+
+registerProcessorParameter ("ProbLimit",
+			      "Limit for probability that the inspected tower has NO shower",
+			      m_probLimit,
+			      double(1.e-3) ) ;
+
+
 registerProcessorParameter ("CreateEfficiencyFile",
 			    "Flag to create the TEfficiency for fast tagging library",
 			    m_createEfficienyFile,
@@ -234,6 +251,7 @@ void BeamCalClusterReco::init() {
 
   m_BCG = new BeamCalGeoCached(marlin::Global::GEAR);
   m_BCbackground = new BeamCalBackground(m_bgMethodName, m_BCG);
+  m_BCbackground->setStartLayer(m_startLookingInLayer);
   m_BCbackground->init(m_files, m_nBXtoOverlay);
 
   //Fill BCPCuts object with cuts from the processor parameters
@@ -250,6 +268,8 @@ void BeamCalClusterReco::init() {
       minAngle(0.9*m_BCG->getBCInnerRadius()/m_BCG->getBCZDistanceToIP()*1000), 
       maxAngle(1.1*m_BCG->getBCOuterRadius()/m_BCG->getBCZDistanceToIP()*1000); 
     const int bins = 50;
+    m_totalEfficiency = new TEfficiency("totalEff","Total detector efficiency", 1, 
+      minAngle/0.9, maxAngle/1.1);
     m_thetaEfficieny = new TEfficiency("thetaEff","Efficiency vs. #Theta", bins, minAngle, maxAngle);
     m_phiEfficiency  = new TEfficiency("phiEff","Efficiency vs. #Phi", 72, 0, 360);
     m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta and #Phi", bins, minAngle, maxAngle, 72, 0, 360);
@@ -347,8 +367,15 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   }//if there were hits from the signal
 
   // Run the clustering
-  std::vector<BCRecoObject*> LeftSide  (FindClusters(padEnergiesLeft,  padAveragesLeft,  padErrorsLeft,  "Sig 6 L"));
-  std::vector<BCRecoObject*> RightSide (FindClusters(padEnergiesRight, padAveragesRight, padErrorsRight, "Sig 6 R") );
+  std::vector<BCRecoObject*> LeftSide,  RightSide;
+
+  if ( ! m_useChi2Selection ) {
+    LeftSide = FindClusters(padEnergiesLeft,  padAveragesLeft,  padErrorsLeft,  "Sig 6 L");
+    RightSide= FindClusters(padEnergiesRight, padAveragesRight, padErrorsRight, "Sig 6 R");
+  } else {
+    LeftSide = FindClustersChi2(padEnergiesLeft,  padAveragesLeft,  padErrorsLeft,  "Chi2 6 L");
+    RightSide= FindClustersChi2(padEnergiesRight, padAveragesRight, padErrorsRight, "Chi2 6 R");
+  }
 
   //merge the two list of clusters so that we can run in one loop
   LeftSide.insert( LeftSide.end(), RightSide.begin(), RightSide.end() );
@@ -357,13 +384,13 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     findOriginalMCParticles(evt);
   }
 
-  if( (streamlog::out.write< DEBUG3 >() && m_nEvt == m_specialEvent ) ) {
-    printBeamCalEventDisplay(padEnergiesLeft, padEnergiesRight, maxLayer, maxDeposit, depositedEnergy, LeftSide);
-  }//DEBUG
-
   if(m_createEfficienyFile) {
     fillEfficiencyObjects(LeftSide);
   }
+
+  if( (streamlog::out.write< DEBUG3 >() && m_nEvt == m_specialEvent ) ) {
+    printBeamCalEventDisplay(padEnergiesLeft, padEnergiesRight, maxLayer, maxDeposit, depositedEnergy, LeftSide);
+  }//DEBUG
 
   /////////////////////////////////////////////////////////
   // Add the found objects to the RecoParticleCollection //
@@ -381,7 +408,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 
     const float mass = 0.0;
     const float charge = 1e+19;
-    const float mmBeamCalDistance( m_BCG->getBCZDistanceToIP() );
+    const float mmBeamCalDistance( m_BCG->getLayerZDistanceToIP(m_startLookingInLayer) );
 
 #pragma message "make sure rotation to labframe works on both sides and we are not rotating something weird"
     //which side the Cluster is on
@@ -473,6 +500,7 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
   //Here we fill the efficiency for reconstructing MCParticles
   for (std::vector<OriginalMC>::iterator mcIt = m_originalParticles.begin(); mcIt != m_originalParticles.end(); ++mcIt) {
     OriginalMC const& omc = (*mcIt);
+    m_totalEfficiency->Fill( omc.m_wasFound, omc.m_theta);
     m_thetaEfficieny->Fill( omc.m_wasFound, omc.m_theta);
     m_phiEfficiency->Fill ( omc.m_wasFound, omc.m_phi);
     m_twoDEfficiency->Fill( omc.m_wasFound, omc.m_theta, omc.m_phi);
@@ -558,6 +586,7 @@ void BeamCalClusterReco::end(){
 
   if(m_createEfficienyFile) {
     TFile *effFile = TFile::Open(m_EfficiencyFileName.c_str(),"RECREATE");
+    m_totalEfficiency->Write();
     m_thetaEfficieny->Write();
     m_phiEfficiency->Write();
     m_twoDEfficiency->Write();
@@ -624,6 +653,113 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 
 }//tryReco6
 
+
+/**
+* @brief Method of cluster searching by the chi2 criteria
+*
+*
+* @param signalPads Signal energy depositions
+* @param backgroundPads Background energy depositions
+* @param backgroundSigma Standard deviation of the background
+* @param title Some title?
+*
+* @return A pointer to vector of BeamCal reconstruction objects.
+*/
+std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnergies& signalPads,
+							    const BCPadEnergies& backgroundPads,
+							    const BCPadEnergies& backgroundSigma,
+							    const TString& title) 
+{
+//  using BeamCalFitShower::EdepProfile_t;
+
+  std::vector<BCRecoObject*> recoVec;
+  const bool isRealParticle = false; //always false here, decide later
+
+  vector<EdepProfile_t*> edep_prof; // energy profile for the calorimeter
+
+  vector<double> te_signal, te_bg, te_sigma;
+  // loop over towers
+  for (size_t it = 0; it < m_BCG->getPadsPerLayer(); it++){
+    // get tower energies, average, sigma
+    signalPads.getTowerEnergies(it, te_signal);
+    backgroundPads.getTowerEnergies(it, te_bg);
+    backgroundSigma.getTowerEnergies(it, te_sigma);
+
+    // sums of signal and background along the tower
+    double te_signal_sum(0.), te_bg_sum(0.);
+    double tot_te_sigma(0.); // st.dev. for sum of the energies in the tower
+    m_BCbackground->getTowerErrorsBG(it, signalPads.getSide(), tot_te_sigma);
+
+    // calculate chi2 and sums for this tower starting from defined layer
+    double chi2(0.);
+    for (size_t il = m_startLookingInLayer; il< te_signal.size(); il++){
+      te_signal_sum += te_signal[il];
+      te_bg_sum += te_bg[il];
+      chi2+= pow((te_signal[il] - te_bg[il])/te_sigma[il],2);
+      /*
+      if ( it == 215 || it == 219) {
+      std::cout << chi2<< "\t" <<te_signal[il]<< "\t" <<te_bg[il]<< "\t" <<te_sigma[il] << std::endl;
+      }
+      */
+    }
+    // std::cout << it << "\t" << te_signal_sum << "\t" << te_bg_sum << "\t" << tot_te_sigma << std::endl;
+
+    // create element of energy deposition profile
+    EdepProfile_t *ep = new EdepProfile_t;
+    ep->id = it;
+    ep->ndf = te_signal.size() - m_startLookingInLayer;
+    ep->chi2 = chi2;
+    ep->en = te_signal_sum;
+    ep->bg = te_bg_sum;
+    ep->er = tot_te_sigma;
+    //std::cout << it<< "\t" <<chi2 << "\t" <<te_signal_sum-te_bg_sum<< std::endl;
+
+    edep_prof.push_back(ep);
+  }
+
+  // create shower fitter for this profile
+  BeamCalFitShower shower_fitter(edep_prof, signalPads.getSide());
+  shower_fitter.setGeometry(m_BCG);
+  shower_fitter.setBackground(m_BCbackground);
+  shower_fitter.setStartLayer(m_startLookingInLayer);
+
+  shower_fitter.setEshwrLimit(m_requiredClusterEnergy.at(0));
+
+  // Extract fitted showers untill nothing left above some threshold
+  while(1){
+    double theta(0.), phi(0.), en_shwr(0.), chi2_shwr(0.);
+    double shwr_prob = shower_fitter.fitShower(theta, phi, en_shwr, chi2_shwr);
+    if (shwr_prob < 0. ) break;
+    // if the shower energy is above threshold, create reco object
+    if (en_shwr > m_requiredClusterEnergy.at(0) ) {
+      // fill the recoVec entry
+      recoVec.push_back( new BCRecoObject(isRealParticle, true, 
+        theta, phi, en_shwr, te_signal.size()-m_startLookingInLayer, 
+	signalPads.getSide() ) );
+
+      // print the log message
+      streamlog_out(MESSAGE2) << title;
+      if(signalPads.getSide() == BCPadEnergies::kRight) streamlog_out(MESSAGE2) << LONGSTRING;
+      if(signalPads.getSide() == BCPadEnergies::kLeft) streamlog_out(MESSAGE2) << LONGSTRING;
+//      streamlog_out(MESSAGE2) << "\nParticle candidate(s) found with shower energy above threshold: \n";
+      streamlog_out(MESSAGE2) << "\nFound BeamCal particle: \t\t    " 
+                              << std::setw(13) << theta 
+			      << std::setw(13) << phi
+                              << std::setw(13) << en_shwr << std::endl;
+			      /*
+                              << ";\twith chi2/ndf, p-value: " << std::setw(10) << chi2_shwr 
+                              << "/" << te_signal.size() - m_startLookingInLayer << std::setw(14) << shwr_prob << std::endl;*/
+    }
+  }
+
+  // clean
+  while (edep_prof.size() != 0 ){
+    delete edep_prof.back();
+    edep_prof.pop_back();
+  }
+
+  return recoVec;
+}
 
 void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft, BCPadEnergies& padEnergiesRight,
 						  int maxLayer, double maxDeposit, double depositedEnergy,
@@ -822,7 +958,7 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
       BCUtil::RotateToBCFrame(momentum, momentum2, halfCrossingAngleMrad);
       m_eventSide = (momentum[2] > 0) ? BCPadEnergies::kLeft  : BCPadEnergies::kRight;
 
-      //    double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
+      //double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
       double impactTheta = BCUtil::AngleToBeamCal(momentum, halfCrossingAngleMrad)*1000;//mrad
       if ( impactTheta > maxAngle ) continue; //only particles that are inside the BeamCal acceptance
 

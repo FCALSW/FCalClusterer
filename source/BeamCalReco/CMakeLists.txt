@@ -6,6 +6,7 @@ SET( BeamCalReco_SOURCES
   src/BeamCalGeoGear.cpp
   src/BeamCalGeoCached.cpp
   src/BeamCalBackground.cpp
+  src/BeamCalFitShower.cpp
   src/BCPadEnergies.cpp
   src/BeamCalCluster.cpp
   src/BCPCuts.cpp
@@ -20,7 +21,8 @@ IF( DD4hep_FOUND )
 ENDIF()
 
 ADD_LIBRARY( BeamCalReco SHARED ${BeamCalReco_SOURCES} )
-TARGET_LINK_LIBRARIES( BeamCalReco FCalUtils ${ROOT_LIBRARIES} ${LCIO_LIBRARIES} ${GEAR_LIBRARIES} ${Marlin_LIBRARIES} )
+TARGET_LINK_LIBRARIES( BeamCalReco FCalUtils ${ROOT_LIBRARIES}
+${ROOT_COMPONENT_LIBRARIES} ${LCIO_LIBRARIES} ${GEAR_LIBRARIES} ${Marlin_LIBRARIES} )
 
 INSTALL( TARGETS
   BeamCalReco

@@ -22,28 +22,12 @@ extern int estimate_pars(vector<double> &vpad, double& zr,
             double& mean, double &stdev, double &sum, double &minm, double &maxm);
 
 BackgroundFitter::BackgroundFitter(int npads){
-  _zero_rate = new vector<double>(npads,0.);
-  _chi2 = new vector<double>(npads,0.);
-  _par0 = new vector<double>(npads,0.);
-  _par1 = new vector<double>(npads,0.);
-  _par2 = new vector<double>(npads,0.);
   _mean = new vector<double>(npads,0.);
-  _sum = new vector<double>(npads,0.);
-  _minm = new vector<double>(npads,0.);
-  _maxm = new vector<double>(npads,0.);
   _stdev = new vector<double>(npads,0.);
 }
 
 BackgroundFitter::~BackgroundFitter(){
-  delete _zero_rate;
-  delete _chi2;
-  delete _par0;
-  delete _par1;
-  delete _par2;
   delete _mean;
-  delete _sum;
-  delete _minm;
-  delete _maxm;
   delete _stdev;
 }
 
@@ -81,15 +65,7 @@ BackgroundFitter::Fit(int ip, vector<double> &vpad){
   // get fitted parameters
   TFitResultPtr r = h->Fit("bgfit","QS");
 
-  _zero_rate->at(ip) = zr;
-  _chi2->at(ip)      = r->Chi2();
-  _par0->at(ip)      = r->Parameter(0);
-  _par1->at(ip)      = r->Parameter(1);
-  _par2->at(ip)      = r->Parameter(2);
   _mean->at(ip)      = mean;
-  _sum->at(ip)       = sum;
-  _minm->at(ip)      = minm;
-  _maxm->at(ip)      = maxm;
   _stdev->at(ip)     = stdev;
 
   delete h;
@@ -103,15 +79,7 @@ BackgroundFitter::WriteFitPars(TTree* tree, int dir){
   string lr("left");
   if(dir >0. ) lr.assign("right");
     
-  tree->Branch((lr+"_zero_rate").c_str(), "std::vector<double>", &_zero_rate);
-  tree->Branch((lr+"_chi2").c_str(),      "std::vector<double>", &_chi2);
-  tree->Branch((lr+"_par0").c_str(),      "std::vector<double>", &_par0);
-  tree->Branch((lr+"_par1").c_str(),      "std::vector<double>", &_par1);
-  tree->Branch((lr+"_par2").c_str(),      "std::vector<double>", &_par2);
   tree->Branch((lr+"_mean").c_str(),      "std::vector<double>", &_mean);
-  tree->Branch((lr+"_sum").c_str(),       "std::vector<double>", &_sum);
-  tree->Branch((lr+"_minm").c_str(),      "std::vector<double>", &_minm);
-  tree->Branch((lr+"_maxm").c_str(),      "std::vector<double>", &_maxm);
   tree->Branch((lr+"_stdev").c_str(),     "std::vector<double>", &_stdev);
 }
 

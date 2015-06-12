@@ -55,6 +55,43 @@ BCPadEnergies::BCPadEnergies(const BCPadEnergies *bcp):
 
 std::vector<double>* BCPadEnergies::getEnergies() { return &m_PadEnergies; }
 
+
+int BCPadEnergies::getTowerEnergies(int padIndex, std::vector<double> & te) const
+{
+  te.clear();
+  if (padIndex < 0 || padIndex > m_BCG.getPadsPerLayer() )
+  {
+    std::cout << "BCPadEnergies::getTowerEnergies bad padIndex requested:" << padIndex
+      << std::endl;
+  }
+
+  int pc(padIndex);
+  while ( pc < m_BCG.getPadsPerBeamCal() ){
+    te.push_back(m_PadEnergies.at(pc));
+    pc+= m_BCG.getPadsPerLayer();
+  }
+
+  return te.size();
+}
+
+double BCPadEnergies::getTowerEnergy(int padIndex, int startLayer) const
+{
+  if (padIndex < 0 || padIndex > m_BCG.getPadsPerLayer() )
+  {
+    std::cout << "BCPadEnergies::getTowerEnergies bad padIndex requested:" << padIndex
+      << std::endl;
+  }
+
+  int pc(padIndex + startLayer*m_BCG.getPadsPerLayer());
+  double te(0.);
+  while ( pc < m_BCG.getPadsPerBeamCal() ){
+    te+= m_PadEnergies.at(pc);
+    pc+= m_BCG.getPadsPerLayer();
+  }
+
+  return te;
+}
+
 double BCPadEnergies::getEnergy(int layer, int ring, int pad) const {
   return m_PadEnergies[ m_BCG.getPadIndex(layer, ring, pad) ];
 }

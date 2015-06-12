@@ -24,7 +24,7 @@ FIND_PACKAGE( ILCUTIL REQUIRED COMPONENTS ILCSOFT_CMAKE_MODULES )
 # load default settings from ILCSOFT_CMAKE_MODULES
 INCLUDE( ilcsoft_default_settings )
 
-FOREACH( pkg ROOT LCIO GEAR streamlog Marlin ) #DD4hep
+FOREACH( pkg LCIO GEAR streamlog Marlin ) #DD4hep
   IF ( ${FCAL_USE_${pkg}} )
     MESSAGE ( STATUS "Building with ${pkg}" )
     FIND_PACKAGE (${pkg} REQUIRED)
@@ -32,6 +32,13 @@ FOREACH( pkg ROOT LCIO GEAR streamlog Marlin ) #DD4hep
     ADD_DEFINITIONS( ${${pkg}_DEFINITIONS} )
   ENDIF()
 ENDFOREACH()
+
+IF ( ${FCAL_USE_ROOT} )
+  MESSAGE ( STATUS "Building with ROOT" )
+  FIND_PACKAGE ( ROOT REQUIRED COMPONENTS Minuit2 )
+  INCLUDE_DIRECTORIES( SYSTEM ${ROOT_INCLUDE_DIRS} )
+  ADD_DEFINITIONS( ${ROOT_DEFINITIONS} )
+ENDIF()
 
 ADD_SUBDIRECTORY(source/)
 

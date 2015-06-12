@@ -173,6 +173,7 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2F *frame){
 }
 
 void BeamCal::BeamCalDraw(TPad *pad, TH2F *frame, Int_t layerNumber){
+  //m_h3BeamCalHisto->SetAxisRange(10.5, 37.5, "X");
   m_h3BeamCalHisto->SetAxisRange(layerNumber-0.5, layerNumber+0.5, "X");
   TH2D *BeamCalEnergy = (TH2D*)m_h3BeamCalHisto->Project3D("yz");
   BeamCalDraw(pad, BeamCalEnergy, frame);

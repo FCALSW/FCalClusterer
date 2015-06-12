@@ -89,7 +89,7 @@ double BeamCalGeo::getPadMiddleR(int cylinder, int sector) const {
 double BeamCalGeo::getPadMiddleTheta(int layer, int cylinder, int sector) const {
   double extents[6];
   getPadExtents(cylinder, sector, extents);
-  return atan(extents[4]/getBCZDistanceToIP());
+  return atan(extents[4]/getLayerZDistanceToIP(layer));
 }
 
 /**

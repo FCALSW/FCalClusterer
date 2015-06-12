@@ -59,6 +59,12 @@ class BeamCalBackground {
   BCPadEnergies* m_BeamCalErrorsLeft;
   BCPadEnergies* m_BeamCalErrorsRight;
 
+  vector<BCPadEnergies*> m_listOfBunchCrossingsLeft;
+  vector<BCPadEnergies*> m_listOfBunchCrossingsRight;
+
+  vector<double>* m_TowerErrorsLeft;
+  vector<double>* m_TowerErrorsRight;
+
   TRandom3 *m_random3;
   TChain* m_backgroundBX;
 
@@ -66,13 +72,24 @@ class BeamCalBackground {
   vector<PadEdepRndPar_t> *m_padParRight;
 
   const BeamCalGeo *m_BCG;
+  int m_startLayer;
+  int m_numberForAverage;
 
  public:
   int init(vector<string> &bg_files, const int n_bx);
   void setRandom3Seed(const int seed);
+  void setStartLayer(const int sl) { m_startLayer = sl; }
+  void setNumberForAverage(const int nav) { m_numberForAverage = nav; }
+
   void getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
   void getAverageBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
   void getErrorsBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
+
+  int getTowerErrorsBG(int padIndex, const BCPadEnergies::BeamCalSide_t bc_side, 
+        double &tower_sigma);
+
+  int getPadsCovariance(vector<int> &pad_list, vector<double> &covinv, 
+        const BCPadEnergies::BeamCalSide_t &bc_side) const;
 
  private:
   int initPregenerated(vector<string> &bg_files);
@@ -84,9 +101,11 @@ class BeamCalBackground {
         const BCPadEnergies::BeamCalSide_t bc_side);
   void getEventAveragedBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
 
+  void setTowerErrors(const std::vector<BCPadEnergies*> singles, 
+         const BCPadEnergies::BeamCalSide_t bc_side);
 
   BCPadEnergies* getBeamCalErrors(const BCPadEnergies *averages, 
-                   const std::vector<BCPadEnergies*> singles, int numberForAverage );
+                   const std::vector<BCPadEnergies*> singles );
 
   void readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side);
 
