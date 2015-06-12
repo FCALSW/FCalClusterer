@@ -7,7 +7,10 @@
 #include "BeamCalCluster.hh"
 #include "BCUtilities.hh"
 #include "BeamCalGeoCached.hh"
-#include "BeamCalBackground.hh"
+#include "BeamCalBkg.hh"
+#include "BeamCalBkgParam.hh"
+#include "BeamCalBkgPregen.hh"
+#include "BeamCalBkgAverage.hh"
 #include "BeamCalFitShower.hh"
 
 //LCIO
@@ -250,7 +253,21 @@ void BeamCalClusterReco::init() {
   }
 
   m_BCG = new BeamCalGeoCached(marlin::Global::GEAR);
-  m_BCbackground = new BeamCalBackground(m_bgMethodName, m_BCG);
+
+  // select which background we have
+  if(      string("Pregenerated") == m_bgMethodName ) {
+    m_BCbackground = new BeamCalBkgPregen(m_bgMethodName, m_BCG);
+  } else if( string("Parametrised") == m_bgMethodName ) {
+    m_BCbackground = new BeamCalBkgParam(m_bgMethodName, m_BCG);
+  } else if( string("Averaged")     == m_bgMethodName) {
+    m_BCbackground = new BeamCalBkgAverage(m_bgMethodName, m_BCG);
+  } else {
+    streamlog_out(ERROR) <<"== Error From BeamCalBackground == "
+			 << "Unknown BeamCal method of background esitmation \""
+			 << m_bgMethodName << "\"" << std::endl;
+    throw std::runtime_error("Unknown BeamCal background method");
+  }
+
   m_BCbackground->setStartLayer(m_startLookingInLayer);
   m_BCbackground->init(m_files, m_nBXtoOverlay);
 

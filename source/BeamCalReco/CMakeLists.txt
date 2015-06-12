@@ -5,7 +5,10 @@ SET( BeamCalReco_SOURCES
   src/BeamCalGeo.cpp
   src/BeamCalGeoGear.cpp
   src/BeamCalGeoCached.cpp
-  src/BeamCalBackground.cpp
+  src/BeamCalBkg.cpp
+  src/BeamCalBkgPregen.cpp
+  src/BeamCalBkgParam.cpp
+  src/BeamCalBkgAverage.cpp
   src/BeamCalFitShower.cpp
   src/BCPadEnergies.cpp
   src/BeamCalCluster.cpp

@@ -6,7 +6,7 @@
 * @date 2015-03-31
 */
 
-#include "BeamCalBackground.hh"
+#include "BeamCalBkg.hh"
 #include "BeamCalFitShower.hh"
 #include "BeamCalGeoCached.hh"
 
@@ -53,10 +53,14 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
   }
 
   // calculate inverse covariance matrix for spot pads
+  /*
   if ( m_BCbackground->getPadsCovariance(pad_list, m_covInv, m_BCside) < 0 ){
     std::cout << "Falling back to uncorrelated errors in chi2 definition.\n";
     m_flagUncorr = true;
   }
+  */
+  // not using covariance for now
+  m_flagUncorr = true;
 
   // fit the shower
   ROOT::Minuit2::Minuit2Minimizer minuit ( ROOT::Minuit2::kMigrad );

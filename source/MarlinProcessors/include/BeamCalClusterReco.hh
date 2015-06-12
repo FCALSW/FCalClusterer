@@ -19,7 +19,7 @@ class BCPadEnergies;
 class BCRecoObject;
 class BeamCal;
 class BeamCalGeo;
-class BeamCalBackground;
+class BeamCalBkg;
 
 class BeamCalClusterReco : public marlin::Processor {
   
@@ -97,7 +97,7 @@ class BeamCalClusterReco : public marlin::Processor {
 
   BeamCalGeo *m_BCG;
   BCPCuts* m_bcpCuts;
-  BeamCalBackground *m_BCbackground;
+  BeamCalBkg *m_BCbackground;
 
   TEfficiency *m_totalEfficiency, *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
   TEfficiency *m_phiFake, *m_thetaFake;

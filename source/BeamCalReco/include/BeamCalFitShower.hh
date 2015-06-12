@@ -15,7 +15,7 @@
 using std::vector;
 
 class BeamCalGeo;
-class BeamCalBackground;
+class BeamCalBkg;
 class PadGeometry;
 
 /**
@@ -65,7 +65,7 @@ class BeamCalFitShower {
   //double showerChi2(double *par);
   
   void setGeometry(const BeamCalGeo *BCG) { m_BCG = BCG; }
-  void setBackground(const BeamCalBackground *BCbg) { m_BCbackground = BCbg; }
+  void setBackground(const BeamCalBkg *BCbg) { m_BCbackground = BCbg; }
   void setStartLayer(const int sl) { m_startLayer = sl; }
   void setEshwrLimit(double elimit) { m_enTowerLimit = elimit; }
 
@@ -93,7 +93,7 @@ class BeamCalFitShower {
   vector<double> m_spotEint;
 
   const BeamCalGeo* m_BCG;
-  const BeamCalBackground *m_BCbackground;
+  const BeamCalBkg *m_BCbackground;
   const BCPadEnergies::BeamCalSide_t m_BCside;
 
   const double m_rhom;
