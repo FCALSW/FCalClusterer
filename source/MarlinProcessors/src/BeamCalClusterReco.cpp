@@ -517,7 +517,9 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
   //Here we fill the efficiency for reconstructing MCParticles
   for (std::vector<OriginalMC>::iterator mcIt = m_originalParticles.begin(); mcIt != m_originalParticles.end(); ++mcIt) {
     OriginalMC const& omc = (*mcIt);
-    m_totalEfficiency->Fill( omc.m_wasFound, omc.m_theta);
+    if (m_MCinBeamCal) {
+      m_totalEfficiency->Fill( omc.m_wasFound, omc.m_theta);
+    }
     m_thetaEfficieny->Fill( omc.m_wasFound, omc.m_theta);
     m_phiEfficiency->Fill ( omc.m_wasFound, omc.m_phi);
     m_twoDEfficiency->Fill( omc.m_wasFound, omc.m_theta, omc.m_phi);
@@ -992,6 +994,14 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
     }
   } catch (Exception &e) {
   }
+
+  m_MCinBeamCal = false;
+  try {
+    LCCollection* colBC = evt->getCollection ( m_colNameBCal );
+    if ( colBC->getNumberOfElements() > 1000 ) { m_MCinBeamCal = true; }
+  } catch (Exception &e) {
+  }
+
 
   return;
 }//FindOriginalMCParticle
