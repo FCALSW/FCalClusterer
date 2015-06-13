@@ -65,6 +65,10 @@ void BeamCalBkgAverage::init(vector<string> &bg_files, const int n_bx)
 
   m_BeamCalErrorsLeft  = new BCPadEnergies(backgroundBeamCals[0]);
   m_BeamCalErrorsRight = new BCPadEnergies(backgroundBeamCals[1]);
+
+  // calculate st.dev. of tower energies
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kLeft);
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kRight);
 }
 
 

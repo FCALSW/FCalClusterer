@@ -104,8 +104,8 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 
     // generating fluctiations at once with stdev*sqrt(nBX)
     // otherwise the time to generate each event grows too much
-    vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
-    //vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
+    //vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
+    vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
   }
 
   peLeft.setEnergies(vedep);
@@ -116,8 +116,8 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 
     // generating fluctiations at once with stdev*sqrt(nBX)
     // otherwise the time to generate each event grows too much
-    vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
-    //vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
+    //vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
+    vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
   }
 
   peRight.setEnergies(vedep);
@@ -125,6 +125,10 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
   streamlog_out(DEBUG) << "BeamCalBkgParam: total energy generated with parametrised method for "
 		       << "Left and Right BeamCal = " << peLeft.getTotalEnergy() << "\t" 
 		       << peRight.getTotalEnergy() << std::endl;
+
+  // calculate st.dev. of tower energies
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kLeft);
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kRight);
 }
 
 void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side)
