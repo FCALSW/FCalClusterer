@@ -39,6 +39,7 @@
 #include <TH2F.h>
 #include <TLine.h>
 #include <TPaveText.h>
+#include <TProfile.h>
 #include <TRandom3.h>
 #include <TStyle.h>
 #include <TMarker.h>
@@ -293,8 +294,8 @@ void BeamCalClusterReco::init() {
     m_phiFake  = new TEfficiency("phiFake","Fake Rate vs. #Phi", 72, 0, 360);
     m_thetaFake = new TEfficiency("thetaFake","Fake Rate vs. #Theta", bins, minAngle, maxAngle);
 
-    /* 0*/  m_checkPlots.push_back( new TH1D("energyReal","Energy;Energy [GeV];N",100, 0, 20) );
-    /* 1*/  m_checkPlots.push_back( new TH1D("energyFake","Energy;Energy [GeV];N",100, 0, 20) );
+    /* 0*/  m_checkPlots.push_back( new TH1D("energyReal","Energy;Energy [GeV];N",100, 0, 30) );
+    /* 1*/  m_checkPlots.push_back( new TH1D("energyFake","Energy;Energy [GeV];N",100, 0, 30) );
     /* 2*/  m_checkPlots.push_back( new TH1D("clusterReal","Cluster; Cluster; N",40, 0, 40) );
     /* 3*/  m_checkPlots.push_back( new TH1D("clusterFake","Cluster; Cluster; N",40, 0, 40) );
     /* 4*/  m_checkPlots.push_back( new TH2D("EvClusterReal","Energy vs. N_{Pads};Energy [GeV]; N_{Pads}",100, 0, 20, 40, 0, 40) );
@@ -308,6 +309,7 @@ void BeamCalClusterReco::init() {
     /*12*/  m_checkPlots.push_back( new TH2D("dRvsR","dR vs R;R [mm];#Delta R [mm]", 65, 20, 150, 60, -30, 30) );
     /*13*/  m_checkPlots.push_back( new TH2D("dphiRvsR","d(phi*R) vs R;R [mm];#Delta(#phi*R) [mm]",65, 20, 150, 60, -30, 30) );
     /*14*/  m_checkPlots.push_back( new TH2D("dphivsR","d(phi) vs R;R [mm];#Delta(#phi) [deg]",65, 20, 150, 100, -20, 20) );
+    /*15*/  m_checkPlots.push_back( new TProfile("EvsTheta_profile", "E vs Theta", bins, minAngle, maxAngle, 0., 30.));
 
   }//Creating Efficiency objects
 
@@ -576,6 +578,7 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
       m_checkPlots[12]->Fill(omcR, omcR-R);
       m_checkPlots[13]->Fill(omcR, (TMath::DegToRad())*(omc.m_phi - bco->getPhi())*omcR);
       m_checkPlots[14]->Fill(omcR, (TMath::DegToRad())*(omc.m_phi - bco->getPhi()));
+      m_checkPlots[15]->Fill(bco->getThetaMrad(), bco->getEnergy());
 
     } else if( bco->hasWrongCluster() )  {
       m_checkPlots[1]->Fill(bco->getEnergy() );
@@ -726,11 +729,10 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
     // create element of energy deposition profile
     EdepProfile_t *ep = new EdepProfile_t;
     ep->id = it;
-    ep->ndf = te_signal.size() - m_startLookingInLayer;
-    ep->chi2 = chi2;
-    ep->en = te_signal_sum;
-    ep->bg = te_bg_sum;
-    ep->er = tot_te_sigma;
+    ep->towerChi2 = chi2;
+    ep->totalEdep = te_signal_sum;
+    ep->bkgEdep = te_bg_sum;
+    ep->bkgSigma = tot_te_sigma;
     //std::cout << it<< "\t" <<chi2 << "\t" <<te_signal_sum-te_bg_sum<< std::endl;
 
     edep_prof.push_back(ep);
