@@ -88,6 +88,10 @@ void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
   readBackgroundPars(bg_par_tree, BCPadEnergies::kLeft);
   readBackgroundPars(bg_par_tree, BCPadEnergies::kRight);
 
+  // calculate st.dev. of tower energies
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kLeft);
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kRight);
+
   bgfile->Close();
 
 }
@@ -126,9 +130,6 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 		       << "Left and Right BeamCal = " << peLeft.getTotalEnergy() << "\t" 
 		       << peRight.getTotalEnergy() << std::endl;
 
-  // calculate st.dev. of tower energies
-  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kLeft);
-  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kRight);
 }
 
 void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side)
