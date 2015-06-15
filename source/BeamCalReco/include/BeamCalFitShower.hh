@@ -12,23 +12,20 @@
 #include <utility>
 #include "BCPadEnergies.hh"
 
-using std::vector;
-
 class BeamCalGeo;
 class BeamCalBkg;
-class PadGeometry;
+class BeamCalPadGeometry;
 
 /**
 * @brief Segment parameters for profile of the calorimeter energy deposition
 */
 typedef struct {
   int id; 
-  int ndf;
-  double chi2;
-  double en;
-  double bg;
-  double er;
-  PadGeometry *pg;
+  double towerChi2;
+  double totalEdep;
+  double bkgEdep;
+  double bkgSigma;
+  BeamCalPadGeometry *padGeom;
 } EdepProfile_t;
 
 
@@ -40,7 +37,7 @@ class BeamCalFitShower {
   * @param vep profile of energy deposit in the BeamCal as a vector of 
   * segment parameters.
   */
-  BeamCalFitShower(vector<EdepProfile_t*> &vep, const BCPadEnergies::BeamCalSide_t bc_side);
+  BeamCalFitShower(std::vector<EdepProfile_t*> &vep, const BCPadEnergies::BeamCalSide_t bc_side);
   ~BeamCalFitShower(){};
 
   /**
@@ -71,26 +68,26 @@ class BeamCalFitShower {
 
  private:
   void estimateShowerPars(double &rc, double &phic, double &A0, double &sig0);
-  int selectSpotPads(vector<int> &pad_ids);
+  int selectSpotPads(std::vector<int> &pad_ids);
   int calcCovar();
   void deleteSpotPads();
 
  private:
-  vector<EdepProfile_t*> m_vep;
+  std::vector<EdepProfile_t*> m_vep;
   /**
   * @brief List of profile segments falling into the shower spot
   */
-  vector<EdepProfile_t*> m_spotPads;
+  std::vector<EdepProfile_t*> m_spotPads;
 
   /**
   * @brief Inverse covariance matrix for spot pads
   */
-  vector<double> m_covInv;
+  std::vector<double> m_covInv;
 
   /**
   * @brief integral of gaus-distributed energy in spot pads
   */
-  vector<double> m_spotEint;
+  std::vector<double> m_spotEint;
 
   const BeamCalGeo* m_BCG;
   const BeamCalBkg *m_BCbackground;
@@ -103,78 +100,4 @@ class BeamCalFitShower {
   bool m_flagUncorr;
 };
 
-
-class PadGeometry {
- public:
-  /**
-  * @brief The constructor for pad geometry
-  *
-  * Takes coordinates and size of the pad in polar coordinates relative 
-  * to calorimeter center.
-  *
-  * @param r_pad center R-coordinate
-  * @param phi_pad center phi-coordinate
-  * @param dr_pad radial extent
-  * @param dphi_pad polar angle extent
-  */
-  PadGeometry(double r_pad, double phi_pad, double dr_pad, double dphi_pad);
-  ~PadGeometry();
-
-  /**
-  * @brief Length of the arc in the pad
-  *
-  * Calculates arc of a circle of radius r0 with center at (R,Phi)
-  * which lies within the pad. Returns the length if any, returns 0 if
-  * doesn't intersect.
-  *
-  * @param R circle center R-coordinate
-  * @param Phi circle center phi-coordinate
-  * @param r0 circle radius
-  *
-  * @return Length of the arc within the pad.
-  */
-  double getArcWithin(double &r0);
-
-  /**
-  * @brief Sets pad coordinates to local
-  *
-  * Coordinates of pad vertices are calculated relative to a point at R, 
-  * Phi. This is needed to simplify integration.
-  *
-  * @param R
-  * @param Phi
-  */
-  void setLocalCoords(const double &R, const double &Phi);
-
-  double m_R;
-  double m_phi;
-  double m_dR;
-  double m_dphi;
-
-  /**
-  * @brief Pad center XY coordinate in showere center reference frame
-  */
-  double m_pcX;
-  double m_pcY;
-
-  /**
-  * @brief A flag telling wether this pad is one with largest energy
-  *
-  * If it's true the shower center is within it.
-  */
-  bool m_isCentral;
-
- private:
-  typedef struct {
-    double x1, x2;
-    double y1, y2;
-    double a, b;
-  } PadSide_t;
-
-  bool arcOpenClose(PadSide_t &ps, double &xi, double &yi, double &r0,
-         std::pair<double,bool> &ang);
-
-  vector<PadSide_t*> m_sides;
-
-};
 
