@@ -87,7 +87,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 					   m_useChi2Selection(false),
                                            m_createEfficienyFile(false),
                                            m_sigmaCut(1.0),
-                                           m_probLimit(1.e-3),
+                                           m_TowerChi2ndfLimit(5.0),
                                            m_calibrationFactor(1.0),
                                            m_startingRings(),
                                            m_requiredRemainingEnergy(),
@@ -206,10 +206,11 @@ registerProcessorParameter ("UseChi2Selection",
 			      m_useChi2Selection,
 			      false ) ;
 
-registerProcessorParameter ("ProbLimit",
-			      "Limit for probability that the inspected tower has NO shower",
-			      m_probLimit,
-			      double(1.e-3) ) ;
+registerProcessorParameter ("TowerChi2ndfLimit",
+			      "Limit on square norm of tower energy chi2/ndf, where chi2 = (E_dep - E_bg)^2/sig^2. \
+			      Reasonable value for pregenerated bkg is 5., for parametrised is 2.",
+			      m_TowerChi2ndfLimit,
+			      double(5.0) ) ;
 
 
 registerProcessorParameter ("CreateEfficiencyFile",
@@ -700,12 +701,14 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
   vector<EdepProfile_t*> edep_prof; // energy profile for the calorimeter
 
   vector<double> te_signal, te_bg, te_sigma;
+  int ndf(m_BCG->getBCLayers());
   // loop over towers
   for (size_t it = 0; it < m_BCG->getPadsPerLayer(); it++){
     // get tower energies, average, sigma
     signalPads.getTowerEnergies(it, te_signal);
     backgroundPads.getTowerEnergies(it, te_bg);
     backgroundSigma.getTowerEnergies(it, te_sigma);
+    ndf = te_signal.size()-m_startLookingInLayer;
 
     // sums of signal and background along the tower
     double te_signal_sum(0.), te_bg_sum(0.);
@@ -743,6 +746,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
   shower_fitter.setGeometry(m_BCG);
   shower_fitter.setBackground(m_BCbackground);
   shower_fitter.setStartLayer(m_startLookingInLayer);
+  shower_fitter.setTowerChi2Limit(m_TowerChi2ndfLimit*ndf);
 
   shower_fitter.setEshwrLimit(m_requiredClusterEnergy.at(0));
 

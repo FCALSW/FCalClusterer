@@ -65,6 +65,7 @@ class BeamCalFitShower {
   void setBackground(const BeamCalBkg *BCbg) { m_BCbackground = BCbg; }
   void setStartLayer(const int sl) { m_startLayer = sl; }
   void setEshwrLimit(double elimit) { m_enTowerLimit = elimit; }
+  void setTowerChi2Limit(double tchi2lim) { m_towerChi2Limit = tchi2lim;}
 
  private:
   void estimateShowerPars(double &rc, double &phic, double &A0, double &sig0);
@@ -95,6 +96,7 @@ class BeamCalFitShower {
 
   const double m_rhom;
   double m_enTowerLimit;
+  double m_towerChi2Limit;
   int m_startLayer;
 
   bool m_flagUncorr;

@@ -146,7 +146,7 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
   for (;it_ep!=m_vep.end(); it_ep++){
     double tower_chi2 = (*it_ep)->towerChi2;
     double en_tower = (*it_ep)->totalEdep - (*it_ep)->bkgEdep;
-    if ( tower_chi2 > 150. && en_tower > 0.7*m_enTowerLimit && max_chi2 < tower_chi2 ){
+    if ( tower_chi2 > m_towerChi2Limit && en_tower > 0.7*m_enTowerLimit && max_chi2 < tower_chi2 ){
       it_center = it_ep;
       max_chi2 = tower_chi2;
       max_en = en_tower;
@@ -172,7 +172,8 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
   for ( it_ep = m_vep.begin() ;it_ep!=m_vep.end(); it_ep++){
     double pad_dist = m_BCG->getPadsDistance((*it_center)->id, (*it_ep)->id);
     double en_tower = (*it_ep)->totalEdep - (*it_ep)->bkgEdep;
-    if ( pad_dist < 2.0*m_rhom && pad_dist != 0. && en_tower > 0.1*m_enTowerLimit) {
+    if ( pad_dist < 2.0*m_rhom && pad_dist != 0. && 
+        en_tower > 0.1*m_enTowerLimit && en_tower > (*it_ep)->bkgSigma) {
       // if the pad is in the spot, assign its geometry too
       m_BCG->getPadExtentsById((*it_ep)->id, pext);
       double dphi = pext[3]-pext[2];
