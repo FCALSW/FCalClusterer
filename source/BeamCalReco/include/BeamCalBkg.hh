@@ -37,7 +37,7 @@ typedef struct {
 class BeamCalBkg {
  public:
   BeamCalBkg(const string &bg_method_name, const BeamCalGeo* BCG);
-  ~BeamCalBkg();
+  virtual ~BeamCalBkg();
 
  public: 
   enum BackgroundMethod_t { kPregenerated, kParametrised, kAveraged };
