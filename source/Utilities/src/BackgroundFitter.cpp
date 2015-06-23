@@ -81,5 +81,7 @@ BackgroundFitter::WriteFitPars(TTree* tree, int dir){
     
   tree->Branch((lr+"_mean").c_str(),      "std::vector<double>", &_mean);
   tree->Branch((lr+"_stdev").c_str(),     "std::vector<double>", &_stdev);
+
+  return 0;
 }
 
