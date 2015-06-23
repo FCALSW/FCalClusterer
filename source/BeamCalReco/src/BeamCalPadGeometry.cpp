@@ -96,6 +96,7 @@ double BeamCalPadGeometry::getArcWithin(const double &r0)
   // intersections with pad sides
   vector< pair<double, bool> > isects;
   //std::cout << "---------------------" << std::endl;
+  double r_vertex_min(1000.);
 
   // loop over pad sides
   vector<PadSide_t>::iterator it_ps = m_sides.begin();
@@ -111,6 +112,8 @@ double BeamCalPadGeometry::getArcWithin(const double &r0)
     // check if both ends are within the circle, and skip if yes
     double r1 = sqrt(pow(ps.x1,2)+pow(ps.y1,2));
     double r2 = sqrt(pow(ps.x2,2)+pow(ps.y2,2));
+    if (r1 < r_vertex_min ) r_vertex_min = r1;
+    if (r2 < r_vertex_min ) r_vertex_min = r2;
     if ( r1 <= r0 - 0.01 && r2 <= r0 - 0.01 ) continue;
     if ( r1 >= r0 + 0.01 && r2 >= r0 + 0.01 ) continue;
 
@@ -128,7 +131,8 @@ double BeamCalPadGeometry::getArcWithin(const double &r0)
     //std::cout << a<< "\t" <<b<< "\t" <<det << "\t" <<xi2<< "\t" <<yi2<< "\t" << ang.first << "\t" <<ang.second<< std::endl;
   }
 
-  if ( 0 == isects.size() && m_isCentral ) return 2.*M_PI*r0;
+  if ( 0 == isects.size() )
+    if ( m_isCentral && r0 < r_vertex_min ) return 2.*M_PI*r0;
   if ( 0 == isects.size() ) return 0.;
 
   // every pad must have even number of intersections

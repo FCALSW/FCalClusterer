@@ -185,13 +185,6 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
     }
   }
 
-  vector<EdepProfile_t*>::iterator it_sp;
-  std::cout << "\t" ;
-  for ( it_sp = m_spotPads.begin() ;it_sp!=m_spotPads.end(); it_sp++){
-    std::cout << (*it_sp)->totalEdep - (*it_sp)->bkgEdep<< "\t"  ;
-  }
-  std::cout  << std::endl;
-  
   
   return m_spotPads.size();
 }
@@ -255,16 +248,6 @@ double BeamCalFitShower::operator()(const double *par)
     }
   }
 
-
-  /*
-  std::cout << chi2<< "\t" ;
-  vector<double>::iterator it_ei = m_spotEint.begin();
-  for (;it_ei != m_spotEint.end(); it_ei++){
-    std::cout<< "\t"  << *it_ei;
-  }
-  std::cout << std::endl;
-  */
-//  std::cout << par[0]<< "\t" <<par[1]<< "\t" <<par[2]<< "\t" <<par[3] << std::endl;
 
   return chi2;
 }
