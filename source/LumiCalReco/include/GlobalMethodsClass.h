@@ -48,7 +48,7 @@ public:
   typedef std::map < Parameter_t, std::string > ParametersString;
 
   GlobalMethodsClass();
-  virtual ~GlobalMethodsClass();
+  ~GlobalMethodsClass();
 
   void SetConstants();
 

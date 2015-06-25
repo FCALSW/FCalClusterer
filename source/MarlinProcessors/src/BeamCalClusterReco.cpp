@@ -270,9 +270,6 @@ void BeamCalClusterReco::init() {
     throw std::runtime_error("Unknown BeamCal background method");
   }
 
-  m_BCbackground->setStartLayer(m_startLookingInLayer);
-  m_BCbackground->init(m_files, m_nBXtoOverlay);
-
   //Fill BCPCuts object with cuts from the processor parameters
   m_bcpCuts = new BCPCuts(m_startingRings,
 			  m_requiredRemainingEnergy, m_requiredClusterEnergy,
@@ -280,6 +277,9 @@ void BeamCalClusterReco::init() {
 			  m_startLookingInLayer,
 			  m_usePadCuts,
 			  m_sigmaCut);
+
+  m_BCbackground->setBCPCuts(m_bcpCuts);
+  m_BCbackground->init(m_files, m_nBXtoOverlay);
 
   //Create Efficiency Objects if required
   if(m_createEfficienyFile) {

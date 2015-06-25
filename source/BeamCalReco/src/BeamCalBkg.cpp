@@ -13,6 +13,7 @@
 #include "BeamCalBkg.hh"
 #include "BeamCalGeoCached.hh"
 #include "BCPadEnergies.hh"
+#include "BCPCuts.hh"
 #include "BCRootUtilities.hh"
 
 
@@ -57,7 +58,7 @@ BeamCalBkg::BeamCalBkg(const string& bg_method_name,
 					   m_TowerErrorsRight(NULL),
                                            m_random3(NULL),
                                            m_BCG(BCG),
-                                           m_startLayer(10)
+                                           m_bcpCuts(NULL)
 {
   streamlog_out(MESSAGE) << "Initialising BeamCal background with \""
 			 << bg_method_name << "\" method" << std::endl;
@@ -109,12 +110,13 @@ void BeamCalBkg::setTowerErrors(const BCPadEnergies::BeamCalSide_t bc_side)
   te_var->clear();
 
   const int ppl = m_BCG->getPadsPerLayer();
+  const int start_layer = m_bcpCuts->getStartingLayer();
 
   // loop over pads in one layer == towers in BC
   for (int ip = 0; ip < ppl; ip++){
     te_var->push_back(0.);
     // loop over pads in a tower
-    for (int jp = ip+m_startLayer*ppl; jp < m_BCG->getPadsPerBeamCal(); jp+=ppl){
+    for (int jp = ip+start_layer*ppl; jp < m_BCG->getPadsPerBeamCal(); jp+=ppl){
       te_var->back() += pow( BC_errors->getEnergy(jp), 2);
     }
     te_var->back() = sqrt(te_var->back());

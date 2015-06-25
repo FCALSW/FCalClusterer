@@ -9,9 +9,10 @@ using std::vector;
 class BackgroundFitter {
  public:
   BackgroundFitter(int npads);
-  BackgroundFitter(const BackgroundFitter&);
   ~BackgroundFitter();
 
+ private:
+  BackgroundFitter(const BackgroundFitter&);
   BackgroundFitter &operator=(const BackgroundFitter&);
 
  public:

@@ -21,22 +21,24 @@ extern int slice_pad(vector<vector<double> > &vvbg, int ip, vector<double>& vout
 extern int estimate_pars(vector<double> &vpad, double& zr, 
             double& mean, double &stdev, double &sum, double &minm, double &maxm);
 
-BackgroundFitter::BackgroundFitter(int npads) : _mean(NULL), _stdev(NULL) 
-{
-  _mean = new vector<double>(npads,0.);
-  _stdev = new vector<double>(npads,0.);
-}
-
-BackgroundFitter::BackgroundFitter(const BackgroundFitter&bf) : 
-                  _mean(bf._mean),
-		  _stdev(bf._stdev)
+BackgroundFitter::BackgroundFitter(int npads) 
+                 : _mean(new vector<double>(npads,0.)), 
+		   _stdev(new vector<double>(npads,0.)) 
 {}
+
+BackgroundFitter::BackgroundFitter(const BackgroundFitter&bf)
+                 : _mean(NULL), 
+		   _stdev(NULL) 
+{
+  _mean = new vector<double>(*(bf._mean));
+  _stdev = new vector<double>(*(bf._stdev));
+}
 
 BackgroundFitter &
 BackgroundFitter::operator=(const BackgroundFitter&bf)
 {
-  _mean = bf._mean;
-  _stdev = bf._stdev;
+  _mean = new vector<double>(*(bf._mean));
+  _stdev = new vector<double>(*(bf._stdev));
 
   return *this;
 }
@@ -97,7 +99,5 @@ BackgroundFitter::WriteFitPars(TTree* tree, int dir){
     
   tree->Branch((lr+"_mean").c_str(),      "std::vector<double>", &_mean);
   tree->Branch((lr+"_stdev").c_str(),     "std::vector<double>", &_stdev);
-
-  return 0;
 }
 

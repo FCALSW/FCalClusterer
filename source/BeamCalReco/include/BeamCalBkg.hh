@@ -17,6 +17,7 @@ class TRandom3;
 class TTree;
 
 class BeamCalGeo;
+class BCPCuts;
 
 using std::vector;
 using std::string;
@@ -62,13 +63,13 @@ class BeamCalBkg {
   TRandom3 *m_random3;
 
   const BeamCalGeo *m_BCG;
-  int m_startLayer;
+  const BCPCuts *m_bcpCuts;
 
  public:
   virtual void init(const int n_bx);
   virtual void init(vector<string>& bgfiles, const int n_bx) = 0;
   void setRandom3Seed(const int seed);
-  void setStartLayer(const int sl) { m_startLayer = sl; }
+  void setBCPCuts(const BCPCuts *bcpcuts) { m_bcpCuts = bcpcuts; }
 
   virtual void getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight) = 0;
   virtual void getAverageBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
