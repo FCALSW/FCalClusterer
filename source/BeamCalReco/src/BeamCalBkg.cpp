@@ -53,8 +53,11 @@ BeamCalBkg::BeamCalBkg(const string& bg_method_name,
                                            m_BeamCalAverageRight(NULL),
                                            m_BeamCalErrorsLeft(NULL),
                                            m_BeamCalErrorsRight(NULL),
+					   m_TowerErrorsLeft(NULL),
+					   m_TowerErrorsRight(NULL),
                                            m_random3(NULL),
-                                           m_BCG(BCG)
+                                           m_BCG(BCG),
+                                           m_startLayer(10)
 {
   streamlog_out(MESSAGE) << "Initialising BeamCal background with \""
 			 << bg_method_name << "\" method" << std::endl;

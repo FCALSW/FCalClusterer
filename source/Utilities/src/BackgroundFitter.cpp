@@ -21,9 +21,24 @@ extern int slice_pad(vector<vector<double> > &vvbg, int ip, vector<double>& vout
 extern int estimate_pars(vector<double> &vpad, double& zr, 
             double& mean, double &stdev, double &sum, double &minm, double &maxm);
 
-BackgroundFitter::BackgroundFitter(int npads){
+BackgroundFitter::BackgroundFitter(int npads) : _mean(NULL), _stdev(NULL) 
+{
   _mean = new vector<double>(npads,0.);
   _stdev = new vector<double>(npads,0.);
+}
+
+BackgroundFitter::BackgroundFitter(const BackgroundFitter&bf) : 
+                  _mean(bf._mean),
+		  _stdev(bf._stdev)
+{}
+
+BackgroundFitter &
+BackgroundFitter::operator=(const BackgroundFitter&bf)
+{
+  _mean = bf._mean;
+  _stdev = bf._stdev;
+
+  return *this;
 }
 
 BackgroundFitter::~BackgroundFitter(){
@@ -33,8 +48,9 @@ BackgroundFitter::~BackgroundFitter(){
 
 double 
 BackgroundFitter::Fit(int ip, vector<double> &vpad){
+
   double zr(0.), mean(0.), stdev(0.), sum(0.), minm(0.), maxm(0.);
-  int nnonzero = estimate_pars(vpad, zr, mean, stdev, sum, minm, maxm);
+  estimate_pars(vpad, zr, mean, stdev, sum, minm, maxm);
 
   if ( 1. == zr ) return 0.;
 
@@ -56,7 +72,7 @@ BackgroundFitter::Fit(int ip, vector<double> &vpad){
 
   // fill a histogram with non-zero values
   TH1F *h = new TH1F("h", "h", nbins, 0., maxm*1.04);
-  for (int ie=0; ie<vpad.size(); ie++){
+  for (size_t ie=0; ie<vpad.size(); ie++){
     if (vpad.at(ie) != 0. ) {
       h->Fill(vpad.at(ie));
     }
@@ -74,7 +90,7 @@ BackgroundFitter::Fit(int ip, vector<double> &vpad){
   return r->Chi2();
 }
 
-int
+void
 BackgroundFitter::WriteFitPars(TTree* tree, int dir){
   string lr("left");
   if(dir >0. ) lr.assign("right");

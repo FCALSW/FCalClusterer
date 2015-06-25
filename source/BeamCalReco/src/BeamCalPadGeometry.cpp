@@ -27,7 +27,10 @@ BeamCalPadGeometry::BeamCalPadGeometry(double R, double phi, double dR,  double 
                          m_phi(phi),
 		         m_dR(dR),
 		         m_dphi(dphi),
-		         m_isCentral(false)
+			 m_pcX(0.),
+			 m_pcY(0.),
+		         m_isCentral(false),
+			 m_sides(vector<PadSide_t>())
 {
   m_sides.clear();
   m_sides.assign(4, PadSide_t());

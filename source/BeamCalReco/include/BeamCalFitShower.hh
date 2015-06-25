@@ -41,6 +41,20 @@ class BeamCalFitShower {
   ~BeamCalFitShower(){};
 
   /**
+   * @brief Copy constructor for shower fitter
+   *
+   * @param fs reference to BeamCalFitShower object to be copied
+   */
+  BeamCalFitShower(const BeamCalFitShower& fs);
+
+  /**
+   * @brief Assignment operator
+   *
+   * @param fs reference to BeamCalFitShower object to be copied
+   */
+  BeamCalFitShower& operator=(const BeamCalFitShower&fs);
+
+  /**
   * @brief Fits the shower with 2d Gauss
   *
   * The method takes maximum energy pad from profile, 

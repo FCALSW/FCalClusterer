@@ -44,8 +44,12 @@ using std::map;
 using marlin::Global;
 
 BeamCalBkgPregen::BeamCalBkgPregen(const string& bg_method_name, 
-                     const BeamCalGeo *BCG) : BeamCalBkg(bg_method_name, BCG), 
-					   m_backgroundBX(NULL)
+                     const BeamCalGeo *BCG) 
+		 :BeamCalBkg(bg_method_name, BCG), 
+		  m_listOfBunchCrossingsLeft(vector<BCPadEnergies*>()),
+		  m_listOfBunchCrossingsRight(vector<BCPadEnergies*>()),
+		  m_backgroundBX(NULL),
+		  m_numberForAverage(1)
 {
   streamlog_out(MESSAGE) << "Initialising BeamCal background with \""
 			 << bg_method_name << "\" method" << std::endl;

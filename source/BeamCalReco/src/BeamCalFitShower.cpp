@@ -32,13 +32,48 @@ using std::pair;
 BeamCalFitShower::BeamCalFitShower(vector<EdepProfile_t*> &vep, 
 		    const BCPadEnergies::BeamCalSide_t bc_side) :
                                   m_vep(vep),
+				  m_spotPads(vector<EdepProfile_t*>()),
+				  m_covInv(vector<double>()),
+				  m_spotEint(vector<double>()),
+				  m_BCG(NULL),
+				  m_BCbackground(NULL),
 				  m_BCside(bc_side),
 				  m_rhom(9.3),
-				  m_enTowerLimit(0.)
+				  m_enTowerLimit(0.),
+				  m_towerChi2Limit(1.),
+				  m_startLayer(1),
+				  m_flagUncorr(false)
 {
   // hardcode now, make better later
   // m_rhom = 9.3; // Moliere radius (rho_M)
-  m_flagUncorr = false;
+}
+
+
+BeamCalFitShower::BeamCalFitShower(const BeamCalFitShower& fs)
+		 : m_vep(fs.m_vep),
+		   m_spotPads(fs.m_spotPads),
+		   m_covInv(fs.m_covInv),
+		   m_spotEint(fs.m_spotEint),
+		   m_BCG(fs.m_BCG),
+		   m_BCbackground(fs.m_BCbackground),
+		   m_BCside(fs.m_BCside),
+		   m_rhom(fs.m_rhom),
+		   m_enTowerLimit(fs.m_enTowerLimit),
+		   m_towerChi2Limit(fs.m_towerChi2Limit),
+		   m_startLayer(fs.m_startLayer),
+		   m_flagUncorr(fs.m_flagUncorr)
+{}
+
+BeamCalFitShower&
+BeamCalFitShower::operator=(const BeamCalFitShower&fs)
+{
+  m_vep = fs.m_vep;
+  m_BCG = fs.m_BCG;
+  m_BCbackground = fs.m_BCbackground;
+
+  m_enTowerLimit = fs.m_enTowerLimit;
+
+  return *this;
 }
 
 double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, double &chi2)
@@ -140,7 +175,6 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
   vector<EdepProfile_t*>::iterator it_center = m_vep.begin();
   //double max_en = (*it_center)->en;
   double max_chi2 = (*it_center)->towerChi2;
-  double max_en(0.);
 
   vector<EdepProfile_t*>::iterator it_ep = m_vep.begin();
   for (;it_ep!=m_vep.end(); it_ep++){
@@ -149,7 +183,7 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
     if ( tower_chi2 > m_towerChi2Limit && en_tower > 0.7*m_enTowerLimit && max_chi2 < tower_chi2 ){
       it_center = it_ep;
       max_chi2 = tower_chi2;
-      max_en = en_tower;
+      //max_en = en_tower;
     }
   }
     //std::cout << max_en<< "\t" << std::endl;
@@ -176,7 +210,7 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
         en_tower > 0.1*m_enTowerLimit && en_tower > (*it_ep)->bkgSigma) {
       // if the pad is in the spot, assign its geometry too
       m_BCG->getPadExtentsById((*it_ep)->id, pext);
-      double dphi = pext[3]-pext[2];
+      dphi = pext[3]-pext[2];
       if (dphi < 0 ) dphi+= 360.; // in case pad extents over the -X axis
       (*it_ep)->padGeom = new BeamCalPadGeometry(pext[4], pext[5]*DEGRAD, pext[1]-pext[0], dphi*DEGRAD);
       (*it_ep)->padGeom->m_isCentral = false;

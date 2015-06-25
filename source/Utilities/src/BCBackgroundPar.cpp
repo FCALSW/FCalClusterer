@@ -51,7 +51,8 @@ int slice_pad(Tvvd &vvbg, int ip, vector<double>& vout);
 int estimate_pars(vector<double> &vpad, double& zr, 
             double& mean, double &stdev, double &sum, double &minm, double &maxm);
 
-int main(int argc, char **argv){
+int main(){
+//int main(int argc, char **argv){
 
   Tvvd vbgleft, vbgright;
   int nentries(0);
@@ -70,7 +71,7 @@ int main(int argc, char **argv){
     vector<double> vpad;
     int npads = slice_pad(vbgleft, ip, vpad);
     if (0 == npads ) cout << "No pads in slice " << ip << endl;
-    double chi2 = fmleft->Fit(ip, vpad); 
+    fmleft->Fit(ip, vpad); 
 //    if (chi2 > 150 ) cout << ip<< ":\t" << chi2 << endl;
   }
 
@@ -86,7 +87,7 @@ int main(int argc, char **argv){
     vector<double> vpad;
     int npads = slice_pad(vbgright, ip, vpad);
     if (0 == npads ) cout << "No pads in slice " << ip << endl;
-    double chi2 = fmright->Fit(ip, vpad); 
+    fmright->Fit(ip, vpad); 
 //    cout << ip<< ":\t" << chi2 << endl;
   }
 
