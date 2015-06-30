@@ -56,7 +56,9 @@ void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& ce
   cellZ   = (cellId >> 0  ) & (int)(( 1 << 10 ) -1) ; 
   cellPhi = (cellId >> 10 ) & (int)(( 1 << 10 ) -1) ;
   cellR   = (cellId >> 20 ) & (int)(( 1 << 10 ) -1) ;
-  arm     = (cellId >> 30 ) & (int)(( 1 <<  2 ) -1) ;
+//S  arm     = (cellId >> 30 ) & (int)(( 1 <<  2 ) -1) ;
+/*S*/  arm     = (cellId >> 30 ) & (int)(( 1 <<  3 ) -1) ;
+/*S*/  arm = (arm>1) ? -1 : 1;
   return;
 
 }
@@ -70,21 +72,23 @@ void GlobalMethodsClass::SetConstants() {
   // geometry parameters of LumiCal
 
   // starting position [mm]
-  GlobalParamD[ZStart]   = 2654.2;
+//S  GlobalParamD[ZStart]   = 2654.2;
+/*S*/  GlobalParamD[ZStart]   = 2524.59;
   // inner and outer radii [mm]
-  GlobalParamD[RMin] = 100;
-  GlobalParamD[RMax] = 290;
+//S  GlobalParamD[RMin] = 80;
+  GlobalParamD[RMin] = 80.0 + 1.2;
+  GlobalParamD[RMax] = 195.2;
   // cell division numbers
   GlobalParamI[NumCellsR] = 64;
   GlobalParamI[NumCellsPhi] = 48;
-  GlobalParamI[NumCellsZ] = 40;
+  GlobalParamI[NumCellsZ] = 30;
 
   GlobalParamD[RCellLength] = (GlobalParamD[RMax] - GlobalParamD[RMin]) / double(GlobalParamI[NumCellsR]);
   // layer thickness
-  GlobalParamD[ZLayerThickness] = 3.5+0.2+0.32+0.25;
+  GlobalParamD[ZLayerThickness] = 4.335; //3.5+0.2+0.32+0.25;
 
   // logarithmic constant for position reconstruction
-  GlobalParamD[LogWeightConstant] = 6.;
+  GlobalParamD[LogWeightConstant] = 4.5;
 
   // Moliere radius of LumiCal [mm]
   GlobalParamD[MoliereRadius] = 14;

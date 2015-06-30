@@ -2,8 +2,6 @@
 #include "Global.hh"
 #include "LumiCalClusterer.h"
 #include "SortingFunctions.hh"
-#include "Distance2D.hh"
-using LCHelper::distance2D;
 // Root
 #include <TF1.h>
 #include <TH1F.h>
@@ -214,13 +212,13 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 
   MapIntInt::iterator maxCluster = 
     std::max_element( numClustersCounter.begin(), numClustersCounter.end(), compareByValue<std::pair<int, int> >);
+//  int numClustersMajority = maxCluster->second;
   int numClustersMajority = maxCluster->first;
-  numClustersCounter.clear();
-
 #if _CLUSTER_BUILD_DEBUG == 1
-  streamlog_out( DEBUG ) <<  "\t -> Assume that there are " << numClustersMajority
-	   << " global clusters" << std::endl <<std::endl;
+  streamlog_out( DEBUG ) <<  "\t -> Assume that there are " << maxCluster->first 
+	   << " global clusters in " << maxCluster->second << " layers" << std::endl <<std::endl;
 #endif
+  numClustersCounter.clear();
 
 
   /* --------------------------------------------------------------------------
@@ -252,6 +250,11 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   }
   // for the layer with the most energy which has numClustersMajority clusters,
   // initialize the averageCM vector
+#if _CLUSTER_BUILD_DEBUG == 1
+  streamlog_out( DEBUG ) <<  "Considering only above preselected layers, the bigest energy: " 
+                         << maxEngyLayer << " is in layer: " << maxEngyLayerN << std::endl <<std::endl;
+#endif
+  
   std::vector < LCCluster >  avrgCM;
   for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) {
     if(isShowerPeakLayer[layerNow] == 1) {
