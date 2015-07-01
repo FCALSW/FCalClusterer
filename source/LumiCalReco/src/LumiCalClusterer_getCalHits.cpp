@@ -79,13 +79,13 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       const double rHit = (rCell+0.5) * _rCellLength + _rMin;
       const double phiHit = (phiCell+0.5) * _phiCellLength;
 
-      const double zHit = (double)calHitIn -> getPosition()[2];
+      const float zHit = (double)calHitIn -> getPosition()[2];
       // determine the side (arm) of the hit -> (+,-)1
       arm = (( zHit < 0 ) ? -1 : 1);
 
       // compute x.y hit coordinates
-      const double xHit = rHit * cos(phiHit);
-      const double yHit = rHit * sin(phiHit);
+      const float xHit = rHit * cos(phiHit);
+      const float yHit = rHit * sin(phiHit);
       // write x,y,z to an array
       float hitPosV[3] = {xHit, yHit, zHit};
 
