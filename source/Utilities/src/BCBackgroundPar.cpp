@@ -126,15 +126,17 @@ int read_bg_vec(string &bgfname, Tvvd &vbgleft, Tvvd &vbgright){
     std::cerr << "Tree not found in file " << bgfname  << std::endl;
     file->Close();
     delete file;
+    return 0;
   }
   
   tree->SetBranchAddress("vec_left" , &depLeft);
   tree->SetBranchAddress("vec_right", &depRight);
 
-  tree->GetEntry(0);
-  vbgleft.push_back(*depLeft);
-  vbgright.push_back(*depRight);
-
+  for (int i = 0; i < tree->GetEntries(); ++i) {
+    tree->GetEntry(i);
+    vbgleft.push_back(*depLeft);
+    vbgright.push_back(*depRight);
+  }
   file->Close();
 
   return 1;
