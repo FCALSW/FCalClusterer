@@ -51,15 +51,20 @@ int slice_pad(Tvvd &vvbg, int ip, vector<double>& vout);
 int estimate_pars(vector<double> &vpad, double& zr, 
             double& mean, double &stdev, double &sum, double &minm, double &maxm);
 
-int main(){
-//int main(int argc, char **argv){
+int main(int argc, char **argv) {
+  if (argc < 2 ) {
+    std::cerr << "No input files provided"  << std::endl;
+    std::cerr << "BCPackgroundPar background.root [[background2.root] ...]"  << std::endl;
+    return 1;
+  }
+
 
   Tvvd vbgleft, vbgright;
-  int nentries(0);
-
-  for (string bgfname; std::getline(cin,bgfname);){
+  //first entry is program name, start at 1
+  for (int i = 1; i < argc; ++i) {
+    std::cout << "Reading background file " << argv[i] << std::endl;
+    std::string bgfname = argv[1];
     read_bg_vec(bgfname, vbgleft, vbgright);
-    nentries++;
   }
 
   unsigned int nbcpads = vbgleft.at(0).size();
