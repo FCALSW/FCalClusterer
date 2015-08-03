@@ -10,57 +10,10 @@
 
  <global>
    <parameter name="LCIOInputFiles">    
-
-
-
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_1.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_2.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_3.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_4.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_5.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_6.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_7.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_8.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_9.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_10.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_11.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_12.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_13.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_14.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_15.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_16.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_17.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_18.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_19.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_20.slcio
-
+     /path/to/Simulated/BackgroundFiles/BunchCrossing1_1of3.slcio
+     /path/to/Simulated/BackgroundFiles/BunchCrossing1_2of3.slcio
+     /path/to/Simulated/BackgroundFiles/BunchCrossing1_3of3.slcio
  </parameter>
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_21.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_22.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_23.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_24.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_25.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_26.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_27.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_28.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_29.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_30.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_31.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_32.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_33.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_34.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_35.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_36.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_37.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_38.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_39.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_40.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_41.slcio
-     /Storage/sailer/CLIC_ILD_CDR/SimulatedPairs/CDR_NoThresh_04_42.slcio
-
-     /Storage/sailer/CLIC_ILD_CDR/ElectronsInBeamCal/1500_RightSide/ElectronsInBeamCal_4_1500GEV_1.slcio
-     /Storage/sailer/CLIC_ILD_CDR/ElectronsInBeamCal/1500_RightSide/ElectronsInBeamCal_4_1500GEV_2.slcio
-     /Storage/sailer/CLIC_ILD_CDR/ElectronsInBeamCal/1500_RightSide/ElectronsInBeamCal_4_1500GEV_3.slcio
 
   <!-- limit the number of processed records (run+evt): -->  
   <parameter name="MaxRecordNumber" value="0" />  
@@ -75,13 +28,10 @@
  <processor name="MyReadBeamCal" type="ReadBeamCal">
  <!--ReadBeamCal reads the simulation for the pairs and creates two std::vector<double> in a tree, which can then be used later on for Overlay, calculation of fluctiuations, etc.-->
   <!--Name of BeamCal Collection-->
-  <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit">BeamCalCollection </parameter>
+  <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit"> BeamCalCollection </parameter>
   <!--Root OutputFile -->
   <parameter name="OutputFileBackground" type="string">BeamCal.root </parameter>
-  <!--RunID-->
-  <parameter name="RunID" type="int"> 1 </parameter>
   <parameter name="ProbabilityFactor" type="double"> 100 </parameter>
-  <parameter name="PDFFile" type="string"> BeamCal0nmOffset.pdf </parameter>
   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
   <parameter name="Verbosity" type="string">DEBUG </parameter>
 </processor>

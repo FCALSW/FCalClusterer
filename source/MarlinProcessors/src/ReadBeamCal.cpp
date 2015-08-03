@@ -81,12 +81,6 @@ ReadBeamCal::ReadBeamCal() : Processor("ReadBeamCal"),
 			      m_probFactor,
 			      double(100.0) ) ;
 
-  // registerProcessorParameter ("PDFFile",
-  // 			      "Title of Output PDF only if verbosity is DEBUG!",
-  // 			      m_pdftitle,
-  // 			      std::string("ReadBeamCal.pdf") ) ;
-
-
 }
 //#pragma GCC diagnostic pop
 
