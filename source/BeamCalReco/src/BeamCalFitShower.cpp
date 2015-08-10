@@ -248,12 +248,14 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
     }
   }
 
+		/*
   		vector<EdepProfile_t*>::iterator it_sp;
   		std::cout << "SPOTPADS sig:\t0.\t" ;
   		for ( it_sp = m_spotPads.begin() ;it_sp!=m_spotPads.end(); it_sp++){
   		  std::cout << (*it_sp)->bkgSigma<< "\t"  ;
   		}
   		std::cout  << std::endl;
+		*/
   
   
   return m_spotPads.size();
