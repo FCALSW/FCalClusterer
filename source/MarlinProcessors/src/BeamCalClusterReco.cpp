@@ -29,6 +29,7 @@
 
 #include <marlin/ProcessorEventSeeder.h>
 #include <marlin/Global.h>
+#include <marlin/Exceptions.h>
 
 //ROOT
 #include <TCanvas.h>
@@ -481,6 +482,12 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 
   m_nEvt++ ;
 
+  /*
+  if (m_nEvt > 1000) this->end();
+
+  throw RewindDataFilesException(this);
+  */
+
 
 }//processEvent
 
@@ -848,7 +855,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   bc.SetLogz(1);
   bc.SetBeamCalHisto(padEnergies,"tempLeft");
 
-  Double_t ymax = 0.4;
+  Double_t ymax = 20;
 
 
   for (int layer = startLayer; layer < startLayer + 4; ++layer) {
