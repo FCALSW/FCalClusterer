@@ -117,8 +117,8 @@ double BeamCalPadGeometry::getArcWithin(const double &r0)
     double r2 = sqrt(pow(ps.x2,2)+pow(ps.y2,2));
     if (r1 < r_vertex_min ) r_vertex_min = r1;
     if (r2 < r_vertex_min ) r_vertex_min = r2;
+    		//std::cout << r1 << "\t" <<r2<< "\t" <<r0<<"\n" ;
     if ( r1 <= r0 - 0.01 && r2 <= r0 - 0.01 ) continue;
-    if ( r1 >= r0 + 0.01 && r2 >= r0 + 0.01 ) continue;
 
     // get the roots ( = intersection with line )
     double xi1(0.), xi2(0.), yi1(0.), yi2(0.);
@@ -142,9 +142,10 @@ double BeamCalPadGeometry::getArcWithin(const double &r0)
   if ( 0 != isects.size() % 2 ) {
     std::cout << "Warning in BeamCalFitShower: pad shower integration algorithm misbehaved." << std::endl;
     
+    
     /*
     for (it_ps = m_sides.begin();it_ps != m_sides.end(); it_ps++){
-      PadSide_t ps = *(*it_ps);
+      PadSide_t ps = *it_ps;
       std::cout << ps.x1<< "\t" <<ps.y1<< "\t" <<ps.x2<< "\t" <<ps.y2<< "\t" <<ps.a<< "\t" <<ps.b<< "\t" <<r0 << std::endl;
     }
     
@@ -154,8 +155,9 @@ double BeamCalPadGeometry::getArcWithin(const double &r0)
       std::cout  << "\t" <<it_is->first-2*M_PI<< "/" << it_is->second ;
     }
     std::cout << std::endl;
-    std::cout << m_sides[0]->a<< "\t" <<m_sides[0]->b << std::endl;
+    std::cout << m_sides[0].a<< "\t" <<m_sides[0].b << std::endl;
     */
+    
   }
 
   // sort intersections and, if necessary,
