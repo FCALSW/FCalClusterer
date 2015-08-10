@@ -122,19 +122,12 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
   double A0(0.), sig0(0.);
   this->estimateShowerPars(R_shr_center, phi_shr_center, A0, sig0);
   
-  /*
-  std::cout << R_shr_center << "\t" << dR0/20.<< "\t" << R0 - 0.499*dR0<< "\t" << R0 + 0.499*dR0 << std::endl;
-  std::cout << phi_shr_center<< "\t" << dphi0/20. << "\t" <<  phi0 - 0.5*dphi0 << "\t" << phi0 + 0.5*dphi0 << std::endl;
-  std::cout << A0 << "\t" << A0/20. << "\t" << 0.1*A0 << "\t" << 10.*A0 << std::endl;
-  std::cout << sig0<< "\t" << sig0/20.<< "\t" << 0.1*sig0<< "\t" << 10*sig0 << std::endl;
-  */
- 
   // set variables and their limits
   // make radius and phi limits a bit smaller than the pad size
   minuit.SetLimitedVariable(0,"R", R_shr_center, dR0/20., R0 - 0.499*dR0, R0 + 0.499*dR0);
   minuit.SetLimitedVariable(1,"phi", phi_shr_center, dphi0/20.,  phi0 - 0.5*dphi0, phi0 + 0.5*dphi0);
   minuit.SetLimitedVariable(2,"A", A0 , A0/20., 0.1*A0, 10.*A0);
-  minuit.SetLimitedVariable(3,"sig", sig0, sig0/20., 0.1*sig0, 10*sig0);
+  minuit.SetLimitedVariable(3,"sig", sig0, sig0/20., 0.1*sig0, 2*sig0);
  
   minuit.Minimize(); 
 
