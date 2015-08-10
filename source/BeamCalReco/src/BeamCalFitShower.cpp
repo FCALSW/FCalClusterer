@@ -135,21 +135,57 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
   const double *result=minuit.X();
   chi2 = minuit.MinValue();
   /*
+  std::cout << minuit.Status() << std::endl;
+  if ( minuit.Status()> 1 ) {
+    this->deleteSpotPads();
+    m_flagUncorr = false;
+
+    return -1;
+  }
   if ( chi2/m_spotPads.size() < 0.1 ) {
     this->deleteSpotPads();
     m_flagUncorr = false;
 
     return -1;
   }
+		std::cout << std::setw(10) << std::setprecision(4);
+  		std::cout << R_shr_center << "\t" << result[0]/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< "\t" << (R0 - 0.499*dR0)/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< "\t" << (R0 + 0.499*dR0)/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< std::endl;
+		std::cout << std::setw(10) << std::setprecision(4);
+  		std::cout << phi_shr_center/M_PI*180.<< "\t" << result[1]/M_PI*180. << "\t" <<  (phi0 - 0.5*dphi0)/M_PI*180. << "\t" << (phi0 + 0.5*dphi0)/M_PI*180. << std::endl;
+		std::cout << std::setw(10) << std::setprecision(4);
+  		std::cout << A0 << "\t" << result[2] << "\t" << 0.1*A0 << "\t" << 10.*A0 << std::endl;
+		std::cout << std::setw(10) << std::setprecision(4);
+  		std::cout << sig0<< "\t" << result[3]<< "\t" << 0.1*sig0<< "\t" << 2*sig0 << std::endl;
   */
-  //std::cout << result[0]<< "\t" <<result[1]<< "\t" <<result[2]<< "\t" <<result[3] << std::endl;
+ 
+  		//std::cout << chi2 << "\t" << result[0]<< "\t" <<result[1]<< "\t" <<result[2]<< "\t" <<result[3] << std::endl;
 
   // call our chi2 function to calculate energies corresponding to minimum
   (*this)(result);  // wat?
 
   theta = result[0]/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.;
   phi = result[1]/M_PI*180.;
+  //theta = 25.6359;
+  //phic = 143.219*TMath::DegToRad();
+  //phi = 143.219;
   en_shwr = accumulate(m_spotEint.begin(), m_spotEint.end(), 0.0);
+
+		/*
+  		vector<EdepProfile_t*>::iterator it_sp;
+  		std::cout << "SPOTPADS edp:\t" ;
+  		for ( it_sp = m_spotPads.begin() ;it_sp!=m_spotPads.end(); it_sp++){
+  		  std::cout << (*it_sp)->totalEdep - (*it_sp)->bkgEdep<< "\t"  ;
+  		}
+  		std::cout  << std::endl;
+  		
+  		std::cout << "SPOTPADS fit:" ;
+  		vector<double>::iterator it_ei = m_spotEint.begin();
+  		for (;it_ei != m_spotEint.end(); it_ei++){
+  		  std::cout<< "\t"  << *it_ei;
+  		}
+  		std::cout << std::endl;
+  		std::cout << "chi2 fit:\t"<< chi2 << "\t" ;
+		*/
 
   this->deleteSpotPads();
   m_flagUncorr = false;
@@ -199,7 +235,7 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
   for ( it_ep = m_vep.begin() ;it_ep!=m_vep.end(); it_ep++){
     double pad_dist = m_BCG->getPadsDistance((*it_center)->id, (*it_ep)->id);
     double en_tower = (*it_ep)->totalEdep - (*it_ep)->bkgEdep;
-    if ( pad_dist < 2.0*m_rhom && pad_dist != 0. && 
+    if ( pad_dist < 1.8*m_rhom && pad_dist > 0.01 && 
         en_tower > 0.1*m_enTowerLimit && en_tower > (*it_ep)->bkgSigma) {
       // if the pad is in the spot, assign its geometry too
       m_BCG->getPadExtentsById((*it_ep)->id, pext);
@@ -212,6 +248,13 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
     }
   }
 
+  		vector<EdepProfile_t*>::iterator it_sp;
+  		std::cout << "SPOTPADS sig:\t0.\t" ;
+  		for ( it_sp = m_spotPads.begin() ;it_sp!=m_spotPads.end(); it_sp++){
+  		  std::cout << (*it_sp)->bkgSigma<< "\t"  ;
+  		}
+  		std::cout  << std::endl;
+  
   
   return m_spotPads.size();
 }
@@ -284,6 +327,16 @@ double BeamCalFitShower::operator()(const double *par)
     }
   }
 
+		/*
+  		std::cout << "SPOTPADS:\t"<< chi2 << "\t" ;
+  		vector<double>::iterator it_ei = m_spotEint.begin();
+  		for (;it_ei != m_spotEint.end(); it_ei++){
+  		  std::cout<< "\t"  << *it_ei;
+  		}
+  		std::cout << std::endl;
+  		//exit(1);
+		*/
+		
 
   return chi2;
 }
