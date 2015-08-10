@@ -717,7 +717,8 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
 
     // calculate chi2 and sums for this tower starting from defined layer
     double chi2(0.);
-    for (size_t il = m_startLookingInLayer; il< te_signal.size(); il++){
+    //for (size_t il = m_startLookingInLayer; il< te_signal.size(); il++){
+    for (size_t il = m_startLookingInLayer; il< m_startLookingInLayer+3; il++){
       te_signal_sum += te_signal[il];
       te_bg_sum += te_bg[il];
       chi2+= pow((te_signal[il] - te_bg[il])/te_sigma[il],2);

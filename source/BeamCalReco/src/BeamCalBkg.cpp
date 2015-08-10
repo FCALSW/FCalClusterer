@@ -116,7 +116,8 @@ void BeamCalBkg::setTowerErrors(const BCPadEnergies::BeamCalSide_t bc_side)
   for (int ip = 0; ip < ppl; ip++){
     te_var->push_back(0.);
     // loop over pads in a tower
-    for (int jp = ip+start_layer*ppl; jp < m_BCG->getPadsPerBeamCal(); jp+=ppl){
+    //for (int jp = ip+start_layer*ppl; jp < m_BCG->getPadsPerBeamCal(); jp+=ppl){
+    for (int jp = ip+start_layer*ppl; jp < ip+(start_layer+3)*ppl; jp+=ppl){
       te_var->back() += pow( BC_errors->getEnergy(jp), 2);
     }
     te_var->back() = sqrt(te_var->back());
