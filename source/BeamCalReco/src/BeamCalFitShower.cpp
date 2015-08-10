@@ -238,20 +238,29 @@ double BeamCalFitShower::operator()(const double *par)
   double dr(0.05*m_rhom);
   double ra(0), rb(dr);
   double rmax(3*m_rhom);
-  double ga = par[2]*TMath::Gaus(0.,0.,par[3]);
+  double ga = par[2];
+  //double ga = par[2]*TMath::Gaus(0.,0.,par[3]);
   double gm(0.), gb(0.);
   // simpson integration steps
   while (rb<rmax){
     double rm = (ra+rb)/2.;
+    gm=par[2]*exp(-rm/par[3]);
+    gb=par[2]*exp(-rb/par[3]);
+    /*
     gm=par[2]*TMath::Gaus(rm,0.,par[3]);
     gb=par[2]*TMath::Gaus(rb,0.,par[3]);
+    */
     // loop over spot pads
     for (it_ep = m_spotPads.begin();it_ep != m_spotPads.end(); it_ep++){
       // approximate arc at the central point
       double arc = (*it_ep)->padGeom->getArcWithin(rm);
+      		//std::cout <<"arc="<< "\t" << arc<< "\n";
       m_spotEint.at(it_ep - m_spotPads.begin()) += 
         arc*dr/6.*(ga+4*gm+gb);
+      //m_spotEint.at(it_ep - m_spotPads.begin()) += 
+      //  arc*dr;
     }
+    		// std::cout  << std::endl;
     ga = gb;
     ra = rb;
     rb += dr;
@@ -304,30 +313,42 @@ void BeamCalFitShower::deleteSpotPads()
   }
 }
 
+
 void BeamCalFitShower::estimateShowerPars(double &rc, double &phic, double &A0, double &sig0)
 {
   rc = 0.;
   phic = 0.;
-  double esum(0.);
+  double logesum(0.);
   vector<EdepProfile_t*>::iterator it_ep = m_spotPads.begin();
   for (it_ep = m_spotPads.begin();it_ep != m_spotPads.end(); it_ep++){
-    double esh = (*it_ep)->totalEdep - (*it_ep)->bkgEdep;
+    double esh = log((*it_ep)->totalEdep - (*it_ep)->bkgEdep);
     rc +=  esh * (*it_ep)->padGeom->m_R;
     phic += esh * (*it_ep)->padGeom->m_phi;
-    esum += esh;
+    logesum += esh;
   }
 
-  if (0. == esum ){
+  if (0. == logesum ){
     std::cout << "Warning in BeamCalFitShower: unable to estimate shower center, \n" 
               << "will use hottest pad center coordinates as a fit starting point." << std::endl;
     rc = m_spotPads.at(0)->padGeom->m_R;
     phic = m_spotPads.at(0)->padGeom->m_phi;
   } else {
-    rc /= esum;
-    phic /= esum;
+    rc /= logesum;
+    phic /= logesum;
+  }
+
+  //rc = 18.68*m_BCG->getLayerZDistanceToIP(m_startLayer)/1000.;
+  //phic = 93.11*TMath::DegToRad();
+  //phic = 2.4996;
+  //std::cout << 25.6359 *m_BCG->getLayerZDistanceToIP(m_startLayer)/1000. << std::endl;
+
+  double esum(0.);
+  for (it_ep = m_spotPads.begin();it_ep != m_spotPads.end(); it_ep++){
+    esum+=(*it_ep)->totalEdep - (*it_ep)->bkgEdep;
   }
 
   EdepProfile_t* epc = m_spotPads.at(0); // central pad profile
-  sig0 = epc->padGeom->m_dR*0.66*esum/(epc->totalEdep - epc->bkgEdep);
-  A0 = esum/sqrt(2*M_PI)/pow(sig0,2)/3.;
+  double delt = 0.5*epc->padGeom->m_dR;
+  sig0 = 0.3*m_rhom;
+  A0 = 0.02*2.*M_PI*(epc->totalEdep - epc->bkgEdep)/m_rhom/(1-exp(-delt/m_rhom)) ;
 }
