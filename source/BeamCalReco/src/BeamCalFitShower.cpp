@@ -127,7 +127,7 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
   minuit.SetLimitedVariable(0,"R", R_shr_center, dR0/20., R0 - 0.499*dR0, R0 + 0.499*dR0);
   minuit.SetLimitedVariable(1,"phi", phi_shr_center, dphi0/20.,  phi0 - 0.5*dphi0, phi0 + 0.5*dphi0);
   minuit.SetLimitedVariable(2,"A", A0 , A0/20., 0.1*A0, 10.*A0);
-  minuit.SetLimitedVariable(3,"sig", sig0, sig0/20., 0.1*sig0, 2*sig0);
+  minuit.SetLimitedVariable(3,"sig", sig0, sig0/20., 0.1*sig0, 5*sig0);
  
   minuit.Minimize(); 
 
@@ -149,16 +149,19 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
     return -1;
   }
 		std::cout << std::setw(10) << std::setprecision(4);
-  		std::cout << R_shr_center << "\t" << result[0]/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< "\t" << (R0 - 0.499*dR0)/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< "\t" << (R0 + 0.499*dR0)/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< std::endl;
+  		std::cout << R_shr_center/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000. << "\t" 
+		          << result[0]/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< "\t" 
+			  << (R0 - 0.499*dR0)/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< "\t" 
+			  << (R0 + 0.499*dR0)/m_BCG->getLayerZDistanceToIP(m_startLayer)*1000.<< std::endl;
 		std::cout << std::setw(10) << std::setprecision(4);
   		std::cout << phi_shr_center/M_PI*180.<< "\t" << result[1]/M_PI*180. << "\t" <<  (phi0 - 0.5*dphi0)/M_PI*180. << "\t" << (phi0 + 0.5*dphi0)/M_PI*180. << std::endl;
 		std::cout << std::setw(10) << std::setprecision(4);
   		std::cout << A0 << "\t" << result[2] << "\t" << 0.1*A0 << "\t" << 10.*A0 << std::endl;
 		std::cout << std::setw(10) << std::setprecision(4);
-  		std::cout << sig0<< "\t" << result[3]<< "\t" << 0.1*sig0<< "\t" << 2*sig0 << std::endl;
-  */
+  		std::cout << sig0<< "\t" << result[3]<< "\t" << 0.1*sig0<< "\t" << 5*sig0 << std::endl;
  
   		//std::cout << chi2 << "\t" << result[0]<< "\t" <<result[1]<< "\t" <<result[2]<< "\t" <<result[3] << std::endl;
+  */
 
   // call our chi2 function to calculate energies corresponding to minimum
   (*this)(result);  // wat?
@@ -385,8 +388,8 @@ void BeamCalFitShower::estimateShowerPars(double &rc, double &phic, double &A0, 
     phic /= logesum;
   }
 
-  //rc = 18.68*m_BCG->getLayerZDistanceToIP(m_startLayer)/1000.;
-  //phic = 93.11*TMath::DegToRad();
+  //rc = 32.39*m_BCG->getLayerZDistanceToIP(m_startLayer)/1000.;
+  //phic = 289.75*TMath::DegToRad();
   //phic = 2.4996;
   //std::cout << 25.6359 *m_BCG->getLayerZDistanceToIP(m_startLayer)/1000. << std::endl;
 
@@ -397,6 +400,6 @@ void BeamCalFitShower::estimateShowerPars(double &rc, double &phic, double &A0, 
 
   EdepProfile_t* epc = m_spotPads.at(0); // central pad profile
   double delt = 0.5*epc->padGeom->m_dR;
-  sig0 = 0.3*m_rhom;
-  A0 = 0.02*2.*M_PI*(epc->totalEdep - epc->bkgEdep)/m_rhom/(1-exp(-delt/m_rhom)) ;
+  sig0 = 0.2*m_rhom;
+  A0 = 0.2*2.*M_PI*(epc->totalEdep - epc->bkgEdep)/m_rhom/(1-exp(-delt/m_rhom)) ;
 }
