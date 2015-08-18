@@ -111,13 +111,13 @@ void BeamCalBkg::setTowerErrors(const BCPadEnergies::BeamCalSide_t bc_side)
 
   const int ppl = m_BCG->getPadsPerLayer();
   const int start_layer = m_bcpCuts->getStartingLayer();
+  const int end_layer = m_bcpCuts->getStartingLayer() + m_bcpCuts->getCountingLayers();
 
   // loop over pads in one layer == towers in BC
   for (int ip = 0; ip < ppl; ip++){
     te_var->push_back(0.);
     // loop over pads in a tower
-    //for (int jp = ip+start_layer*ppl; jp < m_BCG->getPadsPerBeamCal(); jp+=ppl){
-    for (int jp = ip+start_layer*ppl; jp < ip+(start_layer+3)*ppl; jp+=ppl){
+    for (int jp = ip+start_layer*ppl; jp < ip+(end_layer)*ppl; jp+=ppl){
       te_var->back() += pow( BC_errors->getEnergy(jp), 2);
     }
     te_var->back() = sqrt(te_var->back());

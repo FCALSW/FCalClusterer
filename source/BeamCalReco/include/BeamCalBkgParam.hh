@@ -14,7 +14,7 @@
 #include "BeamCalBkg.hh"
 #include "BCPadEnergies.hh"
 
-class TUnuran;
+class TF1;
 class TTree;
 
 class BeamCalGeo;
@@ -31,8 +31,8 @@ class BeamCalBkgParam : public BeamCalBkg {
   vector<PadEdepRndPar_t> *m_padParLeft;
   vector<PadEdepRndPar_t> *m_padParRight;
 
-  vector<TUnuran*> m_unuransLeft;
-  vector<TUnuran*> m_unuransRight;
+  vector<TF1*> m_unuransLeft;
+  vector<TF1*> m_unuransRight;
 
  public:
   void init(vector<string> &bg_files, const int n_bx);

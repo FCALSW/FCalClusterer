@@ -46,13 +46,13 @@ BeamCalBkgParam::BeamCalBkgParam(const string& bg_method_name,
                      const BeamCalGeo *BCG) : BeamCalBkg(bg_method_name, BCG),
 					   m_padParLeft(NULL),
 					   m_padParRight(NULL),
-					   m_unuransLeft(vector<TUnuran*>()),
-					   m_unuransRight(vector<TUnuran*>())
+					   m_unuransLeft(vector<TF1*>()),
+					   m_unuransRight(vector<TF1*>())
 {}
 
 BeamCalBkgParam::~BeamCalBkgParam()
 {
-  vector<TUnuran*>::iterator iun = m_unuransLeft.begin();
+  vector<TF1*>::iterator iun = m_unuransLeft.begin();
   for (;iun!=m_unuransLeft.end(); iun++){
     delete *iun;
   }
@@ -124,13 +124,13 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
     // Parameters of energy deposition in a pad:
     PadEdepRndPar_t pep = m_padParLeft->at(ip);
 
-    std::cout << ip<< "\t" <<m_unuransLeft.at(ip) << std::endl;
+    		//std::cout << ip<< "\t" <<m_unuransLeft.at(ip) << std::endl;
     if (m_unuransLeft.at(ip)){
       for (int ibx=0; ibx<m_nBX; ibx++){
         // check if zero
         if (m_random3->Uniform(1.) < pep.zero_rate ) continue ; // == {vedep.at(ip)+=0.};
 	// add value
-        vedep.at(ip) += m_unuransLeft.at(ip)->Sample();
+        vedep.at(ip) += m_unuransLeft.at(ip)->GetRandom();
       }
     } else  {
       // if unuran is null, than it's just gaus
@@ -141,6 +141,7 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
   }
 
   peLeft.setEnergies(vedep);
+  std::fill(vedep.begin(), vedep.end(), 0.);
 
   for (int ip=0; ip< nBCpads; ip++){
     // Parameters of energy deposition in a pad:
@@ -151,7 +152,7 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
         // check if zero
         if (m_random3->Uniform(1.) < pep.zero_rate ) continue ; // == {vedep.at(ip)+=0.};
 	// add value
-        vedep.at(ip) += m_unuransRight.at(ip)->Sample();
+        vedep.at(ip) += m_unuransRight.at(ip)->GetRandom();
       }
     } else  {
       // if unuran is null, than it's just gaus
@@ -260,42 +261,35 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
 int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
 {
   const int nBCpads = m_BCG->getPadsPerBeamCal();
-  vector<TUnuran*> &vunr = (BCPadEnergies::kLeft == bc_side ? m_unuransLeft : m_unuransRight);
+  vector<TF1*> &vunr = (BCPadEnergies::kLeft == bc_side ? m_unuransLeft : m_unuransRight);
 
-  TF1 *func_pad_edep = new TF1("fedep", "gaus(0)/x", 0., 100.);
-  TUnuranContDist *unurun_edep_dist(NULL);
   for (int ip=0; ip< nBCpads; ip++){
     // Parameters of energy deposition in a pad:
     PadEdepRndPar_t pep = (BCPadEnergies::kLeft == bc_side ? 
                            m_padParLeft->at(ip) : m_padParRight->at(ip));
     vunr.push_back(NULL);
+    TF1 *func_pad_edep = new TF1("fedep", "gaus(0)/x", pep.minm, pep.maxm);
     // if chi2 is good enough we want to initialise our unuran randomiser
     if (pep.chi2 <= 200. && pep.par1 >= 2*pep.par2) {
       func_pad_edep->SetParameters(pep.par0, pep.par1, pep.par2);
-      //func_pad_edep->Print();
-      unurun_edep_dist = new TUnuranContDist(func_pad_edep);
-      if ( !unurun_edep_dist ){
-        streamlog_out(WARNING) << "BeamCalBackground: unuran randomiser could not be initialised" \
-	  "falling to ROOT TRandom3::Gaus" << std::endl;
-	
-      }
-
-      unurun_edep_dist->SetDomain(pep.minm, pep.maxm);
-      TUnuran *unr = new TUnuran(m_random3);
+		/*
     		std::cout << ip << "\t" 
 		          << pep.mean << "\t" << pep.stdev<< "\t" 
 			  << pep.par0 << "\t" <<  pep.par1 << "\t" 
 			  <<  pep.par2 << "\t" << pep.chi2 << std::endl;
+			  */
 
-      unr->Init(*unurun_edep_dist, "auto");
-      if ( unr ){
-        vunr.back() = unr; 
-      }
+      double funcparam[3];
+      funcparam[0] = pep.par0;
+      funcparam[1] = pep.par1;
+      funcparam[2] = pep.par2;
+      double integral = func_pad_edep->Integral(pep.minm, pep.maxm, funcparam, 0.0001);
+      if (integral > 0.001) vunr.back() = func_pad_edep; 
     }
   }
 
   // delete unuran
-  delete func_pad_edep;
+  //delete func_pad_edep;
 
   // this is managed by TUnuran
   //delete unurun_edep_dist; // can be NULL though...
