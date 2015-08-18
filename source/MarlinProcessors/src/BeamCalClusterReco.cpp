@@ -143,9 +143,9 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 			   std::string("BCalClusters") ) ;
 
 registerProcessorParameter ("BackgroundMethod",
-			      "How to estimate background [Parametrised, Pregenerated, Averaged]",
+			      "How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged]",
 			      m_bgMethodName,
-			      std::string("Parametrised") ) ;
+			      std::string("Gaussian") ) ;
 
 std::vector<std::string> defaultFile;
 defaultFile.push_back("BeamCal.root");
@@ -267,6 +267,8 @@ void BeamCalClusterReco::init() {
   // select which background we have
   if(      string("Pregenerated") == m_bgMethodName ) {
     m_BCbackground = new BeamCalBkgPregen(m_bgMethodName, m_BCG);
+  } else if( string("Gaussian") == m_bgMethodName ) {
+    m_BCbackground = new BeamCalBkgGauss(m_bgMethodName, m_BCG);
   } else if( string("Parametrised") == m_bgMethodName ) {
     m_BCbackground = new BeamCalBkgParam(m_bgMethodName, m_BCG);
   } else if( string("Averaged")     == m_bgMethodName) {
