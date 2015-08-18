@@ -27,6 +27,8 @@
 #include <TFile.h>
 #include <TF1.h>
 #include <TRandom3.h>
+#include <TUnuran.h>
+#include <TUnuranContDist.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -43,11 +45,23 @@ using marlin::Global;
 BeamCalBkgParam::BeamCalBkgParam(const string& bg_method_name, 
                      const BeamCalGeo *BCG) : BeamCalBkg(bg_method_name, BCG),
 					   m_padParLeft(NULL),
-					   m_padParRight(NULL)
+					   m_padParRight(NULL),
+					   m_unuransLeft(vector<TUnuran*>()),
+					   m_unuransRight(vector<TUnuran*>())
 {}
 
 BeamCalBkgParam::~BeamCalBkgParam()
-{}
+{
+  vector<TUnuran*>::iterator iun = m_unuransLeft.begin();
+  for (;iun!=m_unuransLeft.end(); iun++){
+    delete *iun;
+  }
+
+  iun = m_unuransRight.begin();
+  for (;iun!=m_unuransRight.end(); iun++){
+    delete *iun;
+  }
+}
 
 void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
 {
@@ -88,6 +102,10 @@ void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
   readBackgroundPars(bg_par_tree, BCPadEnergies::kLeft);
   readBackgroundPars(bg_par_tree, BCPadEnergies::kRight);
 
+  // set background distributions
+  setBkgDistr(BCPadEnergies::kLeft);
+  setBkgDistr(BCPadEnergies::kRight);
+
   // calculate st.dev. of tower energies
   this->BeamCalBkg::setTowerErrors(BCPadEnergies::kLeft);
   this->BeamCalBkg::setTowerErrors(BCPadEnergies::kRight);
@@ -106,10 +124,20 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
     // Parameters of energy deposition in a pad:
     PadEdepRndPar_t pep = m_padParLeft->at(ip);
 
-    // generating fluctiations at once with stdev*sqrt(nBX)
-    // otherwise the time to generate each event grows too much
-    //vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
-    vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
+    std::cout << ip<< "\t" <<m_unuransLeft.at(ip) << std::endl;
+    if (m_unuransLeft.at(ip)){
+      for (int ibx=0; ibx<m_nBX; ibx++){
+        // check if zero
+        if (m_random3->Uniform(1.) < pep.zero_rate ) continue ; // == {vedep.at(ip)+=0.};
+	// add value
+        vedep.at(ip) += m_unuransLeft.at(ip)->Sample();
+      }
+    } else  {
+      // if unuran is null, than it's just gaus
+      // generating fluctiations at once with stdev*sqrt(nBX)
+      // otherwise the time to generate each event grows too much
+      vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
+    }
   }
 
   peLeft.setEnergies(vedep);
@@ -118,10 +146,19 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
     // Parameters of energy deposition in a pad:
     PadEdepRndPar_t pep = m_padParRight->at(ip);
 
-    // generating fluctiations at once with stdev*sqrt(nBX)
-    // otherwise the time to generate each event grows too much
-    //vedep.at(ip) = m_random3->Gaus(0., pep.stdev*sqrt(m_nBX));
-    vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
+    if (m_unuransRight.at(ip)){
+      for (int ibx=0; ibx<m_nBX; ibx++){
+        // check if zero
+        if (m_random3->Uniform(1.) < pep.zero_rate ) continue ; // == {vedep.at(ip)+=0.};
+	// add value
+        vedep.at(ip) += m_unuransRight.at(ip)->Sample();
+      }
+    } else  {
+      // if unuran is null, than it's just gaus
+      // generating fluctiations at once with stdev*sqrt(nBX)
+      // otherwise the time to generate each event grows too much
+      vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
+    }
   }
 
   peRight.setEnergies(vedep);
@@ -134,15 +171,25 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 
 void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side)
 {
-  vector<double> *mean(NULL) , *stdev(NULL);
+  vector<double> *zero_rate(NULL) , *mean(NULL) , *stdev(NULL);
+  vector<double> *sum(NULL)       , *minm(NULL) , *maxm(NULL);
+  vector<double> *chi2(NULL)      , *par0(NULL) , *par1(NULL)   , *par2(NULL);
   string side_name = ( BCPadEnergies::kLeft == bc_side ? "left_" : "right_" );
 
   // map the branch names to containers
   typedef map<string, vector<double> *> MapStrVec_t;
   MapStrVec_t br_cont_map;
 
+  br_cont_map[side_name+"zero_rate"] = zero_rate;
   br_cont_map[side_name+"mean"]      = mean;
   br_cont_map[side_name+"stdev"]     = stdev;
+  br_cont_map[side_name+"sum"]       = sum;
+  br_cont_map[side_name+"minm"]      = minm;
+  br_cont_map[side_name+"maxm"]      = maxm;
+  br_cont_map[side_name+"chi2"]      = chi2;
+  br_cont_map[side_name+"par0"]      = par0;
+  br_cont_map[side_name+"par1"]      = par1;
+  br_cont_map[side_name+"par2"]      = par2;
 
   // check the branch presence in the tree
   MapStrVec_t::iterator im = br_cont_map.begin();
@@ -173,8 +220,16 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
 
   PadEdepRndPar_t pad_par;
   for(int ip=0; ip< nBCpads; ip++){
+    pad_par.zero_rate = br_cont_map[side_name+"zero_rate"]->at(ip);
     pad_par.mean      = br_cont_map[side_name+"mean"]->at(ip);
     pad_par.stdev     = br_cont_map[side_name+"stdev"]->at(ip);
+    pad_par.sum       = br_cont_map[side_name+"sum"]->at(ip);
+    pad_par.minm      = br_cont_map[side_name+"minm"]->at(ip);
+    pad_par.maxm      = br_cont_map[side_name+"maxm"]->at(ip);
+    pad_par.chi2      = br_cont_map[side_name+"chi2"]->at(ip);
+    pad_par.par0      = br_cont_map[side_name+"par0"]->at(ip);
+    pad_par.par1      = br_cont_map[side_name+"par1"]->at(ip);
+    pad_par.par2      = br_cont_map[side_name+"par2"]->at(ip);
 
     if (BCPadEnergies::kLeft == bc_side )  m_padParLeft->at(ip) = pad_par;
     else m_padParRight->at(ip) = pad_par;
@@ -199,4 +254,51 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
 
   // drop the branch addresses
   bg_par_tree->ResetBranchAddresses();
+}
+
+
+int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
+{
+  const int nBCpads = m_BCG->getPadsPerBeamCal();
+  vector<TUnuran*> &vunr = (BCPadEnergies::kLeft == bc_side ? m_unuransLeft : m_unuransRight);
+
+  TF1 *func_pad_edep = new TF1("fedep", "gaus(0)/x", 0., 100.);
+  TUnuranContDist *unurun_edep_dist(NULL);
+  for (int ip=0; ip< nBCpads; ip++){
+    // Parameters of energy deposition in a pad:
+    PadEdepRndPar_t pep = (BCPadEnergies::kLeft == bc_side ? 
+                           m_padParLeft->at(ip) : m_padParRight->at(ip));
+    vunr.push_back(NULL);
+    // if chi2 is good enough we want to initialise our unuran randomiser
+    if (pep.chi2 <= 200. && pep.par1 >= 2*pep.par2) {
+      func_pad_edep->SetParameters(pep.par0, pep.par1, pep.par2);
+      //func_pad_edep->Print();
+      unurun_edep_dist = new TUnuranContDist(func_pad_edep);
+      if ( !unurun_edep_dist ){
+        streamlog_out(WARNING) << "BeamCalBackground: unuran randomiser could not be initialised" \
+	  "falling to ROOT TRandom3::Gaus" << std::endl;
+	
+      }
+
+      unurun_edep_dist->SetDomain(pep.minm, pep.maxm);
+      TUnuran *unr = new TUnuran(m_random3);
+    		std::cout << ip << "\t" 
+		          << pep.mean << "\t" << pep.stdev<< "\t" 
+			  << pep.par0 << "\t" <<  pep.par1 << "\t" 
+			  <<  pep.par2 << "\t" << pep.chi2 << std::endl;
+
+      unr->Init(*unurun_edep_dist, "auto");
+      if ( unr ){
+        vunr.back() = unr; 
+      }
+    }
+  }
+
+  // delete unuran
+  delete func_pad_edep;
+
+  // this is managed by TUnuran
+  //delete unurun_edep_dist; // can be NULL though...
+
+  return 0;
 }

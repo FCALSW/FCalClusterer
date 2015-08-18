@@ -14,8 +14,7 @@
 #include "BeamCalBkg.hh"
 #include "BCPadEnergies.hh"
 
-class TFile;
-class TRandom3;
+class TUnuran;
 class TTree;
 
 class BeamCalGeo;
@@ -32,6 +31,9 @@ class BeamCalBkgParam : public BeamCalBkg {
   vector<PadEdepRndPar_t> *m_padParLeft;
   vector<PadEdepRndPar_t> *m_padParRight;
 
+  vector<TUnuran*> m_unuransLeft;
+  vector<TUnuran*> m_unuransRight;
+
  public:
   void init(vector<string> &bg_files, const int n_bx);
 
@@ -42,6 +44,7 @@ class BeamCalBkgParam : public BeamCalBkg {
          const BCPadEnergies::BeamCalSide_t bc_side);
 
   void readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side);
+  int setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side);
 
  public:
   BeamCalBkgParam(const BeamCalBkgParam&);
