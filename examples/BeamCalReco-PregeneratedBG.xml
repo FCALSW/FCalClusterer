@@ -36,7 +36,7 @@
    <parameter name="ETPad" type="FloatVec">0.5 0.3 0.2  </parameter>
    <!--The name of the rootFile which will contain the TEfficiency objects-->
    <parameter name="EfficiencyFilename" type="string">TaggingEfficiency.root </parameter>
-   <!--Background simulation method-->
+   <!--How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged]-->
    <parameter name="BackgroundMethod" type="string">Pregenerated</parameter>
    <!--Root Inputfile(s)-->
    <parameter name="InputFileBackgrounds" type="StringVec">
@@ -177,7 +177,7 @@
   <!--Minimum number of pads in a single tower to be considered for signal-->
   <parameter name="MinimumTowerSize" type="int">4 </parameter>
   <!--Number of Bunch Crossings of Background-->
-  <parameter name="NumberOfBX" type="int">1 </parameter>
+  <parameter name="NumberOfBX" type="int">40 </parameter>
   <!--Number of Event that should be printed to PDF File-->
   <parameter name="PrintThisEvent" type="int">-1 </parameter>
   <!--Name of the Reconstructed Cluster collection-->
@@ -185,13 +185,19 @@
   <!--Name of the Reconstructed Particle collection-->
   <parameter name="RecoParticleCollectionname" type="string" lcioOutType="ReconstructedParticle">BCalRecoParticle </parameter>
   <!--If not using ConstPadCuts, each pad SigmaCut*variance is considered for clusters-->
-  <parameter name="SigmaCut" type="double">1 </parameter>
+  <parameter name="SigmaCut" type="double">3 </parameter>
   <!--Layer (inclusive) from which on we start looking for signal clusters-->
   <parameter name="StartLookingInLayer" type="int">10 </parameter>
+  <!--How many layers are used for shower fitting-->
+  <parameter name="NShowerCountingLayers" type="int">3 </parameter>
   <!--Rings from which onwards the outside Thresholds are used-->
   <parameter name="StartingRing" type="FloatVec">0 1 2  </parameter>
   <!--Use the cuts for the pads specified in ETPad, if false, the variance in each pad is used times SigmaPad Factor-->
-  <parameter name="UseConstPadCuts" type="bool">true </parameter>
+  <parameter name="UseConstPadCuts" type="bool">false </parameter>
+  <!--Use Chi2 selection criteria to detect high energy electron in the signal.-->
+  <parameter name="UseChi2Selection" type="bool">true </parameter>
+  <!--Limit on square norm of tower energy chi2/ndf, where chi2 = (E_dep - E_bg)^2/sig^2. Reasonable value for pregenerated bkg is 5., for gaussian is 2. -->
+  <parameter name="TowerChi2ndfLimit" type="double"> 2.0 </parameter>
   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
   <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
 </processor>
