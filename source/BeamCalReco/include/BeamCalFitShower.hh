@@ -78,6 +78,7 @@ class BeamCalFitShower {
   void setGeometry(const BeamCalGeo *BCG) { m_BCG = BCG; }
   void setBackground(const BeamCalBkg *BCbg) { m_BCbackground = BCbg; }
   void setStartLayer(const int sl) { m_startLayer = sl; }
+  void setCountingLayers(const int cl) { m_countingLayer = cl; }
   void setEshwrLimit(double elimit) { m_enTowerLimit = elimit; }
   void setTowerChi2Limit(double tchi2lim) { m_towerChi2Limit = tchi2lim;}
 
@@ -112,6 +113,7 @@ class BeamCalFitShower {
   double m_enTowerLimit;
   double m_towerChi2Limit;
   int m_startLayer;
+  int m_countingLayer;
 
   bool m_flagUncorr;
 };

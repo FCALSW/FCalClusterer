@@ -21,6 +21,7 @@ public:
     m_requiredClusterEnergy(0),
     m_minimumTowerSize(4),
     m_startLookingInLayer( 10 ),
+    m_NShowerCountingLayers( 3 ),
     m_useConstPadCuts( false ),
     m_padSigmaCut( 0.0 )
   {
@@ -39,6 +40,7 @@ public:
 	   std::vector<float> clusters, 
 	   int minimumTowerSize,
 	   int startLayer,
+	   int countingLayers,
 	   bool usePadCuts,
 	   double sigmaCut):
     m_startingRings(rings),
@@ -46,6 +48,7 @@ public:
     m_requiredClusterEnergy(clusters),
     m_minimumTowerSize(minimumTowerSize),
     m_startLookingInLayer( startLayer),
+    m_NShowerCountingLayers( countingLayers),
     m_useConstPadCuts(usePadCuts),
     m_padSigmaCut( sigmaCut )
   {}
@@ -54,6 +57,7 @@ public:
   bool isClusterAboveThreshold(BeamCalCluster const& bcc) const;
   int getMinimumTowerSize() const { return m_minimumTowerSize; }
   int getStartingLayer() const { return m_startLookingInLayer; }
+  int getCountingLayers() const { return m_NShowerCountingLayers;}
 
   bool useConstPadCuts() const { return m_useConstPadCuts; }
 
@@ -80,6 +84,7 @@ private:
   // double m_outerEnergyCluster;
   int m_minimumTowerSize;
   int m_startLookingInLayer;
+  int m_NShowerCountingLayers;
   bool m_useConstPadCuts;
 
   double m_padSigmaCut;

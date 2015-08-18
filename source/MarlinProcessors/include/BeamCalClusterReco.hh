@@ -80,6 +80,7 @@ class BeamCalClusterReco : public marlin::Processor {
   int m_eventSide;
   int m_minimumTowerSize;
   int m_startLookingInLayer;
+  int m_NShowerCountingLayers;
 
   bool m_usePadCuts;
   bool m_useChi2Selection;

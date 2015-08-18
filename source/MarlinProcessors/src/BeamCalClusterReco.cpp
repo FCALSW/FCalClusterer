@@ -10,6 +10,7 @@
 #include "BeamCalBkg.hh"
 #include "BeamCalBkgParam.hh"
 #include "BeamCalBkgPregen.hh"
+#include "BeamCalBkgGauss.hh"
 #include "BeamCalBkgAverage.hh"
 #include "BeamCalFitShower.hh"
 
@@ -84,6 +85,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_eventSide(-1),
                                            m_minimumTowerSize(0),
                                            m_startLookingInLayer(0),
+                                           m_NShowerCountingLayers(0),
                                            m_usePadCuts(true),
 					   m_useChi2Selection(false),
                                            m_createEfficienyFile(false),
@@ -197,6 +199,11 @@ registerProcessorParameter ("StartLookingInLayer",
 			      m_startLookingInLayer,
 			      int(10) ) ;
 
+registerProcessorParameter ("NShowerCountingLayers",
+			      "How many layers are used for shower fitting",
+			      m_NShowerCountingLayers,
+			      int(3) ) ;
+
 registerProcessorParameter ("LinearCalibrationFactor",
 			      "Multiply deposit energy by this factor to account for samplif fraction",
 			      m_calibrationFactor,
@@ -276,6 +283,7 @@ void BeamCalClusterReco::init() {
 			  m_requiredRemainingEnergy, m_requiredClusterEnergy,
 			  m_minimumTowerSize,
 			  m_startLookingInLayer,
+			  m_NShowerCountingLayers,
 			  m_usePadCuts,
 			  m_sigmaCut);
 
@@ -715,7 +723,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
     signalPads.getTowerEnergies(it, te_signal);
     backgroundPads.getTowerEnergies(it, te_bg);
     backgroundSigma.getTowerEnergies(it, te_sigma);
-    ndf = te_signal.size()-m_startLookingInLayer;
+    ndf = m_NShowerCountingLayers;
 
     // sums of signal and background along the tower
     double te_signal_sum(0.), te_bg_sum(0.);
@@ -724,18 +732,11 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
 
     // calculate chi2 and sums for this tower starting from defined layer
     double chi2(0.);
-    //for (size_t il = m_startLookingInLayer; il< te_signal.size(); il++){
-    for (size_t il = m_startLookingInLayer; il< m_startLookingInLayer+3; il++){
+    for (size_t il = m_startLookingInLayer; il< m_startLookingInLayer+m_NShowerCountingLayers; il++){
       te_signal_sum += te_signal[il];
       te_bg_sum += te_bg[il];
       chi2+= pow((te_signal[il] - te_bg[il])/te_sigma[il],2);
-      /*
-      if ( it == 215 || it == 219) {
-      std::cout << chi2<< "\t" <<te_signal[il]<< "\t" <<te_bg[il]<< "\t" <<te_sigma[il] << std::endl;
-      }
-      */
     }
-    // std::cout << it << "\t" << te_signal_sum << "\t" << te_bg_sum << "\t" << tot_te_sigma << std::endl;
 
     // create element of energy deposition profile
     EdepProfile_t *ep = new EdepProfile_t;
@@ -754,6 +755,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
   shower_fitter.setGeometry(m_BCG);
   shower_fitter.setBackground(m_BCbackground);
   shower_fitter.setStartLayer(m_startLookingInLayer);
+  shower_fitter.setCountingLayers(m_NShowerCountingLayers);
   shower_fitter.setTowerChi2Limit(m_TowerChi2ndfLimit*ndf);
 
   shower_fitter.setEshwrLimit(m_requiredClusterEnergy.at(0));
@@ -767,7 +769,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
     if (en_shwr > m_requiredClusterEnergy.at(0) ) {
       // fill the recoVec entry
       recoVec.push_back( new BCRecoObject(isRealParticle, true, 
-        theta, phi, en_shwr, te_signal.size()-m_startLookingInLayer, 
+        theta, phi, en_shwr, m_NShowerCountingLayers, 
 	signalPads.getSide() ) );
 
       // print the log message

@@ -42,6 +42,7 @@ BeamCalFitShower::BeamCalFitShower(vector<EdepProfile_t*> &vep,
 				  m_enTowerLimit(0.),
 				  m_towerChi2Limit(1.),
 				  m_startLayer(1),
+				  m_countingLayer(1),
 				  m_flagUncorr(false)
 {
   // hardcode now, make better later
@@ -61,6 +62,7 @@ BeamCalFitShower::BeamCalFitShower(const BeamCalFitShower& fs)
 		   m_enTowerLimit(fs.m_enTowerLimit),
 		   m_towerChi2Limit(fs.m_towerChi2Limit),
 		   m_startLayer(fs.m_startLayer),
+		   m_countingLayer(fs.m_countingLayer),
 		   m_flagUncorr(fs.m_flagUncorr)
 {}
 
