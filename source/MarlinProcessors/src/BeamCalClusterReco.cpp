@@ -120,7 +120,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 
  registerInputCollection( LCIO::MCPARTICLE,
 			  "MCParticleCollectionName" ,
-			  "Name of the MCParticle Collection Collection Name, only needed and used to estimate efficiencies",
+			  "MCParticle Collection Name, only needed and used to estimate efficiencies",
 			  m_colNameMC ,
 			  std::string("MCParticle") ) ;
 
@@ -725,19 +725,27 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
     signalPads.getTowerEnergies(it, te_signal);
     backgroundPads.getTowerEnergies(it, te_bg);
     backgroundSigma.getTowerEnergies(it, te_sigma);
-    ndf = m_NShowerCountingLayers;
+    ndf = m_BCG->getBCLayers() - m_startLookingInLayer;
 
     // sums of signal and background along the tower
     double te_signal_sum(0.), te_bg_sum(0.);
     double tot_te_sigma(0.); // st.dev. for sum of the energies in the tower
     m_BCbackground->getTowerErrorsBG(it, signalPads.getSide(), tot_te_sigma);
 
-    // calculate chi2 and sums for this tower starting from defined layer
+    // calculate chi2 for this tower in all layers starting from defined
     double chi2(0.);
-    for (size_t il = m_startLookingInLayer; il< m_startLookingInLayer+m_NShowerCountingLayers; il++){
+    for (size_t il = m_startLookingInLayer; il< m_BCG->getBCLayers(); il++){
       te_signal_sum += te_signal[il];
       te_bg_sum += te_bg[il];
       chi2+= pow((te_signal[il] - te_bg[il])/te_sigma[il],2);
+    }
+
+    // calculate sums for this tower in counting layers
+    te_signal_sum = 0.;
+    te_bg_sum = 0.;
+    for (size_t il = m_startLookingInLayer; il< m_startLookingInLayer+m_NShowerCountingLayers; il++){
+      te_signal_sum += te_signal[il];
+      te_bg_sum += te_bg[il];
     }
 
     // create element of energy deposition profile
