@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   //first entry is program name, start at 1
   for (int i = 1; i < argc; ++i) {
     std::cout << "Reading background file " << argv[i] << std::endl;
-    std::string bgfname = argv[1];
+    std::string bgfname = argv[i];
     read_bg_vec(bgfname, vbgleft, vbgright);
   }
 

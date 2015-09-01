@@ -20,6 +20,14 @@ class BackgroundFitter {
   void WriteFitPars(TTree* tree, int dir);
 
  private:
+  vector<double> *_zero_rate;
+  vector<double> *_chi2;
+  vector<double> *_par0;
+  vector<double> *_par1;
+  vector<double> *_par2;
   vector<double> *_mean;
+  vector<double> *_sum;
+  vector<double> *_minm;
+  vector<double> *_maxm;
   vector<double> *_stdev;
 };
