@@ -1,0 +1,75 @@
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+ <execute>
+  <processor name="BCReco"/>
+ </execute>
+
+ <global>
+   <parameter name="LCIOInputFiles">
+     Signal/ElectronsInBeamCal_1500GEV_1.slcio
+     Signal/ElectronsInBeamCal_1500GEV_2.slcio
+     Signal/ElectronsInBeamCal_1500GEV_3.slcio
+     Signal/ElectronsInBeamCal_1500GEV_4.slcio
+     Signal/ElectronsInBeamCal_1500GEV_5.slcio
+     Signal/ElectronsInBeamCal_1500GEV_6.slcio
+     Signal/ElectronsInBeamCal_1500GEV_7.slcio
+     Signal/ElectronsInBeamCal_1500GEV_8.slcio
+     Signal/ElectronsInBeamCal_1500GEV_9.slcio
+ </parameter>
+  <!-- limit the number of processed records (run+evt): -->
+  <parameter name="MaxRecordNumber" value=" 10 " />
+  <parameter name="SkipNEvents" value="0" />
+  <parameter name="SupressCheck" value="false" />
+  <parameter name="GearXMLFile"> GearCLIC_ILD_CDR_Final.xml </parameter>
+  <parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> DEBUG  </parameter>
+  <parameter name="RandomSeed" value="1234567890" />
+ </global>
+
+ <processor name="BCReco" type="BeamCalClusterReco">
+   <!--BeamCalClusterReco takes a list of beamcal background files from the ReadBeamCalprocessor, adds NumberOfBX of them together and puts the signal hits from thelcio input file on top of that, and then clustering is attempted.-->
+   <!--Name of BeamCal Collection-->
+   <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit">BeamCalCollection </parameter>
+   <!--Flag to create the TEfficiency for fast tagging library-->
+   <parameter name="CreateEfficiencyFile" type="bool"> true </parameter>
+   <!--Energy in a Cluster to consider it an electron-->
+   <parameter name="ETCluster" type="FloatVec">0.5 2 1  </parameter>
+   <!--Energy in a Pad, after subtraction of background required to consider it for signal-->
+   <parameter name="ETPad" type="FloatVec">0.5 0.3 0.2  </parameter>
+   <!--The name of the rootFile which will contain the TEfficiency objects-->
+   <parameter name="EfficiencyFilename" type="string">TaggingEfficiency.root </parameter>
+   <!--How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged]-->
+   <parameter name="BackgroundMethod" type="string">Gaussian</parameter>
+   <!--Root Inputfile(s)-->
+   <parameter name="InputFileBackgrounds" type="StringVec">
+     ./BeamCal_bg.root
+   </parameter>
+  <!--Name of the MCParticle Collection-->
+  <parameter name="MCParticle Collection Name, only needed and used to estimate efficiencies" type="string" lcioInType="MCParticle">MCParticle </parameter>
+  <!--Minimum number of pads in a single tower to be considered for signal-->
+  <parameter name="MinimumTowerSize" type="int">4 </parameter>
+  <!--Number of Bunch Crossings of Background-->
+  <parameter name="NumberOfBX" type="int">40 </parameter>
+  <!--Number of Event that should be printed to PDF File-->
+  <parameter name="PrintThisEvent" type="int">1 </parameter>
+  <!--Name of the Reconstructed Cluster collection-->
+  <parameter name="RecoClusterCollectionname" type="string" lcioOutType="Cluster">BCalClusters </parameter>
+  <!--Name of the Reconstructed Particle collection-->
+  <parameter name="RecoParticleCollectionname" type="string" lcioOutType="ReconstructedParticle">BCalRecoParticle </parameter>
+  <!--If not using ConstPadCuts, each pad SigmaCut*variance is considered for clusters-->
+  <parameter name="SigmaCut" type="double">1 </parameter>
+  <!--Layer (inclusive) from which on we start looking for signal clusters-->
+  <parameter name="StartLookingInLayer" type="int">10 </parameter>
+  <!--How many layers are used for shower fitting-->
+  <parameter name="NShowerCountingLayers" type="int">3 </parameter>
+  <!--Rings from which onwards the outside Thresholds are used-->
+  <parameter name="StartingRing" type="FloatVec">0 1 2  </parameter>
+  <!--Use the cuts for the pads specified in ETPad, if false, the variance in each pad is used times SigmaPad Factor-->
+  <parameter name="UseConstPadCuts" type="bool">false </parameter>
+  <!--Use Chi2 selection criteria to detect high energy electron in the signal.-->
+  <parameter name="UseChi2Selection" type="bool">true </parameter>
+  <!--Limit on square norm of tower energy chi2/ndf, where chi2 = (E_dep - E_bg)^2/sig^2. Reasonable value for pregenerated bkg is 5., for gaussian is 2. -->
+  <parameter name="TowerChi2ndfLimit" type="double"> 2.0 </parameter>
+  <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+  <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+</processor>
+
+</marlin>
