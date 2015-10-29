@@ -165,12 +165,12 @@ startingRing.push_back(1.0);  padCut.push_back(0.3);  clusterCut.push_back(2.0);
 startingRing.push_back(2.0);  padCut.push_back(0.2);  clusterCut.push_back(1.0);
 
 registerProcessorParameter ("UseConstPadCuts",
-			      "Use the cuts for the pads specified in ETPad, if false, the variance in each pad is used times SigmaPad Factor, the first entry in ETPad is used as a minimum energy to consider a pad at all",
+			      "Use the cuts for the pads specified in ETPad. If false, the standard deviation of each pad times the SigmaCut Factor is used, the first entry in ETPad is used as a minimum energy to consider a pad at all",
 			      m_usePadCuts,
 			      true ) ;
 
 registerProcessorParameter ("SigmaCut",
-			      "If not using ConstPadCuts, each pad SigmaCut*variance is considered for clusters",
+			      "If not using ConstPadCuts, each pad SigmaCut*standardDeviation is considered for clusters",
 			      m_sigmaCut,
 			      double(1.0) ) ;
 
