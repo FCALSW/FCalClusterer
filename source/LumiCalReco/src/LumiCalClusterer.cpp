@@ -42,7 +42,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _nNearNeighbor (6),
   _cellRMax(0), _cellPhiMax (0),
   _middleEnergyHitBoundFrac(0.01),
-  _methodCM(GlobalMethodsClass::LogMethod),
+  _methodCM(-1),
   _moliereRadius(),
   _thetaContainmentBounds(),
   _minSeparationDistance(), _minClusterEngyGeV(),
@@ -68,19 +68,17 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
   _armsToCluster.clear();
   _armsToCluster.push_back(-1);
   _armsToCluster.push_back(1);
-#pragma message ("Make Parameters steerable")
-  _clusterMinNumHits			= 15;
-  _hitMinEnergy				= 5*1e-6;
-  _hitMinEnergy				= 1e-16;
-  _zLayerThickness			= 4.5;
-  _methodCM				= GlobalMethodsClass::LogMethod;	// "Energy";
-  _elementsPercentInShowerPeakLayer	= 0.03;//APS 0.04;
-  _nNearNeighbor				= 6;		// number of near neighbors to consider
+  _methodCM				= GlobalParamI.at(GlobalMethodsClass::WeightingMethod);                  // GlobalMethodsClass::LogMethod
+  _clusterMinNumHits			= GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits);                // = 15
+  _hitMinEnergy				= GlobalParamD.at(GlobalMethodsClass::MinHitEnergy);                     // = 5e-6
+  _zLayerThickness			= GlobalParamD.at(GlobalMethodsClass::ZLayerThickness);                  // = 4.5
+  _elementsPercentInShowerPeakLayer	= GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
+  _nNearNeighbor			= GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor);                // = 6; // number of near neighbors to consider
 
   // the minimal energy to take into account in the initial clustering pass is
   // defined as _middleEnergyHitBoundFrac of the minimal energy that is taken into
   // account when computing weighted averages in the log' weighting method
-  _middleEnergyHitBoundFrac = .01;
+  _middleEnergyHitBoundFrac = GlobalParamD.at(GlobalMethodsClass::MiddleEnergyHitBoundFrac);                     // =.01;
 
 
   /* --------------------------------------------------------------------------

@@ -515,6 +515,7 @@ void LumiCalClustererClass::getThetaPhiZCluster( std::map < int , IMPL::Calorime
   int	numElementsInCluster, cellIdHit;
   double	zCell, zCluster = 0., thetaCell, thetaCluster = 0., phiCell, phiCluster = 0.;
   double	weightHit, weightSum = -1., logWeightConstFactor = 0.;
+#pragma message ("FIXME hardwired weighting log method, correct ?")
   GlobalMethodsClass::WeightingMethod_t method = GlobalMethodsClass::LogMethod;
 
   while(weightSum < 0){

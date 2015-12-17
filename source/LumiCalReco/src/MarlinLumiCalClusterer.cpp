@@ -332,7 +332,7 @@
       for(int superClusterNow = 0; superClusterNow < numClusters; superClusterNow++, clusterIdToCellIdIterator++) {
 	int clusterId = (int)(*clusterIdToCellIdIterator).first;
 
-	clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId);
+	clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId );
 	clusterClassMap[armNow][clusterId] -> SetStatsMC();
 	clusterClassMap[armNow][clusterId] -> SignMC = armNow;
 

@@ -303,7 +303,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 	// update the multi-layer CM position
 	//APS: BUGFIX This used to have the CM2 from the clusterNow2 loop above, instead of closestCluster
 	avrgCM[closestCluster->first].addToEnergy(thisCluster.getE());
-#warning "Should this be energy weighted?" //APS
+#pragma message( "Should this be energy weighted? (APS)" )
 	avrgCM[closestCluster->first].setX( (CM1[0]+avrgCM[closestCluster->first].getX())/2.);
 	avrgCM[closestCluster->first].setY( (CM1[1]+avrgCM[closestCluster->first].getY())/2.);
       }//for all clusters

@@ -1,4 +1,11 @@
 #include "GlobalMethodsClass.h"
+#include "MarlinLumiCalClusterer.h"
+
+#include <gear/GEAR.h>
+#include <gear/GearParameters.h>
+#include <gear/LayerLayout.h>
+#include <gear/CalorimeterParameters.h>
+#include <gear/GearMgr.h>
 
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
@@ -8,10 +15,19 @@ using streamlog::MESSAGE;
 #include <map>
 #include <string>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 
 
 GlobalMethodsClass :: GlobalMethodsClass() :
+  _procName( "MarlinLumiCalClusterer" ),
+  GlobalParamI(),
+  GlobalParamD(),
+  GlobalParamS()
+{
+}
+GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
+  _procName( name ),
   GlobalParamI(),
   GlobalParamD(),
   GlobalParamS()
@@ -62,42 +78,78 @@ void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& ce
 }
 
 void GlobalMethodsClass::SetConstants() {
-#pragma message ("FIXME: Pick geometry up from GearFile")
-  // fiducial volume of LumiCal - minimal and maximal polar angles [rad]
-  GlobalParamD[ThetaMin] = 40e-3;
-  GlobalParamD[ThetaMax] = 200e-3;///APS this is large, because we have the crossing angle not taken into account
+
+  // BP. access gear file
+  gear::GearMgr* gearMgr =  marlin::Global::GEAR;
+  const gear::CalorimeterParameters& _lcalGearPars = gearMgr->getLcalParameters();
+  
+  // BP. access processor parameters
+  marlin::StringParameters* _lcalRecoPars = NULL;
+  marlin::ProcessorMgr* procMgr= marlin::ProcessorMgr::instance();
+  marlin::Processor* procPTR = procMgr->getActiveProcessor( _procName );
+  if ( procPTR ) _lcalRecoPars = procPTR->parameters();
+  else{                                                // try with My+_procName
+    std::string my_procName = "My" + _procName; 
+    _lcalRecoPars = procMgr->getActiveProcessor( my_procName )->parameters();
+  }
+  if( !_lcalRecoPars ) {
+    streamlog_out( MESSAGE ) << " GlobalMethodsClass::SetConstants : Non of processor names ("<<_procName<< ", My"<<_procName<< ") found !" << std::endl;
+    exit( EXIT_FAILURE );
+  }
 
   // geometry parameters of LumiCal
-
-  // starting position [mm]
-  GlobalParamD[ZStart]   = 2654.2;
   // inner and outer radii [mm]
-  GlobalParamD[RMin] = 100;
-  GlobalParamD[RMax] = 290;
+  GlobalParamD[RMin] = _lcalGearPars.getExtent()[0];
+  GlobalParamD[RMax] = _lcalGearPars.getExtent()[1];
+
+  // starting/end position [mm]
+  GlobalParamD[ZStart] = _lcalGearPars.getExtent()[2];
+  GlobalParamD[ZEnd]   = _lcalGearPars.getExtent()[3];
+
   // cell division numbers
-  GlobalParamI[NumCellsR] = 64;
-  GlobalParamI[NumCellsPhi] = 48;
-  GlobalParamI[NumCellsZ] = 40;
+  GlobalParamD[RCellLength]   = _lcalGearPars.getLayerLayout().getCellSize0(0);
+  GlobalParamD[PhiCellLength] = _lcalGearPars.getLayerLayout().getCellSize1(0);
+  GlobalParamI[NumCellsR]   = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
+  GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
+  GlobalParamI[NumCellsZ] = _lcalGearPars.getLayerLayout().getNLayers();
 
-  GlobalParamD[RCellLength] = (GlobalParamD[RMax] - GlobalParamD[RMin]) / double(GlobalParamI[NumCellsR]);
   // layer thickness
-  GlobalParamD[ZLayerThickness] = 3.5+0.2+0.32+0.25;
+  GlobalParamD[ZLayerThickness] = _lcalGearPars.getLayerLayout().getThickness(0);
 
+
+  // beam crossing angle
+  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle"); 
+
+
+  // Clustering/Reco parameters
   // logarithmic constant for position reconstruction
-  GlobalParamD[LogWeightConstant] = 6.;
+  GlobalParamD[LogWeightConstant] = _lcalRecoPars->getFloatVal("LogWeigthConstant");
+  
+  GlobalParamD[MinHitEnergy] = _lcalRecoPars->getFloatVal("MinHitEnergy");
+  GlobalParamD[MiddleEnergyHitBoundFrac] = _lcalRecoPars->getFloatVal(  "MiddleEnergyHitBoundFrac" );
+  GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal(  "ElementsPercentInShowerPeakLayer" );
+  GlobalParamI[ClusterMinNumHits]   = _lcalRecoPars->getIntVal(  "ClusterMinNumHits" );
 
   // Moliere radius of LumiCal [mm]
-  GlobalParamD[MoliereRadius] = 14;
+  GlobalParamD[MoliereRadius] = _lcalRecoPars->getFloatVal(  "MoliereRadius" );
 
+   // Geometrical fiducial volume of LumiCal - minimal and maximal polar angles [rad]
+  // BP Note this in local LumiCal Reference System ( crossing angle not accounted )
+  GlobalParamD[ThetaMin] = (GlobalParamD[RMin] + GlobalParamD[MoliereRadius])/GlobalParamD[ZStart];
+  GlobalParamD[ThetaMax] = (GlobalParamD[RMax] - GlobalParamD[MoliereRadius])/GlobalParamD[ZEnd];
+ 
   // minimal separation distance between any pair of clusters [mm]
   GlobalParamD[MinSeparationDist] = GlobalParamD[MoliereRadius];
 
   // minimal energy of a single cluster
-  GlobalParamD[MinClusterEngy] = 2;  // value in GeV
+  GlobalParamD[MinClusterEngy] = _lcalRecoPars->getFloatVal(  "MinClusterEngy" );  // value in GeV
   GlobalParamD[MinClusterEngy] = SignalGevConversion(GeV_to_Signal , GlobalParamD[MinClusterEngy]);  // conversion to "detector Signal"
-
-
+  // hits positions weighting method 
+  GlobalParamI[WeightingMethod] = _lcalRecoPars->getIntVal(  "WeightingMethod" );
+  GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal("ElementsPercentInShowerPeakLayer");
+  GlobalParamI[NumOfNearNeighbor] = _lcalRecoPars->getIntVal("NumOfNearNeighbor");
 }
+
 
 /* --------------------------------------------------------------------------
    ccccccccc
@@ -148,22 +200,31 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
 std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
 
   switch (par) {
-  case ZStart:             return "ZStart";
-  case RMin:		   return "RMin";
-  case RMax:		   return "RMax";
-  case NumCellsR:	   return "NumCellsR";
-  case NumCellsPhi:	   return "NumCellsPhi";
-  case NumCellsZ:	   return "NumCellsZ";
-  case RCellLength:	   return "RCellLength";
-  case ZLayerThickness:	   return "ZLayerThickness";
-  case ThetaMin:	   return "ThetaMin";
-  case ThetaMax:	   return "ThetaMax";
-  case LogWeightConstant:  return "LogWeightConstant";
-  case MoliereRadius:	   return "MoliereRadius";
-  case MinSeparationDist:  return "MinSeparationDist";
-  case MinClusterEngy:	   return "MinClusterEngy";
-  case GeV_to_Signal:	   return "GeV_to_Signal";
-  case Signal_to_GeV:      return "Signal_to_GeV";
+  case ZStart:                           return "ZStart";
+  case ZEnd:                             return "ZEnd";
+  case RMin:		                 return "RMin";
+  case RMax:		                 return "RMax";
+  case NumCellsR:	                 return "NumCellsR";
+  case NumCellsPhi:	                 return "NumCellsPhi";
+  case NumCellsZ:	                 return "NumCellsZ";
+  case RCellLength:	                 return "RCellLength";
+  case PhiCellLength:	                 return "PhiCellLength";
+  case ZLayerThickness:	                 return "ZLayerThickness";
+  case ThetaMin:	                 return "ThetaMin";
+  case ThetaMax:	                 return "ThetaMax";
+  case LogWeightConstant:                return "LogWeightConstant";
+  case MoliereRadius:	                 return "MoliereRadius";
+  case MinSeparationDist:                return "MinSeparationDist";
+  case ElementsPercentInShowerPeakLayer: return "ElementsPercentInShowerPeakLayer";
+  case NumOfNearNeighbor:                return "NumOfNearNeighbor";
+  case ClusterMinNumHits:                return "ClusterMinNumHits";
+  case MinHitEnergy:                     return "MinHitEnergy";
+  case MinClusterEngy:	                 return "MinClusterEngy";
+  case MiddleEnergyHitBoundFrac:         return "MiddleEnergyHitBoundFrac";
+  case WeightingMethod:                  return "WeightingMethod";
+  case GeV_to_Signal:	                 return "GeV_to_Signal";
+  case Signal_to_GeV:                    return "Signal_to_GeV";
+  case BeamCrossingAngle:                return "BeamCrossingAngle";
   default: return "Unknown Parameter";
   }
 
@@ -172,7 +233,8 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
 
 
 void GlobalMethodsClass::PrintAllParameters() const {
-
+  streamlog_out(MESSAGE) << "------------------------------------------------------------------" << std::endl;
+  streamlog_out(MESSAGE) << "********* LumiCalReco Parameters set in GlobalMethodClass ********" << std::endl;
 
   for (ParametersInt::const_iterator it = GlobalParamI.begin();it != GlobalParamI.end() ;++it) {
     streamlog_out(MESSAGE) << " - (int)     " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
@@ -185,5 +247,6 @@ void GlobalMethodsClass::PrintAllParameters() const {
   for (ParametersString::const_iterator it = GlobalParamS.begin();it != GlobalParamS.end() ;++it) {
     streamlog_out(MESSAGE) << " - (string)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
   }
+  streamlog_out(MESSAGE) << "---------------------------------------------------------------" << std::endl;
 
 }

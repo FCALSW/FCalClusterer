@@ -1,6 +1,12 @@
+#include "Global.hh"
 #include "MarlinLumiCalClusterer.h"
 
 #include <EVENT/LCEvent.h>
+
+#include <gear/GEAR.h>
+#include <gear/GearParameters.h>
+#include <gear/CalorimeterParameters.h>
+#include <gear/LayerLayout.h>
 
 #include <string>
 #include <map>
@@ -22,6 +28,15 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   LumiInColName(""),
 						   LumiClusterColName(""),
 						   LumiRecoParticleColName(""),
+						   _rMoliere(16.),
+						   _minClusterEngy(2.),
+						   _minHitEnergy(5.e-6),
+						   _logWeigthConstant(6.),
+						   _ElementsPercentInShowerPeakLayer(0.03),
+						   _MiddleEnergyHitBoundFrac(0.01),
+						   _WeightingMethod(-1),
+						   _ClusterMinNumHits(15),
+						   _NumOfNearNeighbor(6),
 						   SkipNEvents(0),
 						   MaxRecordNumber(0),
 						   NumRun(0),
@@ -32,8 +47,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   OutputManager(),
 						   GlobalMethods(),
 						   LumiCalClusterer(LumiInColName)
-
-
+						   
 {
   _description = "whatever..." ;
 
@@ -78,7 +92,44 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 				OutDirName,
 				std::string("rootOut") );
   //---------------------------------------------------------
-
+  // Processor Clustering Parameters
+  //---------------------------------------------------------
+  registerProcessorParameter(  "LogWeigthConstant",
+                               " Sets minimum for logarithmic energy weights",
+                               _logWeigthConstant,
+			       6. );
+  registerProcessorParameter(  "MoliereRadius",
+                               " Moliere radius, controls clusters separation distance [mm]",
+                               _rMoliere,
+                               16. );
+  registerProcessorParameter(  "MinClusterEngy",
+                               " Sets minimum energy deposit for cluster to be accepted [GeV]",
+                               _minClusterEngy,
+                               2. );
+  registerProcessorParameter(  "WeightingMethod",
+                               " Choose cluster hit position weights LogMthod=-1 or simple EnergyMethod=1 ",
+			       _WeightingMethod,
+                               -1 );
+  registerProcessorParameter(  "MinHitEnergy",
+                               " Hit energy cut [Gev] ",
+			       _minHitEnergy,
+                               5.e-6 );
+  registerProcessorParameter(  "ClusterMinNumHits",
+                               " Minimal number of hits in cluster",
+			       _ClusterMinNumHits,
+                               15 );
+  registerProcessorParameter(  "ElementsPercentInShowerPeakLayer",
+                               " BP: Not sure what it is",
+			       _ElementsPercentInShowerPeakLayer,
+                               0.03 );
+  registerProcessorParameter(  "MiddleEnergyHitBoundFrac",
+                               " BP: see explanation in LumiCalClusterer.cpp",
+			       _MiddleEnergyHitBoundFrac,
+                               0.01 );
+   registerProcessorParameter(  "NumOfNearNeighbor",
+                               "Number of neighbor hits to consider ",
+			       _NumOfNearNeighbor,
+                                6 );
 }
 
 
@@ -89,13 +140,15 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
    ========================================================================= */
 void MarlinLumiCalClusterer::init(){
 
-  //	printParameters();
+  	printParameters();
 
   // global vars
   NumRun = 0 ;
   NumEvt = SkipNEvents;
 
-  //	GlobalMethods = new GlobalMethodsClass();
+
+  //  GlobalMethods = new GlobalMethodsClass();
+  
   GlobalMethods.SetConstants();
 
   //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
@@ -109,7 +162,7 @@ void MarlinLumiCalClusterer::init(){
   /* --------------------------------------------------------------------------
      Print out Processor Parameters
      -------------------------------------------------------------------------- */
-  streamlog_out(MESSAGE) << std::endl << "Global parameters for MarlinLumiCalClusterer Processor:" << std::endl;
+  streamlog_out(MESSAGE) << std::endl << "Global parameters for "<< name() << " Processor:" << std::endl;
   GlobalMethods.PrintAllParameters();
 
   streamlog_out(MESSAGE) << std::endl;

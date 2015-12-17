@@ -17,7 +17,7 @@ namespace EVENT {
 class ClusterClass : public GlobalMethodsClass {
 
 public:
-  ClusterClass(int idNow);
+  ClusterClass(int idNow );
   ~ClusterClass();
 
   void	FillHit(int cellNow, double engyNow);

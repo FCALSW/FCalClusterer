@@ -1,3 +1,4 @@
+
 #include "Global.hh"
 
 #include "ClusterClass.h"
@@ -16,6 +17,7 @@ using namespace streamlog;
    class ....
    -------------------------------------------------------------------------- */
 ClusterClass::ClusterClass(int idNow):
+  GlobalMethodsClass(),
   Id(idNow), Pdg(0), SignMC(0), ParentId(idNow), NumMCDaughters(0),
   OutsideFlag(0), MergedFlag(0), HighestEnergyFlag(0), ModifiedFlag(0),
   Engy(0.0), Theta(0.0), Phi(0.0), RZStart(0.0),
@@ -25,7 +27,7 @@ ClusterClass::ClusterClass(int idNow):
   OutsideReason(""),
   Hit()
 {
-  // inherited method from BeamPipe class, to set all global constants
+  // inherited method from GlobalMethods class, to set all global constants
   SetConstants();
   clusterPosition[0] = 0.0;
   clusterPosition[1] = 0.0;

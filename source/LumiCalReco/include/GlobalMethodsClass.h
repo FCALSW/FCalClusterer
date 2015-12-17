@@ -1,37 +1,65 @@
 #ifndef GlobalMethodsClass_H
 #define GlobalMethodsClass_H 1
 
+#include "Global.hh"
+
+#include <gear/GEAR.h>
+#include <gear/GearParameters.h>
+#include <gear/CalorimeterParameters.h>
+#include <gear/LayerLayout.h>
+#include <gear/GearMgr.h>
+
+#include <marlin/ProcessorMgr.h>
+#include <marlin/Processor.h>
+#include <marlin/StringParameters.h>
+
+
 #include <map>
 #include <string>
 
+
 class GlobalMethodsClass {
 
-public:
+ private:
+  std::string _procName;
+ public:
 
   enum Parameter_t{
     ZStart,
+    ZEnd,
     RMin,
     RMax,
     NumCellsR,
     NumCellsPhi,
     NumCellsZ,
     RCellLength,
+    PhiCellLength,
     ZLayerThickness,
     ThetaMin,
     ThetaMax,
     LogWeightConstant,
     MoliereRadius,
     MinSeparationDist,
+    ElementsPercentInShowerPeakLayer,
+    NumOfNearNeighbor,
+    ClusterMinNumHits,
+    MinHitEnergy,
     MinClusterEngy,
+    MiddleEnergyHitBoundFrac,
+    WeightingMethod,
     GeV_to_Signal,
-    Signal_to_GeV
+    Signal_to_GeV,
+    BeamCrossingAngle
 };
-
-  enum WeightingMethod_t{
+  typedef short WeightingMethod_t;
+  static const WeightingMethod_t LogMethod = -1;
+  static const WeightingMethod_t EnergyMethod = 1;
+  /*  
+  enum {
     LogMethod=-1,
     EnergyMethod=1
   };
-
+  */
   enum Coordinate_t {
     COTheta,
     COPhi,
@@ -48,8 +76,9 @@ public:
   typedef std::map < Parameter_t, std::string > ParametersString;
 
   GlobalMethodsClass();
+  GlobalMethodsClass( const std::string &procType );
   ~GlobalMethodsClass();
-
+ 
   void SetConstants();
 
   ParametersInt    GlobalParamI;

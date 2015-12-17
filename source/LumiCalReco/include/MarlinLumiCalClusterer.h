@@ -1,6 +1,6 @@
 #ifndef MarlinLumiCalClusterer_
 #define MarlinLumiCalClusterer_
-
+#include <marlin/Global.h>
 #include "Global.hh"
 
 #include "GlobalMethodsClass.h"
@@ -51,13 +51,15 @@ namespace EVENT{
     // final action after last event analysis is over.
     virtual void end() ;
 
-    //protected:
-
     // Processor Parameters
     std::string	LumiInColName, LumiClusterColName, LumiRecoParticleColName ;
-    int	SkipNEvents, MaxRecordNumber;
+    double _rMoliere,_minClusterEngy, _minHitEnergy, _logWeigthConstant;
+    double _ElementsPercentInShowerPeakLayer, _MiddleEnergyHitBoundFrac;
+    int    _WeightingMethod, _ClusterMinNumHits, _NumOfNearNeighbor;
+         
 
     // global counters
+    int	SkipNEvents, MaxRecordNumber;
     int	NumRun, NumEvt, EvtNumber;
     std::string	OutDirName;
 

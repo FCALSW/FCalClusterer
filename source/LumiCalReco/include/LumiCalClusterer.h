@@ -38,6 +38,7 @@ namespace IMPL{
   class CalorimeterHitImpl;
 }
 
+
 class LumiCalClustererClass {
 
   typedef std::vector <IMPL::CalorimeterHitImpl*> VecCalHit;
