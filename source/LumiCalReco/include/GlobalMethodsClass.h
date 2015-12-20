@@ -11,6 +11,7 @@
 
 #include <marlin/ProcessorMgr.h>
 #include <marlin/Processor.h>
+#include <marlin/ProcessorParameter.h>
 #include <marlin/StringParameters.h>
 
 

@@ -1,5 +1,8 @@
 #ifndef OUTPUTMANAGERCLASS_H
 #define OUTPUTMANAGERCLASS_H 1
+// NOTE: Memory resident trees are not properly witten to disk
+// this need to be fixed if such option is wanted
+#define LCAL_MEMORY_RESIDENT_TREE 1
 
 class TFile;
 class TH1;
@@ -37,10 +40,12 @@ public:
   std::map < std::string , int >		Counter;
   std::map < std::string , int >::iterator	CounterIterator;
 
-  int	SkipNEvents, WriteRootTrees, NumEventsTree;
+  int SkipNEvents, WriteRootTrees, NumEventsTree;
+  int MemoryResidentTree;
 
+  void  FillRootTree( const std::string & treeName );
   void	WriteToRootTree(std::string optName, int nEvtNow);
-  void	Initialize(int skipNEventsNow , int numEventsTreeNow, std::string outDirNameNow);
+  void	Initialize(int treeLocNow, int skipNEventsNow , int numEventsTreeNow, std::string outDirNameNow, std::string outFileName);
 
   void	CleanUp();
 

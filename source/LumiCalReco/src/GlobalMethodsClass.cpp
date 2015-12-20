@@ -87,7 +87,9 @@ void GlobalMethodsClass::SetConstants() {
   marlin::StringParameters* _lcalRecoPars = NULL;
   marlin::ProcessorMgr* procMgr= marlin::ProcessorMgr::instance();
   marlin::Processor* procPTR = procMgr->getActiveProcessor( _procName );
-  if ( procPTR ) _lcalRecoPars = procPTR->parameters();
+  //procMgr->dumpRegisteredProcessorsXML();
+  if ( procPTR )
+    _lcalRecoPars = procPTR->parameters();
   else{                                                // try with My+_procName
     std::string my_procName = "My" + _procName; 
     _lcalRecoPars = procMgr->getActiveProcessor( my_procName )->parameters();

@@ -444,7 +444,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
       // ???????? DECIDE/FIX - consider a different middle layer for the else condition ????????
       // extrapolated cluster radius around CM position
 #warning "Fix these parameters"
-      if(avrgCM[clusterNow].getE() > 1)     { fitPar0 = 236.7; fitPar1 = 9.11; hitLayerRatio = 22/2618.; }
+      if(avrgCM[clusterNow].getE() > 1) { fitPar0 = 236.7; fitPar1 = 9.11; hitLayerRatio = 22/2618.; }
       else                              { fitPar0 = 226.5; fitPar1 = 10.3; hitLayerRatio = 22/2570.; }
 
       if(layerNow < maxLayerToRaiseVirtualClusterSize)
@@ -565,7 +565,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 	   FROM THIS POINT ON ENERGY OF HITS BELONGING TO A SUPERCLUSTER
 	   MUST BE ACCESSED BY: superClusterIdToCellEngy
 	   AND NOT BY:          calHitsCellIdGlobal[cellIdHit]->getEnergy()
-	   AS THE ENERGY OF SINGLE HITS MAY BE DIVIDED BY SEVERAL CLUSTERS !
+	   AS THE ENERGY OF SINGLE HITS MAY BE shared BY SEVERAL CLUSTERS !
 	   --------------------------------------------------------------------------
 	   -------------------------------------------------------------------------- */
 

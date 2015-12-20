@@ -62,8 +62,9 @@ namespace EVENT{
     int	SkipNEvents, MaxRecordNumber;
     int	NumRun, NumEvt, EvtNumber;
     std::string	OutDirName;
-
+    std::string	OutRootFileName;
     int	NumEventsTree;
+    int MemoryResidentTree;
 
     OutputManagerClass	OutputManager;
     GlobalMethodsClass	GlobalMethods;

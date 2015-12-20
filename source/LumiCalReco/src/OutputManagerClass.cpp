@@ -1,5 +1,7 @@
-#include "OutputManagerClass.h"
 
+#include "OutputManagerClass.h"
+#include "Global.hh"
+#include <TROOT.h>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH2F.h>
@@ -12,6 +14,7 @@
 #include <cassert>
 #include <map>
 #include <string>
+#include <sstream>
 
 
 
@@ -24,11 +27,12 @@ OutputManagerClass::OutputManagerClass():
   TreeMapIterator(),
   TreeIntV(),
   TreeDoubleV(),
-  OutputRootFileName(""), OutDirName(""),
+  MemoryResidentTree(0),
+  OutputRootFileName("LcalOut"), OutDirName("rootOut"),
   OutputRootFile(NULL),
   Counter(),
   CounterIterator(),
-  SkipNEvents(0), WriteRootTrees(0), NumEventsTree(0)
+  SkipNEvents(0), WriteRootTrees(1), NumEventsTree(0)
 {
 }
 
@@ -38,11 +42,15 @@ OutputManagerClass::~OutputManagerClass() {
 }
 
 
-void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, std::string outDirNameNow){
+void OutputManagerClass::Initialize(int treeLocOptNow,
+                                    int skipNEventsNow,
+                                    int numEventsTreeNow,
+                                    std::string outDirNameNow,
+                                    std::string outFileNameNow){
 
 
   OutDirName = outDirNameNow;
-  //	OutDirName = "rootOut";
+  OutputRootFileName = outFileNameNow;
 
   SkipNEvents   = skipNEventsNow;
   NumEventsTree = numEventsTreeNow;
@@ -58,15 +66,31 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, st
   TTree	* tree;
   Int_t	markerCol = kRed-4, lineCol = kAzure+3, fillCol = kBlue-8;
   std::string hisName;  int numBins1;  double hisRange1[2];  int numBins2;  double hisRange2[2];
+  MemoryResidentTree  = treeLocOptNow;
+  WriteRootTrees = int(SkipNEvents/double(NumEventsTree))+1;
 
-  WriteRootTrees = int(SkipNEvents/double(NumEventsTree));
 
-
-  // check that the output directory exists
+  /* check that the output directory exists
   std::string  outDirName = "cd "; outDirName += OutDirName;
   assert( !system(outDirName.c_str()) );
-
-
+  */
+  // it is probably more convenient to check and create if needed (BP) 
+  std::string command = "mkdir -p ";
+  command += OutDirName;
+  if( system( command.c_str() ) ) {
+    exit( EXIT_FAILURE );
+  }
+  if( MemoryResidentTree == 0 ) {
+  // Open Root file before booking histos/Trees to have diskresident dir
+    std::string outFileName = OutDirName;
+    outFileName += "/";
+    outFileName += OutputRootFileName;
+    outFileName += ".root";
+    OutputRootFile = new TFile( outFileName.c_str(),"RECREATE"); 
+  }else{
+    // make sure we are at top root dir (BP)
+    gROOT->cd(); 
+  }
   hisRange1[0] = 0;	hisRange1[1] = 150;	numBins1 = 3000;
 
   hisName = "totEnergyOut";
@@ -149,6 +173,14 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, st
 
 
   hisName = "bhabhaSelectionTree";
+  TreeIntV["nEvt"] = 0;
+  TreeIntV["sign"] = 0;
+  TreeIntV["pdg"] = 0;
+
+  TreeDoubleV["engy"]=0.;
+  TreeDoubleV["theta"]=0.;
+  TreeDoubleV["phi"]=0.;
+
   tree = new TTree(hisName.c_str(),hisName.c_str());
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
   tree -> Branch("Sign", &TreeIntV["sign"], "sign/I");
@@ -159,7 +191,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, st
   TreeMap["bhabhaSelectionTree"] = tree;
 
 
-
+ 
   hisName = "mcParticleTree";
   tree = new TTree(hisName.c_str(),hisName.c_str());
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
@@ -175,7 +207,7 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, st
   tree -> Branch("EndZ", &TreeDoubleV["endZ"], "endZ/D");
 
   TreeMap["mcParticleTree"] = tree;
-
+  
 
   return;
 }
@@ -183,18 +215,21 @@ void OutputManagerClass::Initialize(int skipNEventsNow, int numEventsTreeNow, st
 void OutputManagerClass::CleanUp(){
 
   // 1D histogram std::map
+  streamlog_out(DEBUG)<<"OutputManagerClass::CleanUp: cleaning 1D map .........\n";
   HisMap1DIterator  = HisMap1D.begin();
   for(; HisMap1DIterator != HisMap1D.end(); ++HisMap1DIterator) {
-    delete HisMap1DIterator->second;
+    if ( HisMap1DIterator->second ) delete HisMap1DIterator->second;
   }
 
   // 2D histogram std::map
+  streamlog_out(DEBUG)<<"OutputManagerClass::CleanUp: cleaning 2D map .........\n";
   HisMap2DIterator  = HisMap2D.begin();
   for(;HisMap2DIterator != HisMap2D.end(); ++HisMap2DIterator) {
     delete HisMap2DIterator->second;
   }
 
   // tree std::map
+  streamlog_out(DEBUG)<<"OutputManagerClass::CleanUp: cleaning Tree map .......\n";
   TreeMapIterator   = TreeMap.begin();
   for(; TreeMapIterator != TreeMap.end(); ++TreeMapIterator) {
     delete TreeMapIterator->second;
@@ -207,20 +242,32 @@ void OutputManagerClass::CleanUp(){
   return;
 }
 
+void OutputManagerClass::FillRootTree( const std::string &treeName){
+  TreeMap[ treeName ]->Fill();
+}
 
 void OutputManagerClass::WriteToRootTree(std::string optName, int nEvtNow){
-
-  if( int(nEvtNow/double(NumEventsTree)) ==  WriteRootTrees || optName == "forceWrite") {
-    OutputRootFileName = "./";  OutputRootFileName += OutDirName;  OutputRootFileName += "/output_";
-    OutputRootFileName += WriteRootTrees;  OutputRootFileName += ".root";
-    OutputRootFile = new TFile(OutputRootFileName.c_str(),"RECREATE");
-
+    
+    if ( MemoryResidentTree == 1 ){ 
+    //memory resident tree 
+    if( int(nEvtNow/double(NumEventsTree)) ==  WriteRootTrees || optName == "forceWrite") {
+      // OutputRootFileName = "./";  one migth want to write in some other place (BP)
+    std::string outFileName = OutDirName;
+    outFileName += "/";
+    outFileName += OutputRootFileName;
+    outFileName += "_";
+    //    OutputRootFileName += WriteRootTrees;  <---  bad idea (BP)
+     std::stringstream fnum;
+     fnum << WriteRootTrees-1;
+     outFileName += fnum.str();
+     outFileName += ".root";
+     OutputRootFile = new TFile( outFileName.c_str(),"RECREATE");
     // 1D histogram std::map
-    HisMap1DIterator  = HisMap1D.begin();
-  for(; HisMap1DIterator != HisMap1D.end(); ++HisMap1DIterator) {
+     HisMap1DIterator  = HisMap1D.begin();
+     for(; HisMap1DIterator != HisMap1D.end(); ++HisMap1DIterator) {
       HisMap1DIterator->second -> Write();
       HisMap1DIterator->second -> Reset();
-    }
+     }
 
     // 2D histogram map
     HisMap2DIterator  = HisMap2D.begin();
@@ -232,15 +279,28 @@ void OutputManagerClass::WriteToRootTree(std::string optName, int nEvtNow){
     // tree map
     TreeMapIterator   = TreeMap.begin();
     for(; TreeMapIterator != TreeMap.end(); ++TreeMapIterator) {
-      TreeMapIterator->second -> Write();
-      TreeMapIterator->second -> Reset();
+      TTree* pTreeNow = TreeMapIterator->second;
+      if( pTreeNow ) {
+	pTreeNow -> Write();
+        pTreeNow -> Reset();
+      }
     }
 
     OutputRootFile -> Close();
     delete	OutputRootFile;
+    streamlog_out(MESSAGE) <<"\n"<< "OutputManagerClass::WriteToRootTree: Went through  " << nEvtNow << "  events..." << "\n";
+    streamlog_out(MESSAGE) <<"OutputManagerClass::WriteToRootTree: Root file  " << outFileName << " written" << "\n";
     WriteRootTrees++;
-
-    streamlog_out(DEBUG) << std::endl << "Went through  " << nEvtNow << "  events..." << std::endl;
+  }
+  }else{
+      // disk resident hits/trees
+    if( optName == "forceWrite" ){
+      OutputRootFile -> Write();
+      OutputRootFile -> Close();
+      streamlog_out(MESSAGE) <<"\n"<< "OutputManagerClass::WriteToRootTree: Went through  " << nEvtNow << "  events..." << "\n";
+      streamlog_out(MESSAGE) <<"OutputManagerClass::WriteToRootTree: Root file  " << OutputRootFile->GetName() << " written" << "\n";
+      delete	OutputRootFile;
+    }
   }
 
   return;

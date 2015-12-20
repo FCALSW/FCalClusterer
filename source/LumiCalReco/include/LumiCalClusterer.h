@@ -8,7 +8,7 @@
 
 
 // verbosity
-#define _GENERAL_CLUSTERER_DEBUG 1
+#define _GENERAL_CLUSTERER_DEBUG 0
 #define _CLUSTER_BUILD_DEBUG 1
 #define _VIRTUALCLUSTER_BUILD_DEBUG 0
 #define _MOL_RAD_CORRECT_DEBUG 0
@@ -268,7 +268,7 @@ protected:
   double	getEngyInMoliereFraction( MapIntCalHit const& calHitsCellId,
 					  VInt const& clusterIdToCellId,
 					  LCCluster const&	clusterCM,
-					  double				moliereFraction );
+					  double  moliereFraction );
 
   double	getEngyInMoliereFraction( MapIntCalHit	const& calHitsCellId,
 					  VInt const& clusterIdToCellId,

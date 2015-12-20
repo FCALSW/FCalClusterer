@@ -44,6 +44,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   EvtNumber(0),
 						   OutDirName(""),
 						   NumEventsTree(0),
+						   MemoryResidentTree(0),
 						   OutputManager(),
 						   GlobalMethods(),
 						   LumiCalClusterer(LumiInColName)
@@ -91,6 +92,18 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 				"Name of output directory" ,
 				OutDirName,
 				std::string("rootOut") );
+   registerProcessorParameter(	"OutRootFileName" ,
+				"Name of output ROOT file ( without suffix)" ,
+				OutRootFileName,
+				std::string("LcalOut") );
+  registerProcessorParameter(   "NumEventsTree",
+				"Number of events in memory resident ROOT tree.",
+				NumEventsTree,
+				500 );
+  registerProcessorParameter(   "MemoryResidentTree",
+				" Place for ROOT tree memory(1) or disk(0)",
+				MemoryResidentTree,
+				0 );
   //---------------------------------------------------------
   // Processor Clustering Parameters
   //---------------------------------------------------------
@@ -155,14 +168,14 @@ void MarlinLumiCalClusterer::init(){
   LumiCalClusterer.setLumiCollectionName(LumiInColName);
   LumiCalClusterer.init(GlobalMethods.GlobalParamI, GlobalMethods.GlobalParamD);
 
-  NumEventsTree = 500;
+
   //OutputManager = new OutputManagerClass();
-  OutputManager.Initialize(SkipNEvents , NumEventsTree, OutDirName.c_str());
+  OutputManager.Initialize(MemoryResidentTree, SkipNEvents , NumEventsTree, OutDirName, OutRootFileName);
 
   /* --------------------------------------------------------------------------
      Print out Processor Parameters
      -------------------------------------------------------------------------- */
-  streamlog_out(MESSAGE) << std::endl << "Global parameters for "<< name() << " Processor:" << std::endl;
+  streamlog_out(MESSAGE) << std::endl << "Global parameters for Processor:"<< name()  << std::endl;
   GlobalMethods.PrintAllParameters();
 
   streamlog_out(MESSAGE) << std::endl;
@@ -194,7 +207,7 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
 	    << std::endl ;
 
 
-  OutputManager.NumEventsTree = 500;	
+  //  OutputManager.NumEventsTree = 500;	
   TryMarlinLumiCalClusterer(evt);
 
 }
@@ -208,7 +221,7 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
    ========================================================================= */
 void MarlinLumiCalClusterer::end(){
 
-  streamlog_out( DEBUG ) << "Run MarlinLumiCalClusterer::end() "
+  streamlog_out( MESSAGE ) << "Run MarlinLumiCalClusterer::end() "
 			 << "Went through " << NumEvt << " events from " << NumRun << " file(s)" 
 			 << std::endl;
 
@@ -227,7 +240,7 @@ void MarlinLumiCalClusterer::end(){
     std::string counterName = (std::string)(*OutputManager.CounterIterator).first;
     std::cout << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
   }
-
-  OutputManager.CleanUp();
+  // (BP) It is done by destructor!
+  //OutputManager.CleanUp();       
 
 }

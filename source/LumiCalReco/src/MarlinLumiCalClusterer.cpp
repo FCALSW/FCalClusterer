@@ -245,7 +245,8 @@
 	  OutputManager.TreeDoubleV["theta"]	= thetaNow;
 	  OutputManager.TreeDoubleV["phi"]	= phiNow;
 
-	  OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
+	  //	  OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
+  	OutputManager.FillRootTree("bhabhaSelectionTree");
 	}
       }
 
@@ -258,11 +259,13 @@
 	OutputManager.TreeDoubleV["phi"]	= -1;
 
 	OutputManager.TreeIntV["sign"]	= 1;
-	OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
+	//OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
+	OutputManager.FillRootTree("bhabhaSelectionTree");
 
 	OutputManager.TreeIntV["sign"]	= -1;
-	OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
-      }
+	//	OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
+  	OutputManager.FillRootTree("bhabhaSelectionTree");
+    }
 
 
 
