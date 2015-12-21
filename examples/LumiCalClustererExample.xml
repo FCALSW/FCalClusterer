@@ -8,6 +8,10 @@
    <parameter name="LumiCal_Clusters" type="string" lcioOutType="Cluster">LumiCalClusters </parameter>
    <!--Collection of Reconstructed Particles found in the LumiCal-->
    <parameter name="LumiCal_RecoParticles" type="string" lcioOutType="ReconstructedParticle">LumiCalRecoParticles </parameter>
+   <!-- Number of events to skip at the begining of the LCIO file-->
+   <parameter name="SkipNEvents" type="int">0 </parameter>
+   <!-- Number of event to work with-->
+   <parameter name="MaxRecordNumber" type="int">10 </parameter>
    <!--Name of output directory-->
    <parameter name="OutDirName" type="string">rootOut </parameter>
    <!--Name of output ROOT file ( without suffix)-->
@@ -16,10 +20,6 @@
    <parameter name="MemoryResidentTree" type="int">0 </parameter>
    <!-- Number of events in memory resident ROOT tree.-->
    <parameter name="NumEventsTree" type="int">500 </parameter>
-   <!-- Number of events to skip at the begining of the LCIO file-->
-   <parameter name="SkipNEvents" type="int">0 </parameter>
-   <!-- Number of event to work with-->
-   <parameter name="MaxRecordNumber" type="int">10 </parameter>
 
    <!--  Clustering Parameters -->
    <!-- Minimal number of hits in cluster-->
