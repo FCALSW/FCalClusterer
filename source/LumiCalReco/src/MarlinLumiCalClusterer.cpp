@@ -83,7 +83,7 @@
 	  //have to loop over all of them until it is found
 	  float momentumCluster[3] = { float(energyCluster * sin ( thetaCluster ) * cos ( phiCluster )),
 				       float(energyCluster * sin ( thetaCluster ) * sin ( phiCluster )),
-				       float(energyCluster * cos ( thetaCluster )) };
+				       float(energyCluster * cos ( thetaCluster ) * float(armNow))  };
 
 	  const float mass = 0.0;
 	  const float charge = 1e+19;
