@@ -9,7 +9,7 @@ LCCluster::LCCluster():
   _position(),
   _energy(0.0),
   _weight(0.0),
-  _method(-1),
+  _method("LogMethod"),
   _theta(0.0),
   _phi(0.0)
 {
@@ -22,7 +22,7 @@ LCCluster::LCCluster( const VirtualCluster& vc ):
   _position(),
   _energy(0.0),
   _weight(0.0),
-  _method(-1),
+  _method("LogMethod"),
   _theta(0.0),
   _phi(0.0)
 {
@@ -53,7 +53,7 @@ void LCCluster::clear() {
   _position[1] = 0.0;
   _position[2] = 0.0;
   _weight = 0.0;
-  _method = -1;
+  _method = "";
   _theta = 0.0;
   _phi = 0.0;
 }

@@ -27,12 +27,12 @@ OutputManagerClass::OutputManagerClass():
   TreeMapIterator(),
   TreeIntV(),
   TreeDoubleV(),
-  MemoryResidentTree(0),
   OutputRootFileName("LcalOut"), OutDirName("rootOut"),
   OutputRootFile(NULL),
   Counter(),
   CounterIterator(),
-  SkipNEvents(0), WriteRootTrees(1), NumEventsTree(0)
+  SkipNEvents(0), WriteRootTrees(1), NumEventsTree(0),
+  MemoryResidentTree(0)
 {
 }
 

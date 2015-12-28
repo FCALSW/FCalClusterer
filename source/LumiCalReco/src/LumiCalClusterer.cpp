@@ -42,10 +42,10 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _nNearNeighbor (6),
   _cellRMax(0), _cellPhiMax (0),
   _middleEnergyHitBoundFrac(0.01),
-  _methodCM(-1),
+  _methodCM("LogMethod"),
   _moliereRadius(),
   _thetaContainmentBounds(),
-  _minSeparationDistance(), _minClusterEngyGeV(),
+  _minSeparationDistance(), _minClusterEngyGeV(), _minClusterEngySignal(),
   _totEngyArm(),
   _armsToCluster(),
   _mydecoder(NULL)
@@ -58,7 +58,8 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
    initial action before first event analysis starts:
    Called at the begining of the job before anything is read.
    ========================================================================= */
-void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& GlobalParamI,
+void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& GlobalParamS,
+				  GlobalMethodsClass::ParametersInt    const& GlobalParamI,
 				  GlobalMethodsClass::ParametersDouble const& GlobalParamD ){
 
 
@@ -68,7 +69,7 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
   _armsToCluster.clear();
   _armsToCluster.push_back(-1);
   _armsToCluster.push_back(1);
-  _methodCM				= GlobalParamI.at(GlobalMethodsClass::WeightingMethod);                  // GlobalMethodsClass::LogMethod
+  _methodCM				= GlobalParamS.at(GlobalMethodsClass::WeightingMethod);                  // GlobalMethodsClass::LogMethod
   _clusterMinNumHits			= GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits);                // = 15
   _hitMinEnergy				= GlobalParamD.at(GlobalMethodsClass::MinHitEnergy);                     // = 5e-6
   _zLayerThickness			= GlobalParamD.at(GlobalMethodsClass::ZLayerThickness);                  // = 4.5
@@ -89,8 +90,8 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
 
   // minimal separation distance and energy (of either cluster) to affect a merge
   _minSeparationDistance = GlobalParamD.at(GlobalMethodsClass::MinSeparationDist);
-  _minClusterEngyGeV = GlobalMethodsClass::SignalGevConversion( GlobalMethodsClass::Signal_to_GeV,
-								GlobalParamD.at(GlobalMethodsClass::MinClusterEngy) );
+  _minClusterEngyGeV = GlobalParamD.at(GlobalMethodsClass::MinClusterEngyGeV);
+  _minClusterEngySignal = GlobalParamD.at(GlobalMethodsClass::MinClusterEngySignal);
 
 
   _thetaContainmentBounds[0] = GlobalParamD.at(GlobalMethodsClass::ThetaMin);
@@ -128,9 +129,7 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersInt    const& Gl
 	    << " _moliereRadius: "		    << _moliereRadius			 << std::endl
 	    << " _minSeparationDistance: "	    << _minSeparationDistance		 << std::endl
 	    << " _minClusterEngy - GeV: "	    << _minClusterEngyGeV		 << std::endl
-	    << " _minClusterEngy - Signal: "	    
-	    << GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::GeV_to_Signal, _minClusterEngyGeV)
-	    << std::endl
+	    << " _minClusterEngy - Signal: "	    << _minClusterEngySignal             << std::endl
 	    << " _hitMinEnergy: "		    << _hitMinEnergy		         << std::endl
 	    << " _thetaContainmentBounds[0]: "	    << _thetaContainmentBounds[0]	 << std::endl
 	    << " _thetaContainmentBounds[1]: "	    << _thetaContainmentBounds[1]	 << std::endl

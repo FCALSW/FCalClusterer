@@ -45,16 +45,21 @@ class GlobalMethodsClass {
     NumOfNearNeighbor,
     ClusterMinNumHits,
     MinHitEnergy,
-    MinClusterEngy,
+    MinClusterEngyGeV,
+    MinClusterEngySignal,
     MiddleEnergyHitBoundFrac,
     WeightingMethod,
     GeV_to_Signal,
     Signal_to_GeV,
     BeamCrossingAngle
 };
+  //
+  
+  /*
   typedef short WeightingMethod_t;
   static const WeightingMethod_t LogMethod = -1;
   static const WeightingMethod_t EnergyMethod = 1;
+  */
   /*  
   enum {
     LogMethod=-1,
@@ -72,16 +77,18 @@ class GlobalMethodsClass {
   
   static std::string GetParameterName ( Parameter_t par );
 
+  typedef std::string                           WeightingMethod_t;
   typedef std::map < Parameter_t, int >         ParametersInt;
   typedef std::map < Parameter_t, double >      ParametersDouble;
   typedef std::map < Parameter_t, std::string > ParametersString;
 
   GlobalMethodsClass();
   GlobalMethodsClass( const std::string &procType );
-  ~GlobalMethodsClass();
+  virtual ~GlobalMethodsClass();
  
   void SetConstants();
-
+  static WeightingMethod_t LogMethod;
+  static WeightingMethod_t EnergyMethod;
   ParametersInt    GlobalParamI;
   ParametersDouble GlobalParamD;
   ParametersString GlobalParamS;

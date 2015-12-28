@@ -18,6 +18,9 @@ using streamlog::MESSAGE;
 #include <cstdlib>
 #include <iostream>
 
+GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::LogMethod = "LogMethod";
+GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::EnergyMethod = "EnergyMethod";
+
 
 GlobalMethodsClass :: GlobalMethodsClass() :
   _procName( "MarlinLumiCalClusterer" ),
@@ -78,6 +81,7 @@ void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& ce
 }
 
 void GlobalMethodsClass::SetConstants() {
+
 
   // BP. access gear file
   gear::GearMgr* gearMgr =  marlin::Global::GEAR;
@@ -144,10 +148,10 @@ void GlobalMethodsClass::SetConstants() {
   GlobalParamD[MinSeparationDist] = GlobalParamD[MoliereRadius];
 
   // minimal energy of a single cluster
-  GlobalParamD[MinClusterEngy] = _lcalRecoPars->getFloatVal(  "MinClusterEngy" );  // value in GeV
-  GlobalParamD[MinClusterEngy] = SignalGevConversion(GeV_to_Signal , GlobalParamD[MinClusterEngy]);  // conversion to "detector Signal"
+  GlobalParamD[MinClusterEngyGeV] = _lcalRecoPars->getFloatVal(  "MinClusterEngy" );  // value in GeV
+  GlobalParamD[MinClusterEngySignal] = SignalGevConversion(GeV_to_Signal , GlobalParamD[MinClusterEngyGeV]);  // conversion to "detector Signal"
   // hits positions weighting method 
-  GlobalParamI[WeightingMethod] = _lcalRecoPars->getIntVal(  "WeightingMethod" );
+  GlobalParamS[WeightingMethod] = _lcalRecoPars->getStringVal(  "WeightingMethod" );
   GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal("ElementsPercentInShowerPeakLayer");
   GlobalParamI[NumOfNearNeighbor] = _lcalRecoPars->getIntVal("NumOfNearNeighbor");
 }
@@ -221,7 +225,8 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
   case NumOfNearNeighbor:                return "NumOfNearNeighbor";
   case ClusterMinNumHits:                return "ClusterMinNumHits";
   case MinHitEnergy:                     return "MinHitEnergy";
-  case MinClusterEngy:	                 return "MinClusterEngy";
+  case MinClusterEngyGeV:	         return "MinClusterEngyGeV";
+  case MinClusterEngySignal:	         return "MinClusterEngySignal";
   case MiddleEnergyHitBoundFrac:         return "MiddleEnergyHitBoundFrac";
   case WeightingMethod:                  return "WeightingMethod";
   case GeV_to_Signal:	                 return "GeV_to_Signal";

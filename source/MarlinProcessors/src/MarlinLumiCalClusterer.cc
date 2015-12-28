@@ -34,7 +34,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   _logWeigthConstant(6.),
 						   _ElementsPercentInShowerPeakLayer(0.03),
 						   _MiddleEnergyHitBoundFrac(0.01),
-						   _WeightingMethod(-1),
+						   _WeightingMethod("LogMethod"),
 						   _ClusterMinNumHits(15),
 						   _NumOfNearNeighbor(6),
 						   SkipNEvents(0),
@@ -43,6 +43,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   NumEvt(0),
 						   EvtNumber(0),
 						   OutDirName(""),
+						   OutRootFileName("LcalRootOut"),
 						   NumEventsTree(0),
 						   MemoryResidentTree(0),
 						   OutputManager(),
@@ -95,7 +96,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
    registerProcessorParameter(	"OutRootFileName" ,
 				"Name of output ROOT file ( without suffix)" ,
 				OutRootFileName,
-				std::string("LcalOut") );
+				std::string("LcalRootOut") );
   registerProcessorParameter(   "NumEventsTree",
 				"Number of events in memory resident ROOT tree.",
 				NumEventsTree,
@@ -120,11 +121,11 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
                                _minClusterEngy,
                                2. );
   registerProcessorParameter(  "WeightingMethod",
-                               " Choose cluster hit position weights LogMthod=-1 or simple EnergyMethod=1 ",
+                               " Hit positions weighting method (LogMthod, EnergyMethod ) ",
 			       _WeightingMethod,
-                               -1 );
+                               std::string("LogMethod") );
   registerProcessorParameter(  "MinHitEnergy",
-                               " Hit energy cut [Gev] ",
+                               " Hit energy cut [Mev] ",
 			       _minHitEnergy,
                                5.e-6 );
   registerProcessorParameter(  "ClusterMinNumHits",
@@ -164,21 +165,22 @@ void MarlinLumiCalClusterer::init(){
   
   GlobalMethods.SetConstants();
 
-  //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
-  LumiCalClusterer.setLumiCollectionName(LumiInColName);
-  LumiCalClusterer.init(GlobalMethods.GlobalParamI, GlobalMethods.GlobalParamD);
-
-
-  //OutputManager = new OutputManagerClass();
-  OutputManager.Initialize(MemoryResidentTree, SkipNEvents , NumEventsTree, OutDirName, OutRootFileName);
-
   /* --------------------------------------------------------------------------
      Print out Processor Parameters
      -------------------------------------------------------------------------- */
   streamlog_out(MESSAGE) << std::endl << "Global parameters for Processor:"<< name()  << std::endl;
   GlobalMethods.PrintAllParameters();
-
   streamlog_out(MESSAGE) << std::endl;
+
+  //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
+  LumiCalClusterer.setLumiCollectionName(LumiInColName);
+  LumiCalClusterer.init(GlobalMethods.GlobalParamS,GlobalMethods.GlobalParamI, GlobalMethods.GlobalParamD);
+
+
+  //OutputManager = new OutputManagerClass();
+  OutputManager.Initialize(MemoryResidentTree, SkipNEvents , NumEventsTree, OutDirName, OutRootFileName);
+
+
 
 }
 

@@ -55,7 +55,8 @@ namespace EVENT{
     std::string	LumiInColName, LumiClusterColName, LumiRecoParticleColName ;
     double _rMoliere,_minClusterEngy, _minHitEnergy, _logWeigthConstant;
     double _ElementsPercentInShowerPeakLayer, _MiddleEnergyHitBoundFrac;
-    int    _WeightingMethod, _ClusterMinNumHits, _NumOfNearNeighbor;
+    std::string _WeightingMethod;
+    int     _ClusterMinNumHits, _NumOfNearNeighbor;
          
 
     // global counters

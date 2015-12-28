@@ -77,7 +77,8 @@ public:
   LumiCalClustererClass( std::string const& lumiNameNow ) ;
 
   // initialization routine - Called at the begining of the job.
-  void init( GlobalMethodsClass::ParametersInt	  const& GlobalParamI,
+  void init( GlobalMethodsClass::ParametersString const& GlobalParamS,
+             GlobalMethodsClass::ParametersInt	  const& GlobalParamI,
 	     GlobalMethodsClass::ParametersDouble const& GlobalParamD );
 
 
@@ -113,7 +114,7 @@ protected:
   GlobalMethodsClass::WeightingMethod_t _methodCM;
   double	_moliereRadius;
   double	_thetaContainmentBounds[2];
-  double	_minSeparationDistance, _minClusterEngyGeV;
+  double	_minSeparationDistance, _minClusterEngyGeV, _minClusterEngySignal;
 
   MapIntDouble _totEngyArm;
   VInt _armsToCluster;

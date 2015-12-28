@@ -1,7 +1,7 @@
   <processor name="MyMarlinLumiCalClusterer" type="MarlinLumiCalClusterer">
   <!--whatever...-->
    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
-   <parameter name="Verbosity" type="string">WARNING0 </parameter>
+   <parameter name="Verbosity" type="string"> MESSAGE </parameter>
    <!--Collection Containing the Hits in the LumiCal-->
    <parameter name="LumiCal_Collection" type="string" lcioInType="SimCalorimeterHit">LumiCalCollection </parameter>
    <!--Collection of Cluster found in the LumiCal-->
@@ -15,7 +15,7 @@
    <!--Name of output directory-->
    <parameter name="OutDirName" type="string">rootOut </parameter>
    <!--Name of output ROOT file ( without suffix)-->
-   <parameter name="OutRootFileName" type="string">LcalOut </parameter>
+   <parameter name="OutRootFileName" type="string">LcalRootOut </parameter>
    <!-- Place for ROOT tree memory(1) or disk(0 recommended)-->
    <parameter name="MemoryResidentTree" type="int">0 </parameter>
    <!-- Number of events in memory resident ROOT tree.-->
@@ -39,5 +39,5 @@
    <!--Number of neighbor hits to consider -->
    <parameter name="NumOfNearNeighbor" type="int">6 </parameter>
     <!-- Choose cluster hit position weights LogMthod=-1 or simple EnergyMethod=1 -->
-   <parameter name="WeightingMethod" type="int">-1 </parameter>
+   <parameter name="WeightingMethod" type="string">LogMethod </parameter>
  </processor>

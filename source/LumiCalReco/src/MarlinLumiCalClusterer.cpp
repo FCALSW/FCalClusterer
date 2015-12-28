@@ -239,7 +239,7 @@
 	  phiNow   = clusterClassMap[armNow][particleId] -> Phi;
 
 
-	  OutputManager.TreeIntV["nEvt"]	= EvtNumber;
+	  OutputManager.TreeIntV["nEvt"]	= NumEvt;
 	  OutputManager.TreeIntV["sign"]	= armNow;
 	  OutputManager.TreeDoubleV["engy"]	= engyNow;
 	  OutputManager.TreeDoubleV["theta"]	= thetaNow;
@@ -253,7 +253,7 @@
       // fil in a flag entry (all values = -1) in the tree in the case that no arm has any clusters
       if(clusterInFlag == 0) {
 
-	OutputManager.TreeIntV["nEvt"]	= EvtNumber;
+	OutputManager.TreeIntV["nEvt"]	= NumEvt;
 	OutputManager.TreeDoubleV["engy"]	= -1;
 	OutputManager.TreeDoubleV["theta"]	= -1;
 	OutputManager.TreeDoubleV["phi"]	= -1;
@@ -369,11 +369,10 @@
       int numClusters             = clusterClassMap[armNow].size();
       for (int MCParticleNow = 0; MCParticleNow < numClusters; MCParticleNow++, clusterClassMapIterator++) {
 	int clusterId = (int)(*clusterClassMapIterator).first;
-
 	int	resetStatsFlag = clusterClassMap[armNow][clusterId] -> ResetStats();
+	if(resetStatsFlag == 1) continue;
 
 #if _CLUSTER_RESET_STATS_DEBUG == 1
-	if(resetStatsFlag == 1) continue;
 	if(clusterClassMap[armNow][clusterId] -> SignMC != armNow) continue;
 
 	streamlog_out( MESSAGE4 ) << "\tParticle Out ("

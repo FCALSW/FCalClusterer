@@ -56,8 +56,9 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
     numClusters2 =  allClusterIds.size();
     for(int clusterNow1=0; clusterNow1<numClusters2; clusterNow1++) {
       clusterId1 = allClusterIds[clusterNow1];
-
-      for(int clusterNow2=0; clusterNow2<numClusters2; clusterNow2++) {
+      //(BP) avoid creation of "reverse order" pairs
+      //     for(int clusterNow2=0; clusterNow2<numClusters2; clusterNow2++) {
+      for(int clusterNow2=clusterNow1+1; clusterNow2<numClusters2; clusterNow2++) {
 	clusterId2 = allClusterIds[clusterNow2];
 
 	if(clusterId1 == clusterId2) continue;
@@ -69,8 +70,7 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
 
 	clusterPairWeightsNow->setWeight( "minEngyDistance",
 					  _minSeparationDistance,
-					  GlobalMethodsClass::SignalGevConversion( GlobalMethodsClass::GeV_to_Signal,
-										   _minClusterEngyGeV) );
+					  _minClusterEngySignal );
 
 	if(clusterPairWeightsNow->weight < 0) {
 	  clusterPairWeightsNow->setWeight("distance");
@@ -84,7 +84,7 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
     // if all the pairs made the cut than finish the loop
     if( clusterPairWeightsV.empty() ) break;
 
-    // choose the cluster pair with the shortest weight (distance)
+    // choose the pair with the shortest weight (distance)
     sort(clusterPairWeightsV.begin(), clusterPairWeightsV.end(), SuperTrueClusterWeights::Compare);
 
     clusterId1 = clusterPairWeightsV[0]->superClusterId;
