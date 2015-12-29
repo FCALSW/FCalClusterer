@@ -167,7 +167,7 @@ int ClusterClass::ResetStats() {
     ytemp += sin(phi) * weightNow;
   }
 
-  if(engySum < GlobalParamD[MinClusterEngyGeV]) {
+  if(engySum < GlobalParamD[MinClusterEngySignal]) {
     OutsideFlag = 1;
     OutsideReason = "No energy deposits above the minimal threshold";
     return 0;
