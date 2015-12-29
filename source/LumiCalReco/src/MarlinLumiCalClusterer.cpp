@@ -60,6 +60,8 @@
 
 	numClusters             = clusterClassMap[armNow].size();
 	clusterClassMapIterator = clusterClassMap[armNow].begin();
+	int highestEnergyClusterId = -1;
+	double theHighestEnergy = 0.;
 	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
 	  clusterId = (int)(*clusterClassMapIterator).first;
 
@@ -101,16 +103,25 @@
 	  if(clusterClassMap[armNow][clusterId]->OutsideFlag == 1)	continue;
 
 	  weightNow   = clusterClassMap[armNow][clusterId]->Engy;
+	  /* (BP) make it simple
 	  weightNow   = 1./weightNow;
-
 	  // instantiate the sorting class with the weight and insert to the vector
 	  sortingClassV.push_back(SortingClass(clusterId , weightNow));
+	  */
+	  if( weightNow > theHighestEnergy ){
+	    theHighestEnergy = weightNow;
+	    highestEnergyClusterId = clusterId;
+	  }
 	}
 
-	// arrange the vector according to inverse of the energy (lowest first)
-	sort(sortingClassV.begin(),sortingClassV.end(),cmpRuleDesc);
-
 	// flag the highest-energy cluster
+	if ( highestEnergyClusterId+1 > 0 )  clusterClassMap[armNow][highestEnergyClusterId]->HighestEnergyFlag = 1;
+
+	/* (BP) avoid wasting time
+        arrange the vector according to inverse of the energy (lowest first)
+	sort(sortingClassV.begin(),sortingClassV.end(),cmpRuleDesc);
+	
+	-- flag the highest-energy cluster
 	numClusters = sortingClassV.size();
 	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++) {
 	  clusterId = sortingClassV[clusterNow].Id;
@@ -120,8 +131,10 @@
 	  else
 	    clusterClassMap[armNow][clusterId]->HighestEnergyFlag = 0;
 	}
+	*/
 
       }
+	
 
       //Add collections to the event if there are clusters
       if ( LCalClusterCol->getNumberOfElements() != 0 ) {
@@ -192,7 +205,7 @@
 	  totEngyNow += engyNow;
 	}
 
-	// total energy outside LumiCal
+	// total energy outside of LumiCal fiducial volume
 	if(totEngyNow > 0) {
 	  hisName = "totEnergyOut";	OutputManager.HisMap1D[hisName] -> Fill (totEngyNow);
 	}

@@ -38,7 +38,7 @@ double LumiCalClustererClass::posWeight( IMPL::CalorimeterHitImpl const* calHit 
 /* --------------------------------------------------------------------------
    calculate weight for cluster CM according to different methods
    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::posWeightTureCluster(IMPL::CalorimeterHitImpl const* calHit , double cellEngy, GlobalMethodsClass::WeightingMethod_t method) {
+double LumiCalClustererClass::posWeightTrueCluster(IMPL::CalorimeterHitImpl const* calHit , double cellEngy, GlobalMethodsClass::WeightingMethod_t method) {
 
   double	posWeightHit = 0.;
   int	detectorArm = ((calHit->getPosition()[2] < 0) ? -1 : 1 );
@@ -274,7 +274,7 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
     for(int k=0; k<numElementsInCluster; k++) {
       cellIdHit  = cellIdV[k];
       const IMPL::CalorimeterHitImpl * thisHit = calHitsCellId.at(cellIdHit);
-      weightHit  = posWeightTureCluster(thisHit,cellEngyV[k],method);
+      weightHit  = posWeightTrueCluster(thisHit,cellEngyV[k],method);
       weightSum += weightHit;
 
       xHit      += thisHit->getPosition()[0] * weightHit;

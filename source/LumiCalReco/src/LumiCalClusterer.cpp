@@ -47,7 +47,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _thetaContainmentBounds(),
   _minSeparationDistance(), _minClusterEngyGeV(), _minClusterEngySignal(),
   _totEngyArm(),
-  _armsToCluster(),
+  //  _armsToCluster(),
   _mydecoder(NULL)
 {
 }
@@ -65,10 +65,10 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
 
   /* --------------------------------------------------------------------------
      constants specific to this class
-     -------------------------------------------------------------------------- */
   _armsToCluster.clear();
   _armsToCluster.push_back(-1);
   _armsToCluster.push_back(1);
+     -------------------------------------------------------------------------- */
   _methodCM				= GlobalParamS.at(GlobalMethodsClass::WeightingMethod);                  // GlobalMethodsClass::LogMethod
   _clusterMinNumHits			= GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits);                // = 15
   _hitMinEnergy				= GlobalParamD.at(GlobalMethodsClass::MinHitEnergy);                     // = 5e-6
@@ -169,11 +169,11 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 
   /* --------------------------------------------------------------------------
      cccccccccccccc
-     -------------------------------------------------------------------------- */
+     --------------------------------------------------------------------------
   const int numArmsToCluster = _armsToCluster.size();
-  for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
     int armNow = _armsToCluster[armToClusterNow];
-
+ */
+  for(int armNow = -1; armNow < 2; armNow += 2) {
 #if _GENERAL_CLUSTERER_DEBUG == 1
     streamlog_out( DEBUG ) << std::endl
 	      << "ARM = " << armNow << " : " << std::endl << std::endl;
@@ -228,7 +228,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 			 _superClusterIdToCellEngy[armNow],
 			 superClusterCM[armNow],
 			 calHitsCellIdGlobal[armNow] );
-    }
+     }
 #endif
 
   }
@@ -239,11 +239,12 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
      -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
   streamlog_out( DEBUG4 ) << "Final clusters:" << std::endl;
-
-  for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
-    const int armNow = _armsToCluster[armToClusterNow];
-
-    for(MapIntLCCluster::iterator superClusterCMIterator = superClusterCM[armNow].begin();
+  /*
+ for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
+     const int armNow = _armsToCluster[armToClusterNow];
+  */
+ for(int armNow = -1; armNow < 2; armNow += 2) {
+     for(MapIntLCCluster::iterator superClusterCMIterator = superClusterCM[armNow].begin();
 	superClusterCMIterator != superClusterCM[armNow].end();
 	++superClusterCMIterator) {
       const int superClusterId = (int)superClusterCMIterator->first;

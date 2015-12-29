@@ -160,14 +160,14 @@ int ClusterClass::ResetStats() {
     const double weightNow = GlobalParamD[LogWeightConstant] + log(engyNow/engySum);
     if(weightNow < 0) continue;
 
+    weightSum += weightNow;
     thetaSum  += thetaPhiCellV[GlobalMethodsClass::COTheta] * weightNow;
     const double phi = thetaPhiCellV[GlobalMethodsClass::COPhi];
     xtemp += cos(phi) * weightNow;
     ytemp += sin(phi) * weightNow;
-    weightSum += weightNow;
   }
 
-  if(weightSum < 1e-9) {
+  if(engySum < GlobalParamD[MinClusterEngyGeV]) {
     OutsideFlag = 1;
     OutsideReason = "No energy deposits above the minimal threshold";
     return 0;
@@ -176,6 +176,11 @@ int ClusterClass::ResetStats() {
   Theta    = thetaSum / weightSum;
   RZStart  = atan(fabs(Theta)) * GlobalParamD[ZStart];
   Phi = atan2(ytemp, xtemp);
+  if( Theta < GlobalParamD[ThetaMin] || Theta > GlobalParamD[ThetaMax] ){
+    OutsideFlag = 1;
+    OutsideReason = "Reconstructed outside the fiducial volume";
+    return 0;
+  }
 
 #if _CLUSTER_RESET_STATS_DEBUG == 1
   streamlog_out( MESSAGE4 ) << *this << std::endl;

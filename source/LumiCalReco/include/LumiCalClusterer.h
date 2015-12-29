@@ -117,7 +117,7 @@ protected:
   double	_minSeparationDistance, _minClusterEngyGeV, _minClusterEngySignal;
 
   MapIntDouble _totEngyArm;
-  VInt _armsToCluster;
+  //  VInt _armsToCluster;
 
   CellIDDecoder<SimCalorimeterHit> * _mydecoder;
 
@@ -209,7 +209,7 @@ protected:
   double	posWeight( IMPL::CalorimeterHitImpl const* calHit ,
 			   GlobalMethodsClass::WeightingMethod_t method );
 
-  double	posWeightTureCluster( IMPL::CalorimeterHitImpl const* calHit,
+  double	posWeightTrueCluster( IMPL::CalorimeterHitImpl const* calHit,
 				      double			cellEngy,
 				      GlobalMethodsClass::WeightingMethod_t method );
 
