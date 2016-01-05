@@ -83,7 +83,7 @@ public:
 
 
   // main actions in each event -Called for every event - the working horse.
-  void processEvent( EVENT::LCEvent * evt ) ;
+  int processEvent( EVENT::LCEvent * evt ) ;
 
   MapIntMapIntVInt       _superClusterIdToCellId;
   MapIntMapIntVDouble    _superClusterIdToCellEngy;
@@ -105,7 +105,7 @@ protected:
   // global variables
   int	_numEventsPerTree, _resetRootTrees;
   int	_maxLayerToAnalyse;
-  double	_zFirstLayer, _zLayerThickness, _rMin, _rMax, _rCellLength, _phiCellLength;
+  double	_zFirstLayer, _zLayerThickness, _zLayerPhiOffset, _rMin, _rMax, _rCellLength, _phiCellLength;
   double	_elementsPercentInShowerPeakLayer;
   double	_logWeightConst;
   int	_nNearNeighbor ;
@@ -117,12 +117,13 @@ protected:
   double	_minSeparationDistance, _minClusterEngyGeV, _minClusterEngySignal;
 
   MapIntDouble _totEngyArm;
+  MapIntInt    _numHitsInArm;
   //  VInt _armsToCluster;
 
   CellIDDecoder<SimCalorimeterHit> * _mydecoder;
 
   // methods:
-  void	getCalHits( EVENT::LCEvent * evt,
+  int	getCalHits( EVENT::LCEvent * evt,
 		    MapIntMapIntVCalHit & calHits );
 
 

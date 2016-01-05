@@ -7,6 +7,7 @@ using LCHelper::distance2D;
 // Root
 #include <TF1.h>
 #include <TH1F.h>
+#include <TString.h>
 // LCIO
 #include <IMPL/CalorimeterHitImpl.h>
 // stdlib
@@ -92,11 +93,8 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
      determine the min number of hits that makeup a showerPeak layer and
      flag the layers that make the cut
      -------------------------------------------------------------------------- */
-  int numElementsInArm = 0;
-  for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
-    numElementsInArm += (int)calHitsIt->second.size();
-  }
-  const int minNumElementsInShowerPeakLayer = int(numElementsInArm * _elementsPercentInShowerPeakLayer);
+
+  const int minNumElementsInShowerPeakLayer = int( _numHitsInArm[detectorArm] * _elementsPercentInShowerPeakLayer);
 
 #if _CLUSTER_BUILD_DEBUG == 1
   for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
@@ -340,10 +338,13 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
     streamlog_out( DEBUG ) << "clusterId " << clusterId << std::endl;
 #endif
 
-    std::string hisName = "_xLineFitCM_Cluster"; hisName += clusterNow;
+    std::string hisName = "_xLineFitCM_Cluster";
+    std::stringstream clusterNum;
+    clusterNum << clusterNow;
+    hisName += clusterNum.str();
     xLineFitCM[clusterNow] = TH1F(  hisName.c_str(),hisName.c_str(),_maxLayerToAnalyse*10,0,_maxLayerToAnalyse);
 
-    hisName = "_yLineFitCM_Cluster"; hisName += clusterNow;
+    hisName = "_yLineFitCM_Cluster"; hisName += clusterNum.str();
     yLineFitCM[clusterNow] = TH1F(  hisName.c_str(),hisName.c_str(),_maxLayerToAnalyse*10,0,_maxLayerToAnalyse);
 
 

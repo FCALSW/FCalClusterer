@@ -36,6 +36,7 @@ class GlobalMethodsClass {
     RCellLength,
     PhiCellLength,
     ZLayerThickness,
+    ZLayerPhiOffset,
     ThetaMin,
     ThetaMax,
     LogWeightConstant,
@@ -55,13 +56,8 @@ class GlobalMethodsClass {
 };
   //
   
-  /*
-  typedef short WeightingMethod_t;
-  static const WeightingMethod_t LogMethod = -1;
-  static const WeightingMethod_t EnergyMethod = 1;
-  */
   /*  
-  enum {
+  enum WeightingMethod_t {
     LogMethod=-1,
     EnergyMethod=1
   };

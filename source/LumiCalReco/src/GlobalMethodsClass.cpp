@@ -1,3 +1,4 @@
+
 #include "GlobalMethodsClass.h"
 #include "MarlinLumiCalClusterer.h"
 
@@ -56,22 +57,9 @@ int GlobalMethodsClass::CellIdZPR(int cellZ, int cellPhi, int cellR, int arm) {
   return cellId;
 }
 
-int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t ZPR) {
-
-  int cellZ, cellPhi, cellR, arm;
-  CellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
-
-  if(ZPR == GlobalMethodsClass::COZ) return cellZ;
-  if(ZPR == GlobalMethodsClass::COR) return cellR;
-  if(ZPR == GlobalMethodsClass::COP) return cellPhi;
-  if(ZPR == GlobalMethodsClass::COA) return arm;
-
-  return 0;
-}
-
 void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm) {
 
-  // compute Z,Phi,R coordinates according to the cellId
+  // compute Z,Phi,R indices according to the cellId
   cellZ   = (cellId >> 0  ) & (int)(( 1 << 10 ) -1) ; 
   cellPhi = (cellId >> 10 ) & (int)(( 1 << 10 ) -1) ;
   cellR   = (cellId >> 20 ) & (int)(( 1 << 10 ) -1) ;
@@ -79,6 +67,20 @@ void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& ce
   return;
 
 }
+
+int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t ZPR) {
+
+  int cellZ, cellPhi, cellR, arm;
+  CellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
+
+  if(ZPR == GlobalMethodsClass::COZ) return cellZ;
+  else if(ZPR == GlobalMethodsClass::COR) return cellR;
+  else if(ZPR == GlobalMethodsClass::COP) return cellPhi;
+  else if(ZPR == GlobalMethodsClass::COA) return arm;
+
+  return 0;
+}
+
 
 void GlobalMethodsClass::SetConstants() {
 
@@ -121,10 +123,15 @@ void GlobalMethodsClass::SetConstants() {
 
   // layer thickness
   GlobalParamD[ZLayerThickness] = _lcalGearPars.getLayerLayout().getThickness(0);
+  //(BP) layer relative phi offset - must go sometimes to GEAR params
+  // check units just in case
+  double dphi = _lcalRecoPars->getFloatVal("ZLayerStagger");
+  dphi = ( dphi < GlobalParamD[PhiCellLength] ) ? dphi : dphi*M_PI/180.;
+  GlobalParamD[ZLayerPhiOffset] = dphi; 
 
 
   // beam crossing angle
-  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle"); 
+  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle") / 1000.; 
 
 
   // Clustering/Reco parameters
@@ -139,17 +146,20 @@ void GlobalMethodsClass::SetConstants() {
   // Moliere radius of LumiCal [mm]
   GlobalParamD[MoliereRadius] = _lcalRecoPars->getFloatVal(  "MoliereRadius" );
 
-   // Geometrical fiducial volume of LumiCal - minimal and maximal polar angles [rad]
-  // BP Note this in local LumiCal Reference System ( crossing angle not accounted )
-  GlobalParamD[ThetaMin] = (GlobalParamD[RMin] + GlobalParamD[MoliereRadius])/GlobalParamD[ZStart];
-  GlobalParamD[ThetaMax] = (GlobalParamD[RMax] - GlobalParamD[MoliereRadius])/GlobalParamD[ZEnd];
+  // Geometrical fiducial volume of LumiCal - minimal and maximal polar angles [rad]
+  // (BP) Note, this in local LumiCal Reference System ( crossing angle not accounted )
+  // quite large - conservative, further reco-particles selection can be done later if desired
+  GlobalParamD[ThetaMin] = (GlobalParamD[RMin] + GlobalParamD[MoliereRadius])/GlobalParamD[ZEnd];
+  GlobalParamD[ThetaMax] = (GlobalParamD[RMax] - GlobalParamD[MoliereRadius])/GlobalParamD[ZStart];
  
   // minimal separation distance between any pair of clusters [mm]
   GlobalParamD[MinSeparationDist] = GlobalParamD[MoliereRadius];
 
   // minimal energy of a single cluster
   GlobalParamD[MinClusterEngyGeV] = _lcalRecoPars->getFloatVal(  "MinClusterEngy" );  // value in GeV
-  GlobalParamD[MinClusterEngySignal] = SignalGevConversion(GeV_to_Signal , GlobalParamD[MinClusterEngyGeV]);  // conversion to "detector Signal"
+  GlobalParamD[MinClusterEngySignal] = SignalGevConversion(GeV_to_Signal , GlobalParamD[MinClusterEngyGeV]); 
+  // conversion factor "detector Signal to primary particle energy"
+  GlobalParamD[Signal_to_GeV] = SignalGevConversion( Signal_to_GeV, 1. );             
   // hits positions weighting method 
   GlobalParamS[WeightingMethod] = _lcalRecoPars->getStringVal(  "WeightingMethod" );
   GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal("ElementsPercentInShowerPeakLayer");
@@ -192,7 +202,9 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
   double thetaCell  = atan(rCell / zCell);
 
   // phi
-  double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]);
+  //(BP) use phiCell size and account for possible layers relative offset/stagger
+  // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]) + double( cellIdZ % 2 ) * GlobalParamD[;
+  double phiCell   = (double(cellIdPhi) + .5) * GlobalParamD[PhiCellLength] + double( (cellIdZ-1) % 2 ) * GlobalParamD[ZLayerPhiOffset];
 
   // fill output container
   thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;
@@ -216,6 +228,7 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
   case RCellLength:	                 return "RCellLength";
   case PhiCellLength:	                 return "PhiCellLength";
   case ZLayerThickness:	                 return "ZLayerThickness";
+  case ZLayerPhiOffset:	                 return "ZLayerPhiOffset";
   case ThetaMin:	                 return "ThetaMin";
   case ThetaMax:	                 return "ThetaMax";
   case LogWeightConstant:                return "LogWeightConstant";

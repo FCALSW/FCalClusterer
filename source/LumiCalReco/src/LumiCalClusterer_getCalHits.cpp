@@ -21,7 +21,7 @@
    of CalorimeterHitImpl. Hits are split in two vectors, one for each arm
    of LumiCal.
    -------------------------------------------------------------------------- */
-void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
+int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 					MapIntMapIntVCalHit & calHits) {
 
   EVENT::LCCollection * col = NULL;
@@ -33,7 +33,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 #if _GENERAL_CLUSTERER_DEBUG == 1
     streamlog_out( ERROR ) << "Event has a SimCalorimeterHitImpl exception"<< std::endl;
 #endif
-    return;
+    return 0;
   }
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
@@ -48,6 +48,7 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
     for (int i=0; i<nHitsCol; ++i) {
       
       int arm(0), layer, rCell, phiCell;
+      //int side(0);
 
       // get the hit from the LCCollection with index i
       IMPL::SimCalorimeterHitImpl * calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
@@ -58,12 +59,11 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
       // get parameters from the input IMPL::CalorimeterHitImpl
       const double engyHit = (double)calHitIn -> getEnergy();
-
-      layer   = (*_mydecoder)( calHitIn )["K"] ;
-      phiCell = (*_mydecoder)( calHitIn )["J"] ;
-      rCell   = (*_mydecoder)( calHitIn )["I"] ;
-      //arm     = (*_mydecoder)( calHitIn )["S-1"] ;
-
+      //      const int cellid = (int)calHitIn->getCellID0();
+      layer   = (*_mydecoder)( calHitIn )["K"] ;    // counts from 1
+      phiCell = (*_mydecoder)( calHitIn )["J"] ;    //        from 0
+      rCell   = (*_mydecoder)( calHitIn )["I"] ;    //        from 0
+      //      side    = (*_mydecoder)( calHitIn )["S-1"] ;  //        from 0
 
       ///APS Calculate the cellID with the function from here
       const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
@@ -71,19 +71,21 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       layer -= 1 ;
 
 
-      // skip this event if the following conditions are not met
+      // skip this hit if the following conditions are met
       if(layer >= _maxLayerToAnalyse)	continue;
       if(engyHit < _hitMinEnergy)	continue;
 
 
       const double rHit = (rCell+0.5) * _rCellLength + _rMin;
-      const double phiHit = (phiCell+0.5) * _phiCellLength;
+      // BP: add relative layer offset
+      //const double phiHit = (phiCell+0.5) * _phiCellLength;
+      const double phiHit = (phiCell+0.5) * _phiCellLength + double( layer%2 )*_zLayerPhiOffset;
 
       const float zHit = (double)calHitIn -> getPosition()[2];
       // determine the side (arm) of the hit -> (+,-)1
       arm = (( zHit < 0 ) ? -1 : 1);
 
-      // compute x.y hit coordinates
+      // compute x.y hit coordinates ( local )
       const float xHit = rHit * cos(phiHit);
       const float yHit = rHit * sin(phiHit);
       // write x,y,z to an array
@@ -100,10 +102,15 @@ void LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       // add the IMPL::CalorimeterHitImpl to a vector according to the detector
       // arm, and sum the total collected energy at either arm
       calHits[arm /* arm is variable */ ][layer].push_back( calHitNew );
+      _numHitsInArm[arm]++;
       _totEngyArm[arm] += engyHit;
     }//for all simHits
 
-  return;
+    if(    (( _numHitsInArm[-1] < _clusterMinNumHits) || (_totEngyArm[-1] < _minClusterEngySignal))
+	   && (( _numHitsInArm[ 1] < _clusterMinNumHits) || (_totEngyArm[ 1] < _minClusterEngySignal)) ){
+      calHits.clear();
+      return 0;
+    }else{ return 1; }
 }
 
 #endif // LumiCalClusterer_getCalHits_h

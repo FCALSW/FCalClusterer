@@ -53,6 +53,7 @@ namespace EVENT{
 
     // Processor Parameters
     std::string	LumiInColName, LumiClusterColName, LumiRecoParticleColName ;
+    double _zLayerStagger;
     double _rMoliere,_minClusterEngy, _minHitEnergy, _logWeigthConstant;
     double _ElementsPercentInShowerPeakLayer, _MiddleEnergyHitBoundFrac;
     std::string _WeightingMethod;
@@ -75,7 +76,12 @@ namespace EVENT{
 
     void CreateClusters( std::map < int , std::map < int , std::vector<int> > > const& clusterIdToCellId,
 			 std::map < int , std::map < int , std::vector<double> > > const& cellIdToCellEngy,
-			 std::map < int , std::map < int , ClusterClass * > > & clusterClassMapP );
+			 std::map < int , std::map < int , ClusterClass * > > & clusterClassMapP,
+			 EVENT::LCEvent * evt);
+
+    inline double sqr( double a){ return a*a;};
+    inline float sqr( float a){ return a*a;};
+    inline int sqr( int a){ return a*a;};
 
 
   };

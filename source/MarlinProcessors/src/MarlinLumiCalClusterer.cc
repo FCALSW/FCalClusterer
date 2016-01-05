@@ -28,6 +28,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   LumiInColName(""),
 						   LumiClusterColName(""),
 						   LumiRecoParticleColName(""),
+						   _zLayerStagger(3.75),
 						   _rMoliere(16.),
 						   _minClusterEngy(2.),
 						   _minHitEnergy(5.e-6),
@@ -112,6 +113,10 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
                                " Sets minimum for logarithmic energy weights",
                                _logWeigthConstant,
 			       6. );
+  registerProcessorParameter(  "ZLayerStagger",
+                               " Relative offset of LCal z-layers [deg] default is half of the phi sector size",
+                               _zLayerStagger,
+                               3.75 );
   registerProcessorParameter(  "MoliereRadius",
                                " Moliere radius, controls clusters separation distance [mm]",
                                _rMoliere,

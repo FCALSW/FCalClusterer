@@ -36,7 +36,8 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   // global variables
   _numEventsPerTree(0), _resetRootTrees(0),
   _maxLayerToAnalyse(0),
-  _zFirstLayer(0), _zLayerThickness(0.0), _rMin(0.0), _rMax(0.0), _rCellLength(0.0), _phiCellLength(0.0),
+  _zFirstLayer(0), _zLayerThickness(0.0), _zLayerPhiOffset(0.0),
+  _rMin(0.0), _rMax(0.0), _rCellLength(0.0), _phiCellLength(0.0),
   _elementsPercentInShowerPeakLayer(0.03),
   _logWeightConst(0.0),
   _nNearNeighbor (6),
@@ -47,7 +48,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _thetaContainmentBounds(),
   _minSeparationDistance(), _minClusterEngyGeV(), _minClusterEngySignal(),
   _totEngyArm(),
-  //  _armsToCluster(),
+  _numHitsInArm(),
   _mydecoder(NULL)
 {
 }
@@ -73,6 +74,7 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
   _clusterMinNumHits			= GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits);                // = 15
   _hitMinEnergy				= GlobalParamD.at(GlobalMethodsClass::MinHitEnergy);                     // = 5e-6
   _zLayerThickness			= GlobalParamD.at(GlobalMethodsClass::ZLayerThickness);                  // = 4.5
+  _zLayerPhiOffset			= GlobalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);                  // = 3.75 [deg]
   _elementsPercentInShowerPeakLayer	= GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
   _nNearNeighbor			= GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor);                // = 6; // number of near neighbors to consider
 
@@ -105,8 +107,8 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
   _rMin	     = GlobalParamD.at(GlobalMethodsClass::RMin);
   _rMax	     = GlobalParamD.at(GlobalMethodsClass::RMax);
 
-  _rCellLength = (_rMax - _rMin) / _cellRMax;
-  _phiCellLength = 2*M_PI / _cellPhiMax;
+  _rCellLength   = GlobalParamD.at(GlobalMethodsClass::RCellLength);
+  _phiCellLength = GlobalParamD.at(GlobalMethodsClass::PhiCellLength);
 
 
 
@@ -119,6 +121,7 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
 	    << " _cellPhiMax: "			    << _cellPhiMax			 << std::endl
 	    << " _zFirstLayer: "		    << _zFirstLayer			 << std::endl
 	    << " _zLayerThickness: "		    << _zLayerThickness			 << std::endl
+	    << " _zLayerPhiOffset[deg]: "	    << _zLayerPhiOffset*180./M_PI	 << std::endl
 	    << " _rMin: "			    << _rMin				 << std::endl
 	    << " _rMax: "			    << _rMax				 << std::endl
 	    << " _rCellLength [mm]: "		    << _rCellLength			 << std::endl
@@ -145,10 +148,12 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
 /* ============================================================================
    main actions in each event:
    ========================================================================= */
-void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
-
+int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
+  int OK = 1;
+  int NOK = 0;
   // increment / initialize global variables
   _totEngyArm[-1] = _totEngyArm[1] = 0.;
+  _numHitsInArm[-1] = _numHitsInArm[1] = 0;
 
   MapIntMapIntVCalHit calHits;
   MapIntMapIntLCCluster superClusterCM;
@@ -164,7 +169,7 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
      of IMPL::CalorimeterHitImpl. Hits are split in two std::vectors, one for each arm
      of LumiCal.
      -------------------------------------------------------------------------- */
-  getCalHits(evt , calHits);
+  if ( !getCalHits(evt , calHits) ) return NOK;
 
 
   /* --------------------------------------------------------------------------
@@ -239,27 +244,25 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
      -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
   streamlog_out( DEBUG4 ) << "Final clusters:" << std::endl;
-  /*
- for(int armToClusterNow = 0; armToClusterNow < numArmsToCluster; armToClusterNow++) {
-     const int armNow = _armsToCluster[armToClusterNow];
-  */
+#endif
  for(int armNow = -1; armNow < 2; armNow += 2) {
      for(MapIntLCCluster::iterator superClusterCMIterator = superClusterCM[armNow].begin();
 	superClusterCMIterator != superClusterCM[armNow].end();
 	++superClusterCMIterator) {
       const int superClusterId = (int)superClusterCMIterator->first;
 
+#if _GENERAL_CLUSTERER_DEBUG == 1
       streamlog_out( DEBUG4 ) << "  Arm:"    << std::setw(4)  << armNow
 			     << "  Id:"     << std::setw(4)  << superClusterId
 			     << superClusterCMIterator->second
 			     << std::endl;
-
+#endif
       //Store information of clusters
       _superClusterIdClusterInfo[armNow][superClusterId] = superClusterCMIterator->second;
     }
   }
 
-#endif
+
 
 
 
@@ -278,5 +281,6 @@ void LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
   superClusterCM.clear();
   calHitsCellIdGlobal.clear();
 
+  return OK;
 
 }

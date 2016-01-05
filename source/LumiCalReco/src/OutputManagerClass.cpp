@@ -171,34 +171,70 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
 
   HisMap2D[hisName] = his2;
 
+  hisRange1[0] = -0.5;	hisRange1[1] = 19.5;	numBins1 = 20;
+  hisRange2[0] = -0.5;	hisRange2[1] = 19.5;	numBins2 = 20;
+  hisName = "NumClustersIn_numMCParticlesIn";
+  his2 = new TH2F(hisName.c_str(),hisName.c_str(),numBins1,hisRange1[0],hisRange1[1],numBins2,hisRange2[0],hisRange2[1]);
 
-  hisName = "bhabhaSelectionTree";
+  his2->SetMarkerColor(markerCol);
+  his2->SetMarkerStyle(5);
+  his2->SetMarkerSize(0.7);
+  his2->GetXaxis()->SetTitle("Number of MC Particles");
+  his2->GetXaxis()->SetTitleSize(0.05);
+  his2->GetXaxis()->SetTitleOffset(1.);
+  his2->GetYaxis()->SetTitle("Number of Reconstructed Particles");
+  his2->GetYaxis()->SetTitleSize(0.05);
+  his2->GetYaxis()->SetTitleOffset(1.);
+
+  HisMap2D[hisName] = his2;
+
+
+  hisName = "LumiRecoParticleTree";
   TreeIntV["nEvt"] = 0;
   TreeIntV["sign"] = 0;
   TreeIntV["pdg"] = 0;
+  TreeIntV["outFlag"] = 0;
+  TreeIntV["mcId"] = 0;
 
   TreeDoubleV["engy"]=0.;
   TreeDoubleV["theta"]=0.;
   TreeDoubleV["phi"]=0.;
+  TreeDoubleV["rzStart"] = 0.;
+  TreeDoubleV["Xglob"] = 0.;
+  TreeDoubleV["Yglob"] = 0.;
+  TreeDoubleV["Zglob"] = 0.;
 
   tree = new TTree(hisName.c_str(),hisName.c_str());
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
+  tree -> Branch("OutFlag", &TreeIntV["outFlag"], "outFlag/I");
+  tree -> Branch("McID", &TreeIntV["mcID"], "mcId/I");
   tree -> Branch("Sign", &TreeIntV["sign"], "sign/I");
   tree -> Branch("Energy", &TreeDoubleV["engy"], "engy/D");
+  tree -> Branch("EngyMC", &TreeDoubleV["engyMC"], "engyMC/D");
   tree -> Branch("Theta", &TreeDoubleV["theta"], "theta/D");
+  tree -> Branch("ThetaMC", &TreeDoubleV["thetaMC"], "thetaMC/D");
   tree -> Branch("Phi", &TreeDoubleV["phi"], "phi/D");
+  tree -> Branch("RZstart", &TreeDoubleV["rzStart"], "rzStart/D");
+  tree -> Branch("Xstart", &TreeDoubleV["Xglob"], "Xglob/D");
+  tree -> Branch("Ystart", &TreeDoubleV["Yglob"], "Yglob/D");
+  tree -> Branch("Zstart", &TreeDoubleV["Zglob"], "Yglob/D");
 
-  TreeMap["bhabhaSelectionTree"] = tree;
-
-
+  TreeMap[ hisName] = tree;
+  TreeDoubleV["vtxX"] = 0.;
+  TreeDoubleV["vtxY"] = 0.;
+  TreeDoubleV["vtxZ"] = 0.;
+  TreeDoubleV["endX"] = 0.;
+  TreeDoubleV["endY"] = 0.;
+  TreeDoubleV["endZ"] = 0.;
  
-  hisName = "mcParticleTree";
+  hisName = "LumiMCParticleTree";
   tree = new TTree(hisName.c_str(),hisName.c_str());
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
   tree -> Branch("Sign", &TreeIntV["sign"], "sign/I");
   tree -> Branch("PDG", &TreeIntV["pdg"], "pdg/I");
   tree -> Branch("Energy", &TreeDoubleV["engy"], "engy/D");
   tree -> Branch("Theta", &TreeDoubleV["theta"], "theta/D");
+  tree -> Branch("Phi", &TreeDoubleV["phi"], "phi/D");
   tree -> Branch("VtxX", &TreeDoubleV["vtxX"], "vtxX/D");
   tree -> Branch("VtxY", &TreeDoubleV["vtxY"], "vtxY/D");
   tree -> Branch("VtxZ", &TreeDoubleV["vtxZ"], "vtxZ/D");
@@ -206,7 +242,7 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   tree -> Branch("EndY", &TreeDoubleV["endY"], "endY/D");
   tree -> Branch("EndZ", &TreeDoubleV["endZ"], "endZ/D");
 
-  TreeMap["mcParticleTree"] = tree;
+  TreeMap[hisName] = tree;
   
 
   return;

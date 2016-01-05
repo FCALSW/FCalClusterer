@@ -21,7 +21,7 @@
    <!-- Number of events in memory resident ROOT tree.-->
    <parameter name="NumEventsTree" type="int">500 </parameter>
 
-   <!--  Clustering Parameters -->
+   <!--  Clustering/Geometry Parameters -->
    <!-- Minimal number of hits in cluster-->
    <parameter name="ClusterMinNumHits" type="int">15 </parameter>
    <!-- BP: Not sure what it is-->
@@ -36,6 +36,8 @@
    <parameter name="MinHitEnergy" type="double">5e-06 </parameter>
    <!-- Moliere radius, controls clusters separation distance [mm]-->
    <parameter name="MoliereRadius" type="double">16 </parameter>
+   <!-- Relative z-layers phi offset [deg] (default for model ILD_o1_05, must go to gear sometimes)-->
+   <parameter name="ZLayerStagger" type="double">3.75 </parameter>
    <!--Number of neighbor hits to consider -->
    <parameter name="NumOfNearNeighbor" type="int">6 </parameter>
     <!-- Choose cluster hit position weights LogMthod=-1 or simple EnergyMethod=1 -->

@@ -562,7 +562,9 @@ double LumiCalClustererClass::thetaPhiCell(int cellId, GlobalMethodsClass::Coord
     outputVal  = thetaCell;
   }
   else if(output == GlobalMethodsClass::COPhi) {
-    phiCell   = 2*M_PI * (double(cellIdPhi) + .5) / _cellPhiMax;
+    //(BP) account for possible layer offset
+    //    phiCell   = 2*M_PI * (double(cellIdPhi) + .5) / _cellPhiMax;
+    phiCell   = 2*M_PI * (double(cellIdPhi) + .5) / _cellPhiMax + double( (cellIdZ-1)%2 ) * _zLayerPhiOffset;
     outputVal = phiCell;
   }
 

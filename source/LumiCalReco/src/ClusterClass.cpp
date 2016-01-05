@@ -23,12 +23,12 @@ ClusterClass::ClusterClass(int idNow):
   Engy(0.0), Theta(0.0), Phi(0.0), RZStart(0.0),
   VtxX(0.0), VtxY(0.0), VtxZ(0.0), EndPointX(0.0), EndPointY(0.0), EndPointZ(0.0),
   EngyMC(0.0), ThetaMC(0.0), PhiMC(0.0),
-  MergedV(),
   OutsideReason(""),
   Hit()
 {
   // inherited method from GlobalMethods class, to set all global constants
   SetConstants();
+  MergedV.clear();
   clusterPosition[0] = 0.0;
   clusterPosition[1] = 0.0;
   clusterPosition[2] = 0.0;
@@ -71,7 +71,10 @@ void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
     // cout << "\t\t\t"<< mcParticleParent->getVertex()[2]
     //      <<  "\t"<< mcParticleParent->id() <<  "\t"<< endl ;
   }
-
+  // get phi angle in the range (0.; 2*M_PI)
+  PhiMC = atan2( MCmomY, MCmomX );
+  PhiMC = ( PhiMC >= 0. )? PhiMC : PhiMC + 2.*M_PI; 
+  /*(BP)
   PhiMC = atan(fabs(MCmomY / MCmomX));
   if(MCmomZ > 0) {
     // if(MCmomX>0 && MCmomY>0)   PhiMC = PhiMC;//no change, unneeded
@@ -84,6 +87,7 @@ void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
     else if(MCmomX<0 && MCmomY<0) PhiMC = 2*M_PI - PhiMC;
     else if(MCmomX>0 && MCmomY<0) PhiMC = M_PI   + PhiMC;
   }
+  */
 
   NumMCDaughters = (int)mcParticle -> getDaughters().size();
   EngyMC        = (double)mcParticle->getEnergy();
@@ -144,6 +148,7 @@ int ClusterClass::ResetStats() {
   Engy = engySum;
 
   // if the particle has no deposits in LumiCal
+  // (BP) this already done in getCalHits method !?
   if(Engy < _VERY_SMALL_NUMBER) {
     OutsideFlag = 1;
     OutsideReason = "No energy deposits at all";
@@ -167,18 +172,20 @@ int ClusterClass::ResetStats() {
     ytemp += sin(phi) * weightNow;
   }
 
-  if(engySum < GlobalParamD[MinClusterEngySignal]) {
-    OutsideFlag = 1;
-    OutsideReason = "No energy deposits above the minimal threshold";
-    return 0;
-  }
 
   Theta    = thetaSum / weightSum;
   RZStart  = atan(fabs(Theta)) * GlobalParamD[ZStart];
   Phi = atan2(ytemp, xtemp);
+  Phi = ( Phi >= 0. ) ? Phi : Phi + 2.0 * M_PI;
   if( Theta < GlobalParamD[ThetaMin] || Theta > GlobalParamD[ThetaMax] ){
     OutsideFlag = 1;
     OutsideReason = "Reconstructed outside the fiducial volume";
+    return 0;
+  }
+
+  if(engySum < GlobalParamD[MinClusterEngySignal]) {
+    OutsideFlag = 1;
+    OutsideReason = "Cluster energy below minimum";
     return 0;
   }
 
