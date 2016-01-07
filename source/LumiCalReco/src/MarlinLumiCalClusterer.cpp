@@ -1,7 +1,6 @@
 
 #include "MarlinLumiCalClusterer.h"
 
-#include "SortingClass.h"
 #include "ClusterClass.h"
 
 #include <IMPL/ReconstructedParticleImpl.h>
@@ -20,19 +19,35 @@
 
 /* >> */ 
 
-  /* --------------------------------------------------------------------------
-     -------------------------------------------------------------------------- */
-// (BP) quick sorting defs
+/* -----------------------------------------------------------------------------------------*/
+// (BP) defs for sorting
+
 double _sortAgainstThisTheta;
+double _sortAgainstThisX;
+double _sortAgainstThisY;
+
 struct myMCP{
   MCParticle * mcp;
   double theta;
+  double x;
+  double y;
 };
 
 bool ThetaCompAsc( myMCP a, myMCP b ){
   return fabs( _sortAgainstThisTheta - a.theta) < fabs( _sortAgainstThisTheta -b.theta) ;
 }
 
+bool PositionCompAsc( myMCP a, myMCP b ){
+  double dxa = ( _sortAgainstThisX - a.x);
+  double dya = ( _sortAgainstThisY - a.y);
+  double dxb = ( _sortAgainstThisX - b.x);
+  double dyb = ( _sortAgainstThisY - b.y);
+  return (dxa*dxa+dya*dya) < (dxb*dxb+dyb*dyb)  ;
+}
+// LumiCal rotations angles ( local->Global )
+std::map < int , double > csbx;
+std::map < int , double > snbx;
+/*------------------------------------------------------------------------------------------*/
   void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(  EVENT::LCEvent * evt  ){
 
     try{
@@ -43,8 +58,6 @@ bool ThetaCompAsc( myMCP a, myMCP b ){
 
       std::map < int , std::map < int , ClusterClass * > >	clusterClassMap;
       std::map < int , ClusterClass * > :: iterator	clusterClassMapIterator;
-      std::map < int , double > csbx;
-      std::map < int , double > snbx;
 
       int	numClusters, clusterId;
       double	weightNow;
@@ -56,14 +69,17 @@ bool ThetaCompAsc( myMCP a, myMCP b ){
       /* --------------------------------------------------------------------------
 	 create clusters using: LumiCalClustererClass
 	 -------------------------------------------------------------------------- */
-      // instantiate a clusterClass object for each mcParticle which was created
-      // infront of LumiCal and was destroyed after lumical.
 
       if ( !LumiCalClusterer.processEvent(evt) ) return;
 
 
-      CreateClusters( LumiCalClusterer._superClusterIdToCellId,
+       
+// instantiate a clusterClass object for each mcParticle which was created
+// infront of LumiCal and was destroyed after lumical.
+// (BP) this can optional
+     CreateClusters( LumiCalClusterer._superClusterIdToCellId,
 		      LumiCalClusterer._superClusterIdToCellEngy,
+		      //		      LumiCalClusterer._superClusterIdClusterInfo,
 		      clusterClassMap,
 		      evt );
 
@@ -74,38 +90,67 @@ bool ThetaCompAsc( myMCP a, myMCP b ){
       
       LCCollectionVec* LCalClusterCol = new LCCollectionVec(LCIO::CLUSTER);
       LCCollectionVec* LCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
-
+      std::map < int , std::vector<int> > ::const_iterator  clusterIdToCellIdIterator;
       for(int armNow = -1; armNow < 2; armNow += 2) {
-	//	std::vector < SortingClass > sortingClassV;
+	clusterIdToCellIdIterator = LumiCalClusterer._superClusterIdToCellId[armNow].begin();
+	numClusters               = LumiCalClusterer._superClusterIdToCellId[armNow].size();
 
-	numClusters             = clusterClassMap[armNow].size();
-	clusterClassMapIterator = clusterClassMap[armNow].begin();
+	//	numClusters             = clusterClassMap[armNow].size();
+	//	clusterClassMapIterator = clusterClassMap[armNow].begin();
 	int highestEnergyClusterId = -1;
 	double theHighestEnergy = 0.;
-	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
-	  clusterId = (int)(*clusterClassMapIterator).first;
+	//	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
+	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterIdToCellIdIterator++) {
+	  clusterId = (int)(*clusterIdToCellIdIterator).first;
 
-	  ClusterClass const* thisCluster = clusterClassMap[armNow][clusterId];
+	  //	  ClusterClass const* thisCluster = clusterClassMap[armNow][clusterId];
 	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
 
 	  ClusterImpl* cluster = new ClusterImpl;
-	  const double thetaCluster = thisCluster->Theta;
-	  const double energyCluster = GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisCluster->Engy);
-	  const double phiCluster = thisCluster->Phi;
+	  const double thetaCluster = thisClusterInfo.getTheta();
+	  const double energyCluster = GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
+	  const double phiCluster = thisClusterInfo.getPhi();
 	  cluster->setEnergy( energyCluster );
+          const float xloc =  float(thisClusterInfo.getX());
+          const float yloc =  float(thisClusterInfo.getY());
+          const float zloc =  fabs(float(thisClusterInfo.getZ()));
+	  //(BP) local -> global rot.
+	  float xglob = csbx[ armNow ]*xloc + snbx[ armNow ]*zloc;
+          float zglob = snbx[ armNow ]*xloc + csbx[ armNow ]*zloc;
+	  const float clusterPosition[3] = { xglob, yloc, zglob };
 
-	  const float clusterPosition[3] = { float(thisClusterInfo.getPosition()[0]),
-					     float(thisClusterInfo.getPosition()[1]),
-					     float(thisClusterInfo.getPosition()[2])};
-
-	  cluster->setPosition( clusterPosition );
 #pragma message ("FIXME: Link Calohits to the Cluster")
 	  //Get the cellID from the container Hit of the cluster and find the
 	  //matching LumiCal SimCalorimeterHit in the event collection, probably
 	  //have to loop over all of them until it is found
-	  float momentumCluster[3] = { float(energyCluster * sin ( thetaCluster ) * cos ( phiCluster ) * float(armNow) ),
-				       float(energyCluster * sin ( thetaCluster ) * sin ( phiCluster )),
-				       float(energyCluster * cos ( thetaCluster ) * float(armNow))  };
+
+#if _BP_DEBUG
+	  //(BP)  cluster position from ClusterInfo are inconsistent with Thet, Phi values !
+	  // i.e. atan( sqrt( xloc**2 + yloc**2 )/zloc != Theta
+	  // and are dfferent then those calculated as energy log weighted average of hits positions belonging to this cluster
+	  // What is this cluster position ?!
+	  streamlog_out(MESSAGE)<< "\n ----------------------------------------------------------------------------------\n";
+	  streamlog_out(MESSAGE)<< " Cluster "<<clusterId<<"\t Weight'n method: "<< thisClusterInfo.getMethod() <<"\n";
+	  streamlog_out(MESSAGE)<< " Position from clusterInfo : X = "<< xloc <<"\t"<<thisCluster->clusterPosition[0]<<"\n"
+				<< "                             Y = "<< yloc <<"\t"<<thisCluster->clusterPosition[1]<<"\n"
+				<< "                             Z = "<< zloc <<"\t"<<thisCluster->clusterPosition[2]<<"\n";
+
+	  double eneInfo = GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
+	  double thetaInfo = atan( sqrt( sqr(xloc) + sqr(yloc) )/fabs( zloc ));
+	  double phiInfo = atan2 ( yloc, xloc ); 
+	  streamlog_out(MESSAGE) << " energy = "<< eneInfo                    <<"\t"<< energyCluster <<"\n"
+				 << " theta  = "<< thisClusterInfo.getTheta() <<" ("<< thetaInfo <<" )" <<"\t"<< thetaCluster  <<"\n"
+				 << " phi    = "<< thisClusterInfo.getPhi()   <<" ("<< phiInfo   <<" )" <<"\t"<< phiCluster    <<"\n";
+#endif	  
+
+	  cluster->setPosition( clusterPosition );
+	  // (BP) take care about components sign
+          double px = energyCluster * sin ( thetaCluster ) * cos ( phiCluster ) * float(armNow);
+          double py = energyCluster * sin ( thetaCluster ) * sin ( phiCluster );
+	  double pz = energyCluster * cos ( thetaCluster ) * float(armNow);
+	  // (BP) do boost 
+	  double pxlab = _betagamma * energyCluster + _gamma*px; 
+	  float momentumCluster[3] = { float( pxlab ), float( py ), float( pz )  };
 
 	  const float mass = 0.0;
 	  const float charge = 1e+19;
@@ -246,17 +291,24 @@ bool ThetaCompAsc( myMCP a, myMCP b ){
 	  double xglob = xloc*csbx[armNow] + zloc*snbx[armNow];
 	  double yglob = yloc;
 	  double zglob =-xloc*snbx[armNow] + zloc*csbx[armNow];
+	  //	  thetaNow = atan( sqrt( sqr(xglob) + sqr(yglob) )/fabs(zglob) );
+	  int mFlag = clusterClassMap[armNow][particleId]->Pdg;
+	  int nHits = clusterClassMap[armNow][particleId]->NumHits;
+	  int highE = clusterClassMap[armNow][particleId]->HighestEnergyFlag;
 	  //-------------
 	  OutputManager.TreeIntV["nEvt"]	= NumEvt;
 	  OutputManager.TreeIntV["outFlag"]	= clusterClassMap[armNow][particleId]->OutsideFlag;
-	  OutputManager.TreeIntV["mcId"]	= clusterClassMap[armNow][particleId]->Pdg;
+	  OutputManager.TreeIntV["mFlag"]	= mFlag;
+	  OutputManager.TreeIntV["highE"]	= highE;
 	  OutputManager.TreeIntV["sign"]	= armNow;
+	  OutputManager.TreeIntV["nHits"]	= nHits;
 	  OutputManager.TreeDoubleV["engy"]	= engyNow;
 	  OutputManager.TreeDoubleV["theta"]	= thetaNow;
 	  OutputManager.TreeDoubleV["engyMC"]	= clusterClassMap[armNow][particleId]->EngyMC;
 	  OutputManager.TreeDoubleV["thetaMC"]	= clusterClassMap[armNow][particleId]->ThetaMC;
 	  OutputManager.TreeDoubleV["phi"]	= phiNow;
 	  OutputManager.TreeDoubleV["rzStart"]	= rzstartNow;
+	  // position at Zstart
 	  OutputManager.TreeDoubleV["Xglob"]    = xglob;
 	  OutputManager.TreeDoubleV["Yglob"]    = yglob;
 	  OutputManager.TreeDoubleV["Zglob"]    = zglob;
@@ -264,43 +316,14 @@ bool ThetaCompAsc( myMCP a, myMCP b ){
 	  OutputManager.FillRootTree("LumiRecoParticleTree");
 	}
       }
-
-      /* fill in a flag entry (all values = -1) in the tree in the case that no arm has any clusters
-      if(clusterInFlag == 0) {
-
-          OutputManager.TreeIntV["nEvt"]	= NumEvt;
-	  OutputManager.TreeIntV["outFlag"]	=  1;
-	  OutputManager.TreeDoubleV["engy"]	= -1;
-	  OutputManager.TreeDoubleV["theta"]	= -1;
-	  OutputManager.TreeDoubleV["phi"]	= -1;
-	  OutputManager.TreeDoubleV["rzStart"]	= -1;
-	  OutputManager.TreeDoubleV["Xglob"]    = -1;
-	  OutputManager.TreeDoubleV["Yglob"]    = -1;
-	  OutputManager.TreeDoubleV["Zglob"]    = -1;
-
-	OutputManager.TreeIntV["sign"]	= 1;
-	//OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
-	OutputManager.FillRootTree(treeName);
-
-	OutputManager.TreeIntV["sign"]	= -1;
-	//	OutputManager.TreeMap["bhabhaSelectionTree"] -> Fill();
-  	OutputManager.FillRootTree(treeName);
-    }
-      */
-      // generated MC particles ( within fiducial volume of LumiCal
+   //
+   // generated MC particles ( within fiducial volume of LumiCal
 
     int mcparticleInFlag = 0;
+
 try
   {
    
-    const double beta = tan( GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-    /*
-    const double gamma = 1./sqrt( 1. - beta*beta );
-    const double betagamma = beta*gamma;
-    */
-    //(BP)  as in Mokka PrimaryGeneratorAction
-    const double betagamma = beta;
-    const double gamma = sqrt( 1. + beta*beta );
 
     const double thmin = GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMin];
     const double thmax = GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMax];
@@ -313,13 +336,13 @@ try
       for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
 	MCParticle * particle = dynamic_cast<MCParticle*>( particles->getElementAt(jparticle) );
 	// only primary particles wanted
-       	if( !particle->isCreatedInSimulation() ){
+       	if( particle->isCreatedInSimulation() ) continue;
 	  int pdg = particle->getPDG();
 	  // skip neutrinos
 	  if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue; 
 	  double* p = (double*)particle->getMomentum();
 	  double engy = particle->getEnergy();
-       	  double pxlocal = -betagamma*engy + gamma*p[0];
+       	  double pxlocal = -_betagamma*engy + _gamma*p[0];
 	  double pTheta = atan( sqrt( sqr(pxlocal) + sqr(p[1]) )/fabs(p[2]));
 	  // check if within Lcal acceptance
           if( fabs(pTheta) > thmin  && fabs(pTheta) < thmax ){
@@ -339,10 +362,13 @@ try
 		OutputManager.TreeDoubleV["engy"]	= engy;
 		OutputManager.TreeDoubleV["theta"]	= pTheta;
 		OutputManager.TreeDoubleV["phi"]	= phi; 
-		// position at the face of LCal
-		OutputManager.TreeDoubleV["vtxX"]	= pos[0]+LcalZstart*tan(p[0]/fabs(p[2]));
-		OutputManager.TreeDoubleV["vtxY"]	= pos[1]+LcalZstart*tan(p[1]/fabs(p[2]));
-		OutputManager.TreeDoubleV["vtxZ"]	= double(sign)*LcalZstart;
+		// position at the face of LCal (global coordinates)
+		OutputManager.TreeDoubleV["begX"]	= pos[0]+double(sign)*LcalZstart*tan(p[0]/(p[2]));
+		OutputManager.TreeDoubleV["begY"]	= pos[1]+double(sign)*LcalZstart*tan(p[1]/(p[2]));
+		OutputManager.TreeDoubleV["begZ"]	= double(sign)*LcalZstart;
+		OutputManager.TreeDoubleV["vtxX"]	= pos[0];
+		OutputManager.TreeDoubleV["vtxY"]	= pos[1];
+		OutputManager.TreeDoubleV["vtxZ"]	= pos[2];
 		OutputManager.TreeDoubleV["endX"]    = endPoint[0];
 		OutputManager.TreeDoubleV["endY"]    = endPoint[1];
 		OutputManager.TreeDoubleV["endZ"]    = endPoint[2];
@@ -351,7 +377,6 @@ try
 	      } // energy 
 	    } // if endPoint
 	  } // if pTheta
-       	} // if !isCreatedinSimulation 
       }// for jparticle
     }//if particles
   }// try
@@ -424,17 +449,38 @@ try
 
     LCCollection * particles = evt->getCollection( "MCParticle" );
 
+    const double LcalZstart = GlobalMethods.GlobalParamD[GlobalMethodsClass::ZStart]; 
+
+#if _CLUSTER_RESET_STATS_DEBUG == 1
+	streamlog_out(MESSAGE4) << "------------------------------------------------------------------------------" << std::endl;
+	streamlog_out(MESSAGE4) << "CreateClusters: event = " <<NumEvt  << std::endl;
+#endif
     if ( particles ){
       int numMCParticles = particles->getNumberOfElements();
       for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
 	MCParticle * particle = dynamic_cast<MCParticle*>( particles->getElementAt(jparticle) );
 	// only primaries
 	if( particle->isCreatedInSimulation() ) continue;
+	int pdg = particle->getPDG();
+	// skip neutrinos
+	if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue;
+	double *endPoint = (double*)particle->getEndpoint();
+	// did it reach at least LCal face ?
+	if( fabs( endPoint[2] ) >= LcalZstart  ){
+	double engy = particle->getEnergy();
+	if( engy < GlobalMethods.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;
 	double* mom = (double *)particle->getMomentum();
-	double theta = atan( sqrt( sqr(mom[0]) + sqr(mom[1]))/fabs( mom[2]) ); 
-	myMCP p = { particle, theta};
+	double sign = double( int( mom[2]/fabs(mom[2]))); 
+	double* pos = (double *)particle->getVertex();
+	// particle position at LCal face ( global )
+	double  x0  = pos[0] + sign*LcalZstart*tan(mom[0]/mom[2]);
+	double  y0  = pos[1] + sign*LcalZstart*tan(mom[1]/mom[2]);
+	// unbooost momentum as clusters theta are
+       	double pxlocal = _betagamma*engy -_gamma*mom[0];
+	double theta = atan( sqrt( sqr(pxlocal) + sqr(mom[1]))/fabs( mom[2]) ); 
+	myMCP p = { particle, theta, x0, y0};
 	mcParticlesVec.push_back( p );
-
+	}
       }
     }
 
@@ -443,12 +489,12 @@ try
       int numClusters               = clusterIdToCellId.at(armNow).size();
       for(int superClusterNow = 0; superClusterNow < numClusters; superClusterNow++, clusterIdToCellIdIterator++) {
 	int clusterId = (int)(*clusterIdToCellIdIterator).first;
+	//	LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
 
+	// create a new cluster and put it on map
 	clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId );
-#if _CLUSTER_RESET_STATS_DEBUG == 1
-      streamlog_out(DEBUG) << "Initial Reset Stats for LumiCal arm = " << armNow << "  ...... " << std::endl;
-#endif
-	clusterClassMap[armNow][clusterId] -> SetStatsMC();
+
+      //	clusterClassMap[armNow][clusterId] -> SetStatsMC(); // done in creator
 	clusterClassMap[armNow][clusterId] -> SignMC = armNow;
 
 	int numElementsInCluster = clusterIdToCellId.at(armNow).at(clusterId).size();
@@ -458,55 +504,83 @@ try
 	  double engyHit = cellIdToCellEngy.at(armNow).at(clusterId).at(cellNow);
 
 	  clusterClassMap[armNow][clusterId] -> FillHit(cellId , engyHit);
+	  // calculate energy, position for the cluster
 	}
+#if _CLUSTER_RESET_STATS_DEBUG == 1
+	streamlog_out(MESSAGE4) << "Initial Reset Stats for LumiCal arm = " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl;
+#endif
+	  clusterClassMap[armNow][clusterId] -> ResetStats();
+	  /*
+	  clusterClassMap[armNow][clusterId] -> clusterPosition[0] = thisClusterInfo.getX();
+	  clusterClassMap[armNow][clusterId] -> clusterPosition[1] = thisClusterInfo.getY();
+	  clusterClassMap[armNow][clusterId] -> clusterPosition[2] = thisClusterInfo.getZ();
+	  clusterClassMap[armNow][clusterId] -> Theta     = thisClusterInfo.getTheta();
+	  clusterClassMap[armNow][clusterId] -> Phi       = thisClusterInfo.getPhi();
+	  clusterClassMap[armNow][clusterId] -> RZStart   = LcalZstart * tan( clusterClassMap[armNow][clusterId] -> Theta );
+	  */
       }
     }
 
 
 
 #if _CLUSTER_RESET_STATS_DEBUG == 1
-    streamlog_out(DEBUG) << "Transfering information into ClusterClass objects ......  "
+    streamlog_out(MESSAGE4) << "Transfering MC information into ClusterClass objects ......  "
 			 << std::endl;
 #endif
 
-    /* --------------------------------------------------------------------------
-       calculate the energy and position of each cluster
-       -------------------------------------------------------------------------- */
     for(int armNow = -1; armNow < 2; armNow += 2) {
 
       clusterClassMapIterator = clusterClassMap[armNow].begin();
       int numClusters             = clusterClassMap[armNow].size();
-      for (int MCParticleNow = 0; MCParticleNow < numClusters; MCParticleNow++, clusterClassMapIterator++) {
+      for (int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
 	int clusterId = (int)(*clusterClassMapIterator).first;
-	int	resetStatsFlag = clusterClassMap[armNow][clusterId] -> ResetStats();
+	//	int	resetStatsFlag = clusterClassMap[armNow][clusterId] -> ResetStats();
+	// try to match MC true particle with cluster
 	_sortAgainstThisTheta = clusterClassMap[armNow][clusterId] -> Theta;
-	sort( mcParticlesVec.begin(), mcParticlesVec.end(), ThetaCompAsc );
-	clusterClassMap[armNow][clusterId]->SetStatsMC( mcParticlesVec[0].mcp );
 
-  if(resetStatsFlag == 1) {
-    continue; 
-  } 
+	double phi = clusterClassMap[armNow][clusterId] -> Phi;
+	double RZStart = clusterClassMap[armNow][clusterId] -> RZStart;
+	double xglob = RZStart*cos(phi)*csbx[armNow] + LcalZstart*snbx[armNow];
+	double yglob = RZStart*sin(phi);
+	_sortAgainstThisX = xglob;
+	_sortAgainstThisY = yglob;
+
+	if( mcParticlesVec.size() ){
+	  //	  sort( mcParticlesVec.begin(), mcParticlesVec.end(), ThetaCompAsc );
+	  sort( mcParticlesVec.begin(), mcParticlesVec.end(), PositionCompAsc );
+	  double det = fabs( _sortAgainstThisTheta - mcParticlesVec[0].theta );
+	  // 10 mrad tolerance
+	  if(  det < 0.005 ) clusterClassMap[armNow][clusterId]->SetStatsMC( mcParticlesVec[0].mcp );
+	}
+
+	if( clusterClassMap[armNow][clusterId] -> Pdg == 0)    continue;  
 
 #if _CLUSTER_RESET_STATS_DEBUG == 1
 	if(clusterClassMap[armNow][clusterId] -> SignMC != armNow) continue;
 
 	streamlog_out( MESSAGE4 ) << "\tParticle Out ("
 		  << clusterClassMap[armNow][clusterId] -> OutsideReason << "):   " << clusterId << std::endl
-		  << "\t\t pdg, parentId , NumMCDaughters = "
+		  << "\t\t side, pdg, parentId , NumMCDaughters = "
+		  << "\t" << clusterClassMap[armNow][clusterId] -> SignMC
 		  << "\t" << clusterClassMap[armNow][clusterId] -> Pdg
 		  << "\t" << clusterClassMap[armNow][clusterId] -> ParentId
 		  << "\t" << clusterClassMap[armNow][clusterId] -> NumMCDaughters << std::endl
-		  << "\t\t vertex -> endPoint X, Y, Z = "
+		  << "\t\t vertex   X, Y, Z = "
 		  << "\t" << clusterClassMap[armNow][clusterId] -> VtxX
 		  << "\t" << clusterClassMap[armNow][clusterId] -> VtxY
-		  << "\t" << clusterClassMap[armNow][clusterId] -> VtxZ << "   ->   "
+		  << "\t" << clusterClassMap[armNow][clusterId] -> VtxZ << std::endl
+		  << "\t\t endPoint X, Y, Z = "
 		  << "\t" << clusterClassMap[armNow][clusterId] -> EndPointX
 		  << "\t" << clusterClassMap[armNow][clusterId] -> EndPointY
 		  << "\t" << clusterClassMap[armNow][clusterId] -> EndPointZ << std::endl
-		  << "\t\t engy, theta, phi (mc):\t "
+		  << "\t\t engy, theta, phi (mc): \t "
 		  << clusterClassMap[armNow][clusterId] -> EngyMC  << "\t"
 		  << clusterClassMap[armNow][clusterId] -> ThetaMC << "\t"
-		  << clusterClassMap[armNow][clusterId] -> PhiMC
+		  << clusterClassMap[armNow][clusterId] -> PhiMC << std::endl
+		  << "\t\t engy, theta, phi (reco):\t "
+		  << GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy) << "\t"
+		  << clusterClassMap[armNow][clusterId] -> Theta << "\t"
+		  << clusterClassMap[armNow][clusterId] -> Phi
 		  << std::endl << std::endl;
 #endif
       }
@@ -515,3 +589,4 @@ try
     return;
 
   }
+

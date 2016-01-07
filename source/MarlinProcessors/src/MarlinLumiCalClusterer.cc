@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // GENERAL NOTES:
 // ============================================================================
@@ -35,6 +36,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   _logWeigthConstant(6.),
 						   _ElementsPercentInShowerPeakLayer(0.03),
 						   _MiddleEnergyHitBoundFrac(0.01),
+						   _EnergyCalibConst(0.0105),
 						   _WeightingMethod("LogMethod"),
 						   _ClusterMinNumHits(15),
 						   _NumOfNearNeighbor(6),
@@ -49,7 +51,9 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   MemoryResidentTree(0),
 						   OutputManager(),
 						   GlobalMethods(),
-						   LumiCalClusterer(LumiInColName)
+                                                   LumiCalClusterer(LumiInColName),
+                                                   _betagamma(0),
+                                                   _gamma(1.) 
 						   
 {
   _description = "whatever..." ;
@@ -117,6 +121,10 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
                                " Relative offset of LCal z-layers [deg] default is half of the phi sector size",
                                _zLayerStagger,
                                3.75 );
+  registerProcessorParameter(  "EnergyCalibConst",
+                               " Calibration const E_dep = EnergyCalibConst*E_primary ( default for LCal ILD) ",
+                               _EnergyCalibConst,
+                               0.0105 );
   registerProcessorParameter(  "MoliereRadius",
                                " Moliere radius, controls clusters separation distance [mm]",
                                _rMoliere,
@@ -170,10 +178,13 @@ void MarlinLumiCalClusterer::init(){
   
   GlobalMethods.SetConstants();
 
+  double beta = tan( GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+  _betagamma = beta;
+  _gamma = sqrt( 1. + sqr(beta) );
   /* --------------------------------------------------------------------------
      Print out Processor Parameters
      -------------------------------------------------------------------------- */
-  streamlog_out(MESSAGE) << std::endl << "Global parameters for Processor:"<< name()  << std::endl;
+  streamlog_out(MESSAGE) << std::endl << "Global parameters for Processor:"<< name() <<"\t"<< type() << std::endl;
   GlobalMethods.PrintAllParameters();
   streamlog_out(MESSAGE) << std::endl;
 
@@ -219,6 +230,9 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
 
 }
 
+void MarlinLumiCalClusterer::check( EVENT::LCEvent * evt ) {
+  /*----  NOP for now ---- */
+}
 
 /* ============================================================================
    final action after last event analysis is over:
@@ -251,3 +265,4 @@ void MarlinLumiCalClusterer::end(){
   //OutputManager.CleanUp();       
 
 }
+

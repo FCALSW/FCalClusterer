@@ -194,7 +194,9 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   TreeIntV["sign"] = 0;
   TreeIntV["pdg"] = 0;
   TreeIntV["outFlag"] = 0;
-  TreeIntV["mcId"] = 0;
+  TreeIntV["mFlag"] = 0;
+  TreeIntV["nHits"] = 0;
+  TreeIntV["highE"] = 0;
 
   TreeDoubleV["engy"]=0.;
   TreeDoubleV["theta"]=0.;
@@ -207,8 +209,10 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   tree = new TTree(hisName.c_str(),hisName.c_str());
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
   tree -> Branch("OutFlag", &TreeIntV["outFlag"], "outFlag/I");
-  tree -> Branch("McID", &TreeIntV["mcID"], "mcId/I");
+  tree -> Branch("MatchFlag", &TreeIntV["mFlag"], "mFlag/I");
+  tree -> Branch("HighEngy", &TreeIntV["highE"], "highE/I");
   tree -> Branch("Sign", &TreeIntV["sign"], "sign/I");
+  tree -> Branch("NHits", &TreeIntV["nHits"], "nHits/I");
   tree -> Branch("Energy", &TreeDoubleV["engy"], "engy/D");
   tree -> Branch("EngyMC", &TreeDoubleV["engyMC"], "engyMC/D");
   tree -> Branch("Theta", &TreeDoubleV["theta"], "theta/D");
@@ -223,6 +227,9 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   TreeDoubleV["vtxX"] = 0.;
   TreeDoubleV["vtxY"] = 0.;
   TreeDoubleV["vtxZ"] = 0.;
+  TreeDoubleV["begX"] = 0.;
+  TreeDoubleV["begY"] = 0.;
+  TreeDoubleV["begZ"] = 0.;
   TreeDoubleV["endX"] = 0.;
   TreeDoubleV["endY"] = 0.;
   TreeDoubleV["endZ"] = 0.;
@@ -235,9 +242,12 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   tree -> Branch("Energy", &TreeDoubleV["engy"], "engy/D");
   tree -> Branch("Theta", &TreeDoubleV["theta"], "theta/D");
   tree -> Branch("Phi", &TreeDoubleV["phi"], "phi/D");
-  tree -> Branch("VtxX", &TreeDoubleV["vtxX"], "vtxX/D");
-  tree -> Branch("VtxY", &TreeDoubleV["vtxY"], "vtxY/D");
-  tree -> Branch("VtxZ", &TreeDoubleV["vtxZ"], "vtxZ/D");
+  tree -> Branch("VX", &TreeDoubleV["vtxX"], "vtxX/D");
+  tree -> Branch("VY", &TreeDoubleV["vtxY"], "vtxY/D");
+  tree -> Branch("VZ", &TreeDoubleV["vtxZ"], "vtxZ/D");
+  tree -> Branch("BegX", &TreeDoubleV["begX"], "begX/D");
+  tree -> Branch("BegY", &TreeDoubleV["begY"], "begY/D");
+  tree -> Branch("BegZ", &TreeDoubleV["begZ"], "begZ/D");
   tree -> Branch("EndX", &TreeDoubleV["endX"], "endX/D");
   tree -> Branch("EndY", &TreeDoubleV["endY"], "endY/D");
   tree -> Branch("EndZ", &TreeDoubleV["endZ"], "endZ/D");

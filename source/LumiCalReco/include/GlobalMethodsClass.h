@@ -10,6 +10,7 @@
 #include <gear/GearMgr.h>
 
 #include <marlin/ProcessorMgr.h>
+#include <marlin/CMProcessor.h>
 #include <marlin/Processor.h>
 #include <marlin/ProcessorParameter.h>
 #include <marlin/StringParameters.h>
@@ -56,13 +57,7 @@ class GlobalMethodsClass {
 };
   //
   
-  /*  
-  enum WeightingMethod_t {
-    LogMethod=-1,
-    EnergyMethod=1
-  };
-  */
-  enum Coordinate_t {
+ enum Coordinate_t {
     COTheta,
     COPhi,
     COZ,
@@ -85,12 +80,12 @@ class GlobalMethodsClass {
   void SetConstants();
   static WeightingMethod_t LogMethod;
   static WeightingMethod_t EnergyMethod;
+  static double EnergyCalibrationFactor;
   ParametersInt    GlobalParamI;
   ParametersDouble GlobalParamD;
   ParametersString GlobalParamS;
 
-  static double SignalGevConversion( Parameter_t optName , double valNow );
-
+  double SignalGevConversion( Parameter_t optName , double valNow );
   void	ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> & thetaPhiCell);
 
   static void CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);

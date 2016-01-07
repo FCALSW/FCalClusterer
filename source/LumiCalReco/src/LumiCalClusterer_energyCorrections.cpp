@@ -144,12 +144,12 @@ void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int
     double	engySmallNow = rightSideSmallHisH . GetBinContent(binNowX);
     double	deltaEngy    = engySmallNow - engyLargeNow;
     double	engyRatio    = deltaEngy / engySmallNow;
-
+    /* (BP) seems engyNow is for nothing ?
     if(deltaEngy > 0)	engyNow = deltaEngy;
-    else			engyNow = engySmallNow;
+    else	        engyNow = engySmallNow;
 
     engyNow = GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::Signal_to_GeV, engyNow);
-
+    */
     if(engyRatio > 0)
       correctionRatioH.Fill (distanceNow , engyRatio);
   }

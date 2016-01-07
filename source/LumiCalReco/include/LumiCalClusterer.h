@@ -1,6 +1,7 @@
 #ifndef LumiCalClusterer_h
 #define LumiCalClusterer_h 1
 
+
 // clustering options
 #define	_CLUSTER_MIDDLE_RANGE_ENGY_HITS 1
 #define	_MOLIERE_RADIUS_CORRECTIONS 1
@@ -106,6 +107,7 @@ protected:
   int	_numEventsPerTree, _resetRootTrees;
   int	_maxLayerToAnalyse;
   double	_zFirstLayer, _zLayerThickness, _zLayerPhiOffset, _rMin, _rMax, _rCellLength, _phiCellLength;
+  double        _beamCrossingAngle;
   double	_elementsPercentInShowerPeakLayer;
   double	_logWeightConst;
   int	_nNearNeighbor ;

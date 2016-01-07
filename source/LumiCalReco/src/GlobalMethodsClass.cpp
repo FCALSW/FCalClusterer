@@ -8,6 +8,8 @@
 #include <gear/CalorimeterParameters.h>
 #include <gear/GearMgr.h>
 
+
+
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
@@ -17,11 +19,12 @@ using streamlog::MESSAGE;
 #include <string>
 #include <cmath>
 #include <cstdlib>
+#include <cassert>
 #include <iostream>
 
 GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::LogMethod = "LogMethod";
 GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::EnergyMethod = "EnergyMethod";
-
+double GlobalMethodsClass::EnergyCalibrationFactor = 0.0105;
 
 GlobalMethodsClass :: GlobalMethodsClass() :
   _procName( "MarlinLumiCalClusterer" ),
@@ -63,7 +66,7 @@ void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& ce
   cellZ   = (cellId >> 0  ) & (int)(( 1 << 10 ) -1) ; 
   cellPhi = (cellId >> 10 ) & (int)(( 1 << 10 ) -1) ;
   cellR   = (cellId >> 20 ) & (int)(( 1 << 10 ) -1) ;
-  arm     = (cellId >> 30 ) & (int)(( 1 <<  2 ) -1) ;
+  arm     = (cellId >> 30 ) & (int)(( 1 <<  2 ) -1) ; arm = ( arm == 0 ) ? -1 : 1;
   return;
 
 }
@@ -72,7 +75,7 @@ int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t Z
 
   int cellZ, cellPhi, cellR, arm;
   CellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
-
+  arm = ( arm == 0 ) ? -1 : 1;
   if(ZPR == GlobalMethodsClass::COZ) return cellZ;
   else if(ZPR == GlobalMethodsClass::COR) return cellR;
   else if(ZPR == GlobalMethodsClass::COP) return cellPhi;
@@ -94,6 +97,8 @@ void GlobalMethodsClass::SetConstants() {
   marlin::ProcessorMgr* procMgr= marlin::ProcessorMgr::instance();
   marlin::Processor* procPTR = procMgr->getActiveProcessor( _procName );
   //procMgr->dumpRegisteredProcessorsXML();
+
+
   if ( procPTR )
     _lcalRecoPars = procPTR->parameters();
   else{                                                // try with My+_procName
@@ -121,21 +126,30 @@ void GlobalMethodsClass::SetConstants() {
   GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
   GlobalParamI[NumCellsZ] = _lcalGearPars.getLayerLayout().getNLayers();
 
+ // beam crossing angle
+  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle") / 1000.; 
+
   // layer thickness
   GlobalParamD[ZLayerThickness] = _lcalGearPars.getLayerLayout().getThickness(0);
   //(BP) layer relative phi offset - must go sometimes to GEAR params
+  const std::string parname = "ZLayerStagger";
+  double val = 0.;
+    if ( _lcalRecoPars->isParameterSet(parname) ){ 
+      val = _lcalRecoPars->getFloatVal( parname );
+    }else {
+      marlin::ProcessorParameter* par = marlin::CMProcessor::instance()->getParam( _procName, parname );
+      val = (double)std::stof( par->defaultValue() );
+      streamlog_out(MESSAGE)<<"\tParameter <"<< parname <<"> not set default value : "<< val << "\t is used"<<"\n"; 
+    }
+   
   // check units just in case
-  double dphi = _lcalRecoPars->getFloatVal("ZLayerStagger");
-  dphi = ( dphi < GlobalParamD[PhiCellLength] ) ? dphi : dphi*M_PI/180.;
-  GlobalParamD[ZLayerPhiOffset] = dphi; 
-
-
-  // beam crossing angle
-  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle") / 1000.; 
-
+  val = ( val < GlobalParamD[PhiCellLength] ) ? val : val*M_PI/180.;
+  GlobalParamD[ZLayerPhiOffset] = val;  
 
   // Clustering/Reco parameters
   // logarithmic constant for position reconstruction
+  EnergyCalibrationFactor = _lcalRecoPars->getFloatVal("EnergyCalibConst");
+
   GlobalParamD[LogWeightConstant] = _lcalRecoPars->getFloatVal("LogWeigthConstant");
   
   GlobalParamD[MinHitEnergy] = _lcalRecoPars->getFloatVal("MinHitEnergy");
@@ -174,15 +188,16 @@ double GlobalMethodsClass::SignalGevConversion( Parameter_t optName , double val
 
 #pragma message("FIXME: SignalToGeV conversion")
   double	returnVal = -1;
-  const double conversionFactor(0.0105*1789/1500*(1488/1500.0));
+  //  const double conversionFactor(0.0105*1789/1500*(1488/1500.0));
+  //  const double conversionFactor(0.0105);
   //const double conversionFactor(0.0105);
 
   if(optName == GeV_to_Signal)
-    returnVal = valNow * conversionFactor;
+    returnVal = valNow * EnergyCalibrationFactor;
   //		returnVal = valNow * .0105 + .0013;
 
   if(optName == Signal_to_GeV)
-    returnVal = valNow / conversionFactor;
+    returnVal = valNow / EnergyCalibrationFactor;
   //		returnVal = (valNow-.0013) / .0105;
 
   return returnVal;
@@ -204,13 +219,13 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
   // phi
   //(BP) use phiCell size and account for possible layers relative offset/stagger
   // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]) + double( cellIdZ % 2 ) * GlobalParamD[;
-  double phiCell   = (double(cellIdPhi) + .5) * GlobalParamD[PhiCellLength] + double( (cellIdZ-1) % 2 ) * GlobalParamD[ZLayerPhiOffset];
+  double phiCell   = (double(cellIdPhi) + .0) * GlobalParamD[PhiCellLength] + double( (cellIdZ) % 2 ) * GlobalParamD[ZLayerPhiOffset];
 
   // fill output container
   thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;
   thetaPhiCell[GlobalMethodsClass::COPhi]   = phiCell;
   thetaPhiCell[GlobalMethodsClass::COR]     = rCell;
-
+  thetaPhiCell[GlobalMethodsClass::COZ]     = zCell;
   return;
 }
 

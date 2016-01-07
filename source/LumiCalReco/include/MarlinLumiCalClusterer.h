@@ -28,7 +28,6 @@ namespace EVENT{
 
 
 
-
   class MarlinLumiCalClusterer : public marlin::Processor {
 
   public:
@@ -48,6 +47,9 @@ namespace EVENT{
     // main actions in each event -Called for every event - the working horse.
     virtual void processEvent( EVENT::LCEvent * evt ) ;
 
+    // actions after each event - place to produce control plots/printouts ....
+    virtual void check( EVENT::LCEvent * evt ) ;
+
     // final action after last event analysis is over.
     virtual void end() ;
 
@@ -56,6 +58,7 @@ namespace EVENT{
     double _zLayerStagger;
     double _rMoliere,_minClusterEngy, _minHitEnergy, _logWeigthConstant;
     double _ElementsPercentInShowerPeakLayer, _MiddleEnergyHitBoundFrac;
+    double _EnergyCalibConst;
     std::string _WeightingMethod;
     int     _ClusterMinNumHits, _NumOfNearNeighbor;
          
@@ -76,6 +79,7 @@ namespace EVENT{
 
     void CreateClusters( std::map < int , std::map < int , std::vector<int> > > const& clusterIdToCellId,
 			 std::map < int , std::map < int , std::vector<double> > > const& cellIdToCellEngy,
+			 //			 std::map < int , std::map < int , LCCluster > > const& superClusterIdClusterInfo,
 			 std::map < int , std::map < int , ClusterClass * > > & clusterClassMapP,
 			 EVENT::LCEvent * evt);
 
@@ -83,7 +87,13 @@ namespace EVENT{
     inline float sqr( float a){ return a*a;};
     inline int sqr( int a){ return a*a;};
 
+// lorentz boost params
+//(BP)  as in Mokka PrimaryGeneratorAction
+
+    double _betagamma; // = _beta;
+    double _gamma;     // = sqrt( 1. + _beta*_beta );
 
   };
 
 #endif
+

@@ -38,6 +38,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _maxLayerToAnalyse(0),
   _zFirstLayer(0), _zLayerThickness(0.0), _zLayerPhiOffset(0.0),
   _rMin(0.0), _rMax(0.0), _rCellLength(0.0), _phiCellLength(0.0),
+  _beamCrossingAngle(0.),
   _elementsPercentInShowerPeakLayer(0.03),
   _logWeightConst(0.0),
   _nNearNeighbor (6),
@@ -77,6 +78,7 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
   _zLayerPhiOffset			= GlobalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);                  // = 3.75 [deg]
   _elementsPercentInShowerPeakLayer	= GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
   _nNearNeighbor			= GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor);                // = 6; // number of near neighbors to consider
+  _beamCrossingAngle                    = GlobalParamD.at(GlobalMethodsClass::BeamCrossingAngle)/2.;
 
   // the minimal energy to take into account in the initial clustering pass is
   // defined as _middleEnergyHitBoundFrac of the minimal energy that is taken into
@@ -118,25 +120,29 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
 #if _GENERAL_CLUSTERER_DEBUG == 1
   streamlog_out(MESSAGE) << std::endl << "Global parameters for LumiCalClustererClass:"  << std::endl;
   streamlog_out(MESSAGE) << " _cellRMax: "			    << _cellRMax			 << std::endl
-	    << " _cellPhiMax: "			    << _cellPhiMax			 << std::endl
-	    << " _zFirstLayer: "		    << _zFirstLayer			 << std::endl
-	    << " _zLayerThickness: "		    << _zLayerThickness			 << std::endl
-	    << " _zLayerPhiOffset[deg]: "	    << _zLayerPhiOffset*180./M_PI	 << std::endl
-	    << " _rMin: "			    << _rMin				 << std::endl
-	    << " _rMax: "			    << _rMax				 << std::endl
-	    << " _rCellLength [mm]: "		    << _rCellLength			 << std::endl
-	    << " _phiCellLength [rad]:"		    << _phiCellLength			 << std::endl
-	    << " _methodCM: "			    << _methodCM			 << std::endl
-	    << " _logWeightConst: "		    << _logWeightConst			 << std::endl
-	    << " _elementsPercentInShowerPeakLayer: " << _elementsPercentInShowerPeakLayer	<< std::endl
-	    << " _moliereRadius: "		    << _moliereRadius			 << std::endl
-	    << " _minSeparationDistance: "	    << _minSeparationDistance		 << std::endl
-	    << " _minClusterEngy - GeV: "	    << _minClusterEngyGeV		 << std::endl
-	    << " _minClusterEngy - Signal: "	    << _minClusterEngySignal             << std::endl
-	    << " _hitMinEnergy: "		    << _hitMinEnergy		         << std::endl
-	    << " _thetaContainmentBounds[0]: "	    << _thetaContainmentBounds[0]	 << std::endl
-	    << " _thetaContainmentBounds[1]: "	    << _thetaContainmentBounds[1]	 << std::endl
-	    << " _middleEnergyHitBoundFrac: "	    << _middleEnergyHitBoundFrac	 << std::endl
+			 << " _cellPhiMax: "			    << _cellPhiMax			 << std::endl
+			 << " _zFirstLayer: "		            << _zFirstLayer			 << std::endl
+			 << " _zLayerThickness: "		    << _zLayerThickness			 << std::endl
+			 << " _zLayerPhiOffset[deg]: "	            << _zLayerPhiOffset*180./M_PI	 << std::endl
+			 << " _rMin: "			            << _rMin				 << std::endl
+			 << " _rMax: "			            << _rMax				 << std::endl
+			 << " _rCellLength [mm]: "		    << _rCellLength			 << std::endl
+			 << " _phiCellLength [rad]:"		    << _phiCellLength			 << std::endl
+			 << " _methodCM: "			    << _methodCM			 << std::endl
+			 << " _logWeightConst: "		    << _logWeightConst			 << std::endl
+			 << " _elementsPercentInShowerPeakLayer: "  << _elementsPercentInShowerPeakLayer << std::endl
+			 << " _moliereRadius: "		            << _moliereRadius			 << std::endl
+			 << " _minSeparationDistance: "	            << _minSeparationDistance		 << std::endl
+			 << " _minClusterEngy - GeV: "	            << _minClusterEngyGeV		 << std::endl
+			 << " _minClusterEngy - Signal: "	    << _minClusterEngySignal             << std::endl
+			 << " _hitMinEnergy: "		            << _hitMinEnergy		         << std::endl
+			 << " _thetaContainmentBounds[0]: "	    << _thetaContainmentBounds[0]	 << std::endl
+			 << " _thetaContainmentBounds[1]: "	    << _thetaContainmentBounds[1]	 << std::endl
+			 << " _middleEnergyHitBoundFrac: "	    << _middleEnergyHitBoundFrac	 << std::endl
+			 << " Clustering Options : " << std::endl
+			 << "           _CLUSTER_MIDDLE_RANGE_ENGY_HITS    " <<  _CLUSTER_MIDDLE_RANGE_ENGY_HITS    << std::endl
+			 << "           _MOLIERE_RADIUS_CORRECTIONS        " <<  _MOLIERE_RADIUS_CORRECTIONS        << std::endl
+			 << "           _CLUSTER_MIXING_ENERGY_CORRECTIONS " <<  _CLUSTER_MIXING_ENERGY_CORRECTIONS << std::endl
 	    << std::endl;
 #endif
 

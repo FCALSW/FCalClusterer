@@ -102,9 +102,8 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   }
 
   streamlog_out( DEBUG )  <<  "Shower peak layers:" << std::endl;
-  streamlog_out( DEBUG )  << "\t min # of hits, min energy/hit([signal],[GeV]) : " << minNumElementsInShowerPeakLayer
+  streamlog_out( DEBUG )  << "\t min # of hits, min energy/hit([signal]) : " << minNumElementsInShowerPeakLayer
 			  << "\t(" <<  middleEnergyHitBound << " , " 
-			  << GlobalMethodsClass::SignalGevConversion(GlobalMethodsClass::Signal_to_GeV, middleEnergyHitBound)
 			  << ")" <<std::endl << "\t layers chosen : ";
 #endif
 
@@ -301,9 +300,9 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
 	// update the multi-layer CM position
 	//APS: BUGFIX This used to have the CM2 from the clusterNow2 loop above, instead of closestCluster
 	avrgCM[closestCluster->first].addToEnergy(thisCluster.getE());
-#pragma message( "Should this be energy weighted? (APS)" )
-	avrgCM[closestCluster->first].setX( (CM1[0]+avrgCM[closestCluster->first].getX())/2.);
-	avrgCM[closestCluster->first].setY( (CM1[1]+avrgCM[closestCluster->first].getY())/2.);
+#pragma message( "Should this be energy weighted? (APS). Yes it should -  must fix (BP)" )
+	avrgCM[closestCluster->first].setX( (CM1[0]+(avrgCM[closestCluster->first].getX()))/2.);
+	avrgCM[closestCluster->first].setY( (CM1[1]+(avrgCM[closestCluster->first].getY()))/2.);
       }//for all clusters
     }//if isShowerPeakLayer
   }//for all layers

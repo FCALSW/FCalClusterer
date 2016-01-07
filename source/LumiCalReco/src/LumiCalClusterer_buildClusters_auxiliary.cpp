@@ -42,14 +42,14 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
   // ----------------------------------------------------------------------------------------------------------------
   //	(1). definitions of 'small' and 'large' sizes
   const int numElementsInLayer( calHitsCellId.size() );
-  const int numElementsSmallClusterToMerge(0.1 * numElementsInLayer); //5;  // max number of elements in small cluster
-  const int numElementsLargeClusterToMerge(.15 * numElementsInLayer); //10; // min number of elements in a large cluster
+  const int numElementsSmallClusterToMerge(0.10 * numElementsInLayer); //5;  // max number of elements in small cluster
+  const int numElementsLargeClusterToMerge(0.15 * numElementsInLayer); //10; // min number of elements in a large cluster
 
   //	(2). decide to merge if the two clusters are close to each other, and if the merged cluster's CM
   //	isnt shifted to an area where there are few cal hits (small percentage of CM energy)
   const double mergeScanDistanceFromLargeClusterCM (_moliereRadius);  // max distance of small cluster from CM of large one
-  const double distanceToCollectEngyAroundCM (.5*_moliereRadius);  // distance from the CM to collect energy
-  const double percentOfEngyAroungCM (0.4);  // percentage of cluster CM energy
+  const double distanceToCollectEngyAroundCM (.5*_moliereRadius);     // distance from the CM to collect energy
+  const double percentOfEngyAroungCM (0.4);                           // percentage of cluster CM energy
 
   //	(3). the weight for merging two clusters is a Power() function of the energy of the large cluster and the
   //	distance to its CM. two different weight functions for the two pases.
@@ -583,7 +583,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
    ============================================================================
    (1). Description:
    --------------------------------
-   - SOME DESCRIPTION ......
+   -     merge the unclustered cal hits with the existing clusters
    ============================================================================ */
 
 int LumiCalClustererClass::initialLowEngyClusterBuild( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsSmallEngyCellId,

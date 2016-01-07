@@ -25,6 +25,11 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 					MapIntMapIntVCalHit & calHits) {
 
   EVENT::LCCollection * col = NULL;
+  // (BP) LumiCal rotation ( local -> global )
+  const double CSBX[2] = { cos( M_PI - _beamCrossingAngle ),
+                           cos( _beamCrossingAngle )        };
+  const double SNBX[2] = { sin( M_PI - _beamCrossingAngle ),
+                           sin( _beamCrossingAngle  )       };
   try {
     col = evt->getCollection(_lumiName.c_str());
   } // try
@@ -58,39 +63,58 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       /// APS: Can be taken from the position of the calohit, when it is stored
 
       // get parameters from the input IMPL::CalorimeterHitImpl
-      const double engyHit = (double)calHitIn -> getEnergy();
       //      const int cellid = (int)calHitIn->getCellID0();
       layer   = (*_mydecoder)( calHitIn )["K"] ;    // counts from 1
       phiCell = (*_mydecoder)( calHitIn )["J"] ;    //        from 0
       rCell   = (*_mydecoder)( calHitIn )["I"] ;    //        from 0
-      //      side    = (*_mydecoder)( calHitIn )["S-1"] ;  //        from 0
+      arm     = (*_mydecoder)( calHitIn )["S-1"] ;  //        from 0
+
+      const double engyHit = (double)calHitIn -> getEnergy();
 
       ///APS Calculate the cellID with the function from here
       const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
       // detector layer (ring) - count layers from zero and not from one
       layer -= 1 ;
 
-
-      // skip this hit if the following conditions are met
-      if(layer >= _maxLayerToAnalyse)	continue;
+       // skip this hit if the following conditions are met
+      if(layer >= _maxLayerToAnalyse || layer < 0 )	continue;
       if(engyHit < _hitMinEnergy)	continue;
 
-
+      
+      /*(BP) it is not safe - in case non-zero crossing angle
+            - phi sectors numbering order changes on -ve side
+            - in some models there is layers relative phi offset  
+             also in local system zHit is +ve always
       const double rHit = (rCell+0.5) * _rCellLength + _rMin;
       // BP: add relative layer offset
       //const double phiHit = (phiCell+0.5) * _phiCellLength;
       const double phiHit = (phiCell+0.5) * _phiCellLength + double( layer%2 )*_zLayerPhiOffset;
 
-      const float zHit = (double)calHitIn -> getPosition()[2];
-      // determine the side (arm) of the hit -> (+,-)1
-      arm = (( zHit < 0 ) ? -1 : 1);
-
       // compute x.y hit coordinates ( local )
       const float xHit = rHit * cos(phiHit);
       const float yHit = rHit * sin(phiHit);
+     
       // write x,y,z to an array
       float hitPosV[3] = {xHit, yHit, zHit};
+      */
+      const float xHit = (double)calHitIn -> getPosition()[0];
+      const float yHit = (double)calHitIn -> getPosition()[1];
+      const float zHit = (double)calHitIn -> getPosition()[2];
 
+
+
+      // write x,y,z to an array
+      // rotate to local Lcal
+ 	float hitPosV[3];
+	hitPosV[0] =  xHit*CSBX[arm] - zHit*SNBX[arm];
+	hitPosV[1] =  yHit;
+	hitPosV[2] =  xHit*SNBX[arm] + zHit*CSBX[arm];
+
+     // determine the side (arm) of the hit -> (+,-)1
+      arm = (( arm == 0 ) ? -1 : 1);
+      // (BP) keep wrong sign of zHit local as it was  
+      // in case it  matters
+      //     hitPosV[2] *= arm;
       // create a new IMPL::CalorimeterHitImpl
       IMPL::CalorimeterHitImpl *calHitNew = new IMPL::CalorimeterHitImpl();
 

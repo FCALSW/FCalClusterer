@@ -27,6 +27,7 @@ public:
 
   int	Id, Pdg, SignMC, ParentId, NumMCDaughters;
   int	OutsideFlag, MergedFlag, HighestEnergyFlag, ModifiedFlag;
+  int   NumHits;
   double	Engy, Theta, Phi, RZStart;
   double	VtxX, VtxY, VtxZ, EndPointX, EndPointY, EndPointZ;
   double	EngyMC, ThetaMC, PhiMC;

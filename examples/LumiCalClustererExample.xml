@@ -32,8 +32,10 @@
    <parameter name="MiddleEnergyHitBoundFrac" type="double">0.01 </parameter>
    <!-- Sets minimum energy deposit for cluster to be accepted [GeV]-->
    <parameter name="MinClusterEngy" type="double">2 </parameter>
-   <!-- Hit energy cut [Gev] -->
-   <parameter name="MinHitEnergy" type="double">5e-06 </parameter>
+   <!-- Calibration factor - converts cluster energy to energy of primary particle ( E_cluster = EnrgyCalibConst*E_primary default value for LCal ILD )-->
+   <parameter name="EnergyCalibConst" type="double" value="0.0121"/>
+   <!-- Hit energy cut - minimum hit energy required [Gev] -->
+   <parameter  name="MinHitEnergy"  type="double">5e-06 </parameter>
    <!-- Moliere radius, controls clusters separation distance [mm]-->
    <parameter name="MoliereRadius" type="double">16 </parameter>
    <!-- Relative z-layers phi offset [deg] (default for model ILD_o1_05, must go to gear sometimes)-->
