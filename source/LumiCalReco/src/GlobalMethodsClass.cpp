@@ -22,6 +22,15 @@ using streamlog::MESSAGE;
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+
+// utility copied from marlin to avoid C++11 dep
+template <class T>
+bool convert(std::string input, T &value) {
+ std::istringstream stream(input);
+ return ( ! (stream >> std::setbase(0) >> value).fail() ) && stream.eof();
+}
 
 GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::LogMethod = "LogMethod";
 GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::EnergyMethod = "EnergyMethod";
@@ -139,12 +148,13 @@ void GlobalMethodsClass::SetConstants() {
       val = _lcalRecoPars->getFloatVal( parname );
     }else {
       marlin::ProcessorParameter* par = marlin::CMProcessor::instance()->getParam( _procName, parname );
-      //val = (double)std::stof( par->defaultValue() );
-      //fg: stof is c++11 - do not use it until we made the final switch
-      std::stringstream sts( par->defaultValue() ) ;
-      sts >> val ;
-      streamlog_out(MESSAGE)<<"\tParameter <"<< parname <<"> not set default value : "<< val << "\t is used"<<"\n"; 
-    }
+      //      val = (double)std::stof( par->defaultValue() );
+      if ( convert( par->defaultValue(), val ) ){
+	streamlog_out(MESSAGE)<<"\tParameter <"<< parname <<"> not set default value : "<< val << "\t is used"<<"\n";
+      }else{ 
+	streamlog_out(MESSAGE)<<"\tParameter <"<< parname <<"> not set default value : "<< 0.  << "\t is used"<<"\n";
+      }
+   }
    
   // check units just in case
   val = ( val < GlobalParamD[PhiCellLength] ) ? val : val*M_PI/180.;
