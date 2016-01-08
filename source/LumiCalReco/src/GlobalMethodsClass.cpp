@@ -17,6 +17,7 @@ using streamlog::MESSAGE;
 
 #include <map>
 #include <string>
+#include <sstream>
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
@@ -138,7 +139,10 @@ void GlobalMethodsClass::SetConstants() {
       val = _lcalRecoPars->getFloatVal( parname );
     }else {
       marlin::ProcessorParameter* par = marlin::CMProcessor::instance()->getParam( _procName, parname );
-      val = (double)std::stof( par->defaultValue() );
+      //val = (double)std::stof( par->defaultValue() );
+      //fg: stof is c++11 - do not use it until we made the final switch
+      std::stringstream sts( par->defaultValue() ) ;
+      sts >> val ;
       streamlog_out(MESSAGE)<<"\tParameter <"<< parname <<"> not set default value : "<< val << "\t is used"<<"\n"; 
     }
    
