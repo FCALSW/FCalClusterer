@@ -106,6 +106,9 @@ int main (int argn, char **argc) {
   } catch (std::invalid_argument &e) {
     std::cerr << e.what() << std::endl;
     return 1;
+  } catch (gear::ParseException &e) {
+    std::cerr << e.what();
+    return 1;
   }
 
   return 0;
