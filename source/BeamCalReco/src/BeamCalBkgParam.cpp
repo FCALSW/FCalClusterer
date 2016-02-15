@@ -71,6 +71,7 @@ void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
   if (1 != bg_files.size() ){
     streamlog_out(ERROR) << "Single background file should be specified"\
       "for parametrised BG simulation method." << std::endl;
+    throw std::runtime_error("Need exactly 1 (one) background fill for this BeamCalReco Background");
   }
 
   TTree *bg_par_tree;
@@ -78,6 +79,7 @@ void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
   TFile *bgfile = TFile::Open(bgfname);
   if ( !bgfile ) {
     streamlog_out(ERROR) << "Background file " << bg_files.at(0) << " not found" << std::endl;;
+    throw std::runtime_error("Could not find background file for BeamCalReco");
   }
 
   bgfile->GetObject("bc_bg_fitpars", bg_par_tree);
@@ -87,6 +89,7 @@ void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
 
     bgfile->Close();
     delete bgfile;
+    throw std::runtime_error("Could not find background tree in file for BeamCalReco");
   }
 
 
