@@ -836,8 +836,8 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   TCanvas canv("canv","canv", 3200, 1600);
   gStyle->SetOptStat(0.0);
   TPad *pads[9];
-  Double_t padSizeX = canv.GetWindowWidth()/4;
-  Double_t padSizeY = (canv.GetWindowHeight()-200)/2;
+  Double_t padSizeX = canv.GetWindowWidth()/4.0;
+  Double_t padSizeY = (canv.GetWindowHeight()-200)/2.0;
   for (int i = 0; i < 8 ;++i) {
     Double_t lowX, lowY, highX, highY;
 
