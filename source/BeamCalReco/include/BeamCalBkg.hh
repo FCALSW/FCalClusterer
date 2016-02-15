@@ -22,7 +22,7 @@ class BCPCuts;
 using std::vector;
 using std::string;
 
-typedef struct {
+struct PadEdepRndPar_t  {
   double zero_rate;
   double mean;
   double stdev;
@@ -33,7 +33,18 @@ typedef struct {
   double par0;
   double par1;
   double par2;
-} PadEdepRndPar_t;
+
+  PadEdepRndPar_t(): zero_rate(0.0),
+		     mean(0.0),
+		     stdev(0.0),
+		     sum(0.0),
+		     minm(0.0),
+		     maxm(0.0),
+		     chi2(0.0),
+		     par0(0.0),
+		     par1(0.0),
+		     par2(0.0){}
+};
  
 class BeamCalBkg {
  public:
