@@ -197,12 +197,18 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
 
   // check the branch presence in the tree
   MapStrVec_t::iterator im = br_cont_map.begin();
+  bool errorGettingBranches = false;
   for (; im != br_cont_map.end(); im++){
     TBranch* br = dynamic_cast<TBranch*> (bg_par_tree->GetListOfBranches()->FindObject((im->first).c_str()));
     if (! br) {
       streamlog_out(ERROR7) << "BeamCalBkgParam: Missing " << im->first << 
       " branch in the tree with background parameters." << std::endl;
+      errorGettingBranches = true;
     }
+  }
+
+  if( errorGettingBranches ) {
+    throw std::runtime_error("Failed to get branches from tree in background file");
   }
 
   // set the branch addresses
