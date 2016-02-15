@@ -46,8 +46,11 @@ BeamCalBkgGauss::BeamCalBkgGauss(const string& bg_method_name,
 					   m_padParRight(NULL)
 {}
 
-BeamCalBkgGauss::~BeamCalBkgGauss()
-{}
+BeamCalBkgGauss::~BeamCalBkgGauss() {
+  delete m_padParLeft;
+  delete m_padParRight;
+
+}
 
 void BeamCalBkgGauss::init(vector<string> &bg_files, const int n_bx)
 {
