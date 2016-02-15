@@ -140,15 +140,15 @@ void BeamCalBkgGauss::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 
 void BeamCalBkgGauss::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side)
 {
-  vector<double> *mean(NULL) , *stdev(NULL);
+
   string side_name = ( BCPadEnergies::kLeft == bc_side ? "left_" : "right_" );
 
   // map the branch names to containers
   typedef map<string, vector<double> *> MapStrVec_t;
   MapStrVec_t br_cont_map;
 
-  br_cont_map[side_name+"mean"]      = mean;
-  br_cont_map[side_name+"stdev"]     = stdev;
+  br_cont_map[side_name+"mean"]      = NULL;
+  br_cont_map[side_name+"stdev"]     = NULL;
 
   // check the branch presence in the tree
   MapStrVec_t::iterator im = br_cont_map.begin();
@@ -205,4 +205,8 @@ void BeamCalBkgGauss::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
 
   // drop the branch addresses
   bg_par_tree->ResetBranchAddresses();
+
+  delete br_cont_map[side_name+"mean"];
+  delete br_cont_map[side_name+"stdev"];
+
 }
