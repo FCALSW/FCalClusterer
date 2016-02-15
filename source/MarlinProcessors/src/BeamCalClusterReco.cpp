@@ -635,10 +635,22 @@ void BeamCalClusterReco::end(){
 
     for (size_t j = 0; j < m_checkPlots.size() ;++j) {
       m_checkPlots[j]->Write();
+      delete m_checkPlots[j];
     }//all plots
 
     effFile->Close();
+    delete effFile;
+
+    delete m_totalEfficiency;
+    delete m_thetaEfficieny;
+    delete m_phiEfficiency;
+    delete m_twoDEfficiency;
+    delete m_phiFake;
+    delete m_thetaFake;
+
   }
+
+  m_checkPlots.clear();
 
   delete m_BCG;
   delete m_BCbackground;

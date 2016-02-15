@@ -99,6 +99,7 @@ void BeamCalBkgGauss::init(vector<string> &bg_files, const int n_bx)
   this->BeamCalBkg::setTowerErrors(BCPadEnergies::kRight);
 
   bgfile->Close();
+  delete bgfile;
 
 }
 
