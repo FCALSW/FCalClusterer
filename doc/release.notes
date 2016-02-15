@@ -1,0 +1,25 @@
+ ------- 
+| v0-02 |
+ ------- 
+
+LumiCalReco:
+* Bugfixes/improvements by Bogdan Pawlik
+  - Read Parameters from Gear
+  - More steering parameters from xml
+  - Fix to create the cluster on the proper side
+
+BeamCalReco:
+* Bugfixes/improvements from Andrey Sapronov
+  - Different background creation based on Gaussian parametrisation
+* More examples in the example folder
+
+* Bugfixes from Andre Sailer
+
+ ------- 
+| v0-01 |
+ ------- 
+
+First release of FCalClusterer
+
+* BeamCalReco
+* LumiCalReco
