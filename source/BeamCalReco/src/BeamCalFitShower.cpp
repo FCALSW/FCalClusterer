@@ -361,7 +361,8 @@ void BeamCalFitShower::deleteSpotPads()
   vector<EdepProfile_t*>::iterator it_ep = m_vep.end()-1;
   for (;it_ep >= m_vep.begin(); it_ep--){
     for (it_sp = m_spotPads.begin();it_sp != m_spotPads.end(); it_sp++){
-      if ( (*it_ep)->id == (*it_sp)->id ) m_vep.erase(it_ep);
+      if ( (*it_ep)->id == (*it_sp)->id )
+	it_ep = m_vep.erase(it_ep);
     }
   }
 }
