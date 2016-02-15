@@ -64,7 +64,9 @@ int main(int argc, char **argv) {
   for (int i = 1; i < argc; ++i) {
     std::cout << "Reading background file " << argv[i] << std::endl;
     std::string bgfname = argv[i];
-    read_bg_vec(bgfname, vbgleft, vbgright);
+    if ( read_bg_vec(bgfname, vbgleft, vbgright) == 0 ) {
+      return 1;
+    }
   }
 
   unsigned int nbcpads = vbgleft.at(0).size();
@@ -119,6 +121,7 @@ int read_bg_vec(string &bgfname, Tvvd &vbgleft, Tvvd &vbgright){
   TFile* file = TFile::Open(bgfname.c_str());
   if ( not file ) {
     std::cerr << "File not found: "<< bgfname  << std::endl;
+    return 0;
   }
 
   file->GetObject("bcTree", tree);
