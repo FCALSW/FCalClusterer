@@ -15,6 +15,7 @@
 #include "TMath.h"
 #include "Minuit2/Minuit2Minimizer.h"
 #include "Math/Functor.h"
+#include "TError.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -80,6 +81,9 @@ BeamCalFitShower::operator=(const BeamCalFitShower&fs)
 
 double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, double &chi2)
 {
+
+  const int originalErrorLevel = gErrorIgnoreLevel;
+  gErrorIgnoreLevel=kError;
   // select spot pads around most likely shower
   m_spotPads.clear();
   vector<int> pad_list;
@@ -197,7 +201,7 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
 
   // calculate probability that this is our shower
   double prob = TMath::Prob(chi2, m_spotPads.size());
-
+  gErrorIgnoreLevel=originalErrorLevel;
   return prob;
 }
 
