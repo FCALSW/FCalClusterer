@@ -121,6 +121,11 @@ void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
 
 void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 {
+  const int originalErrorLevel = gErrorIgnoreLevel;
+  if( not streamlog::out.write< streamlog::DEBUG0 >() ) {
+    gErrorIgnoreLevel=kError;
+  }
+
   const int nBCpads = m_BCG->getPadsPerBeamCal();
   vector<double> vedep(nBCpads, 0.);
 
@@ -171,6 +176,8 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
   streamlog_out(DEBUG) << "BeamCalBkgParam: total energy generated with parametrised method for "
 		       << "Left and Right BeamCal = " << peLeft.getTotalEnergy() << "\t" 
 		       << peRight.getTotalEnergy() << std::endl;
+
+  gErrorIgnoreLevel=originalErrorLevel;
 
 }
 
