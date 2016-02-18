@@ -62,6 +62,10 @@ BeamCalBkgParam::~BeamCalBkgParam()
   for (;iun!=m_unuransRight.end(); iun++){
     delete *iun;
   }
+
+  delete m_padParLeft;
+  delete m_padParRight;
+
 }
 
 void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
@@ -183,30 +187,26 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 
 void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side)
 {
-  vector<double> *zero_rate(NULL) , *mean(NULL) , *stdev(NULL);
-  vector<double> *sum(NULL)       , *minm(NULL) , *maxm(NULL);
-  vector<double> *chi2(NULL)      , *par0(NULL) , *par1(NULL)   , *par2(NULL);
   string side_name = ( BCPadEnergies::kLeft == bc_side ? "left_" : "right_" );
 
   // map the branch names to containers
   typedef map<string, vector<double> *> MapStrVec_t;
   MapStrVec_t br_cont_map;
-
-  br_cont_map[side_name+"zero_rate"] = zero_rate;
-  br_cont_map[side_name+"mean"]      = mean;
-  br_cont_map[side_name+"stdev"]     = stdev;
-  br_cont_map[side_name+"sum"]       = sum;
-  br_cont_map[side_name+"minm"]      = minm;
-  br_cont_map[side_name+"maxm"]      = maxm;
-  br_cont_map[side_name+"chi2"]      = chi2;
-  br_cont_map[side_name+"par0"]      = par0;
-  br_cont_map[side_name+"par1"]      = par1;
-  br_cont_map[side_name+"par2"]      = par2;
+  //Set to NULL so root deals with the memory itself
+  br_cont_map[side_name+"zero_rate"] = NULL;
+  br_cont_map[side_name+"mean"]      = NULL;
+  br_cont_map[side_name+"stdev"]     = NULL;
+  br_cont_map[side_name+"sum"]       = NULL;
+  br_cont_map[side_name+"minm"]      = NULL;
+  br_cont_map[side_name+"maxm"]      = NULL;
+  br_cont_map[side_name+"chi2"]      = NULL;
+  br_cont_map[side_name+"par0"]      = NULL;
+  br_cont_map[side_name+"par1"]      = NULL;
+  br_cont_map[side_name+"par2"]      = NULL;
 
   // check the branch presence in the tree
-  MapStrVec_t::iterator im = br_cont_map.begin();
   bool errorGettingBranches = false;
-  for (; im != br_cont_map.end(); im++){
+  for (MapStrVec_t::iterator im = br_cont_map.begin(); im != br_cont_map.end(); im++){
     TBranch* br = dynamic_cast<TBranch*> (bg_par_tree->GetListOfBranches()->FindObject((im->first).c_str()));
     if (! br) {
       streamlog_out(ERROR7) << "BeamCalBkgParam: Missing " << im->first << 
@@ -220,7 +220,7 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
   }
 
   // set the branch addresses
-  for (im = br_cont_map.begin(); im != br_cont_map.end(); im++){
+  for (MapStrVec_t::iterator im = br_cont_map.begin(); im != br_cont_map.end(); im++){
     bg_par_tree->SetBranchAddress((im->first).c_str(), &(im->second));
   }
 
@@ -269,6 +269,9 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
 
   delete pad_sigma;
   delete pad_mean;
+  for (MapStrVec_t::iterator im = br_cont_map.begin(); im != br_cont_map.end(); im++){
+    delete im->second;
+  }
 
   // drop the branch addresses
   bg_par_tree->ResetBranchAddresses();
