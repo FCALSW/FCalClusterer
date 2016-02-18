@@ -29,6 +29,7 @@
 #include <TRandom3.h>
 #include <TUnuran.h>
 #include <TUnuranContDist.h>
+#include <TMath.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -266,6 +267,10 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
   bg_par_tree->ResetBranchAddresses();
 }
 
+double gausOverX(double *x, double* p) {
+  return p[0]*TMath::Gaus(x[0], p[1], p[2], false)/x[0];
+}
+
 
 int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
 {
@@ -277,7 +282,8 @@ int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
     PadEdepRndPar_t pep = (BCPadEnergies::kLeft == bc_side ? 
                            m_padParLeft->at(ip) : m_padParRight->at(ip));
     vunr.push_back(NULL);
-    TF1 *func_pad_edep = new TF1("fedep", "gaus(0)/x", pep.minm, pep.maxm);
+    //TF1 *func_pad_edep = new TF1("fedep", "gaus(0)/x", pep.minm, pep.maxm);
+    TF1 *func_pad_edep = new TF1("fedep", gausOverX, pep.minm, pep.maxm, 3);
     // if chi2 is good enough we want to initialise our unuran randomiser
     if (pep.chi2 <= 200. && pep.par1 >= 2*pep.par2) {
       func_pad_edep->SetParameters(pep.par0, pep.par1, pep.par2);
