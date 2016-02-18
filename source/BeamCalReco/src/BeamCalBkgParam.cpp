@@ -302,9 +302,9 @@ int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
                            m_padParLeft->at(ip) : m_padParRight->at(ip));
     vunr.push_back(NULL);
     //TF1 *func_pad_edep = new TF1("fedep", "gaus(0)/x", pep.minm, pep.maxm);
-    TF1 *func_pad_edep = new TF1("fedep", gausOverX, pep.minm, pep.maxm, 3);
     // if chi2 is good enough we want to initialise our unuran randomiser
     if (pep.chi2 <= 200. && pep.par1 >= 2*pep.par2) {
+      TF1 *func_pad_edep = new TF1("fedep", gausOverX, pep.minm, pep.maxm, 3);
       func_pad_edep->SetParameters(pep.par0, pep.par1, pep.par2);
 		/*
     		std::cout << ip << "\t" 
@@ -313,16 +313,12 @@ int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
 			  <<  pep.par2 << "\t" << pep.chi2 << std::endl;
 			  */
 
-      double funcparam[3];
-      funcparam[0] = pep.par0;
-      funcparam[1] = pep.par1;
-      funcparam[2] = pep.par2;
+      double funcparam[3] ={pep.par0, pep.par1, pep.par2};
       double integral = func_pad_edep->Integral(pep.minm, pep.maxm, funcparam, 0.0001);
-      //streamlog_out( DEBUG ) << "Failed to create gaus/x background distribution for this pad: " << ip << std::endl;
       if (integral > 0.001) {
 	vunr.back() = func_pad_edep;
       } else {
-	streamlog_out( WARNING ) << "Failed to create gaus/x background distribution for this pad: " << ip << std::endl;
+	streamlog_out( DEBUG1 ) << "Failed to create gaus/x background distribution for this pad: " << ip << std::endl;
 	delete func_pad_edep;
       }
     }
