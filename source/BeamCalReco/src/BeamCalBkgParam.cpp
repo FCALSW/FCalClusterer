@@ -274,6 +274,15 @@ double gausOverX(double *x, double* p) {
 
 int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
 {
+
+  streamlog_out( MESSAGE0 ) << "Creating Background Distributions: " << bc_side << std::endl;
+
+  const int originalErrorLevel = gErrorIgnoreLevel;
+  //this in highest debug level only
+  if( not streamlog::out.write< streamlog::DEBUG0 >() ) {
+    gErrorIgnoreLevel=kError;
+  }
+
   const int nBCpads = m_BCG->getPadsPerBeamCal();
   vector<TF1*> &vunr = (BCPadEnergies::kLeft == bc_side ? m_unuransLeft : m_unuransRight);
 
@@ -299,15 +308,18 @@ int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
       funcparam[1] = pep.par1;
       funcparam[2] = pep.par2;
       double integral = func_pad_edep->Integral(pep.minm, pep.maxm, funcparam, 0.0001);
-      if (integral > 0.001) vunr.back() = func_pad_edep; 
+      //streamlog_out( DEBUG ) << "Failed to create gaus/x background distribution for this pad: " << ip << std::endl;
+      if (integral > 0.001) {
+	vunr.back() = func_pad_edep;
+      } else {
+	streamlog_out( WARNING ) << "Failed to create gaus/x background distribution for this pad: " << ip << std::endl;
+	delete func_pad_edep;
+      }
     }
   }
 
-  // delete unuran
-  //delete func_pad_edep;
 
-  // this is managed by TUnuran
-  //delete unurun_edep_dist; // can be NULL though...
+  gErrorIgnoreLevel=originalErrorLevel;
 
   return 0;
 }
