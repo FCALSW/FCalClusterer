@@ -1,4 +1,12 @@
- ------- 
+ -------
+| v0-03 |
+ -------
+
+BeamCalReco:
+* Reduce memory footprint and fix memory leaks for Parameterized background method
+* Silence warnigns from root integral and getrandom, enabled for DEBUG0
+
+ -------
 | v0-02 |
  ------- 
 
