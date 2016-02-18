@@ -147,7 +147,7 @@ void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
       }
     } else  {
       // if unuran is null, than it's just gaus
-      // generating fluctiations at once with stdev*sqrt(nBX)
+      // generating fluctuations at once with stdev*sqrt(nBX)
       // otherwise the time to generate each event grows too much
       vedep.at(ip) = m_random3->Gaus(pep.mean*m_nBX, pep.stdev*sqrt(m_nBX));
     }
