@@ -18,7 +18,9 @@ LumiCalReco:
 
 BeamCalReco:
 * Bugfixes/improvements from Andrey Sapronov
-  - Different background creation based on Gaussian parametrisation
+  - BackgroundMethod Parametrised renamed to Gaussian
+  - new BackgroundMethod Parametrised with Gaus/x parametrisation
+
 * More examples in the example folder
 
 * Bugfixes from Andre Sailer
