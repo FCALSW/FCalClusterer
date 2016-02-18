@@ -171,7 +171,7 @@ void BeamCalBkgGauss::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
   // check that number of pads in read vectors is equal one in current geometry
   const int nBCpads = m_BCG->getPadsPerBeamCal();
   if ( nBCpads != int(br_cont_map[side_name+"mean"]->size()) ){
-    streamlog_out(ERROR7) << "Number of BeaCal pads in the background "\
+    streamlog_out(ERROR7) << "Number of BeamCal pads in the background "\
       "file is not equal with one in current geometry." << std::endl;
   }
 
