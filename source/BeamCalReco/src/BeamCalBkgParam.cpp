@@ -30,6 +30,7 @@
 #include <TUnuran.h>
 #include <TUnuranContDist.h>
 #include <TMath.h>
+#include <RVersion.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -314,7 +315,13 @@ int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
 			  */
 
       double funcparam[3] ={pep.par0, pep.par1, pep.par2};
+
+#if ROOT_VERSION_CODE < ROOT_VERSION(6, 0, 0)
       double integral = func_pad_edep->Integral(pep.minm, pep.maxm, funcparam, 0.0001);
+#else
+      func_pad_edep->SetParameters(funcparam);
+      double integral = func_pad_edep->Integral(pep.minm, pep.maxm, 0.0001);
+#endif
       if (integral > 0.001) {
 	vunr.back() = func_pad_edep;
       } else {
