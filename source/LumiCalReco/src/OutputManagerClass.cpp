@@ -58,8 +58,8 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   //	Counter["High engy cluster In positive side"] = 0;
   //	Counter["High engy cluster In negative side"] = 0;
   //	Counter["Bhabhas after selection cuts"]   = 0;
-
-
+  OutputRootFile = NULL;
+  if ( outFileNameNow == "" ) return ; // nothing to do
 
   TH1F	* his1;
   TH2F	* his2;
@@ -198,6 +198,8 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   TreeIntV["nHits"] = 0;
   TreeIntV["highE"] = 0;
 
+  TreeDoubleV["distTheta"]=0.;
+  TreeDoubleV["distXY"]=0.;
   TreeDoubleV["engy"]=0.;
   TreeDoubleV["theta"]=0.;
   TreeDoubleV["phi"]=0.;
@@ -210,6 +212,8 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   tree -> Branch("Event", &TreeIntV["nEvt"], "nEvt/I");
   tree -> Branch("OutFlag", &TreeIntV["outFlag"], "outFlag/I");
   tree -> Branch("MatchFlag", &TreeIntV["mFlag"], "mFlag/I");
+  tree -> Branch("distTheta", &TreeDoubleV["distTheta"], "distTheta/D");
+  tree -> Branch("distXY", &TreeDoubleV["distXY"], "distXY/D");
   tree -> Branch("HighEngy", &TreeIntV["highE"], "highE/I");
   tree -> Branch("Sign", &TreeIntV["sign"], "sign/I");
   tree -> Branch("NHits", &TreeIntV["nHits"], "nHits/I");
@@ -293,7 +297,9 @@ void OutputManagerClass::FillRootTree( const std::string &treeName){
 }
 
 void OutputManagerClass::WriteToRootTree(std::string optName, int nEvtNow){
-    
+
+  if ( !OutputRootFile ) return;
+
     if ( MemoryResidentTree == 1 ){ 
     //memory resident tree 
     if( int(nEvtNow/double(NumEventsTree)) ==  WriteRootTrees || optName == "forceWrite") {

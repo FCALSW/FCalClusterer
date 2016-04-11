@@ -20,18 +20,20 @@ using LCHelper::distance2D;
    -------------------------------------------------------------------------- */
 double LumiCalClustererClass::posWeight( IMPL::CalorimeterHitImpl const* calHit , GlobalMethodsClass::WeightingMethod_t method) {
 
-  double	posWeightHit = 0.;
-  int	detectorArm = ((calHit->getPosition()[2] < 0) ? -1 : 1 );
+  double posWeightHit = -1.;
 
-  if(method == GlobalMethodsClass::EnergyMethod) posWeightHit = calHit->getEnergy();
+  if( method == GlobalMethodsClass::EnergyMethod ) {
+ 
+      return ( calHit->getEnergy() ) ;
 
+  }else if (method == GlobalMethodsClass::LogMethod)  {            // ???????? DECIDE/FIX - improve the log weight constants ????????
 
-  // ???????? DECIDE/FIX - improve the log weight constants ????????
-  if(method == GlobalMethodsClass::LogMethod) {
+    int	detectorArm = ((calHit->getPosition()[2] < 0) ? -1 : 1 );
     posWeightHit = log(calHit->getEnergy() / _totEngyArm[detectorArm]) + _logWeightConst;
     if(posWeightHit < 0) posWeightHit = 0. ;
-  }
+    return posWeightHit;
 
+  }
   return posWeightHit;
 }
 
@@ -125,84 +127,19 @@ int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
   // compute Z,Phi,R coordinates according to the cellId
   GlobalMethodsClass::CellIdZPR( cellId, cellZ, cellPhi, cellR, arm);
 
+  // change iRho cell index  according to the neighborIndex
+  if ( neighborIndex%2 ) cellR -= neighborIndex+1;
+  else cellR += neighborIndex+1;
 
-  // change R cells according to the neighborIndex
-  if(neighborIndex  == 0) {
-    cellR += 1;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 1) {
-    cellR += 2;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 2) {
-    cellR -= 1 ;
-    if(cellR   < 0) return 0;
-  }
-  if(neighborIndex  == 3) {
-    cellR -= 2 ;
-    if(cellR   < 0) return 0;
-  }
-  if(neighborIndex  == 4) {
-    cellPhi++ ;
-    if(cellPhi == _cellPhiMax) cellPhi = 0;
-  }
-  if(neighborIndex  == 5) {
-    cellPhi-- ;
-    if(cellPhi < 0) cellPhi = _cellPhiMax - 1;
-  }
+  // change iPhi cell index
+  if ( neighborIndex == 0 )     { cellPhi += 1; }
+  else if( neighborIndex == 1 ) { cellPhi -= 1; }
 
+  if ( cellR == _cellRMax || cellR < 0 ) return 0; 
 
-  if(neighborIndex  == 6) {
-    cellR += 3;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 7) {
-    cellR -= 3 ;
-    if(cellR   < 0) return 0;
-  }
-  if(neighborIndex  == 8) {
-    cellR += 4;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 9) {
-    cellR -= 4 ;
-    if(cellR   < 0) return 0;
-  }
-  if(neighborIndex  == 10) {
-    cellR += 5;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 11) {
-    cellR -= 5 ;
-    if(cellR   < 0) return 0;
-  }
-  if(neighborIndex  == 12) {
-    cellR += 6;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 13) {
-    cellR -= 6 ;
-    if(cellR   < 0) return 0;
-  }
-  if(neighborIndex  == 14) {
-    cellR += 7;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 15) {
-    cellR -= 7 ;
-    if(cellR   < 0) return 0;
-  }
-  if(neighborIndex  == 16) {
-    cellR += 8;
-    if(cellR   == _cellRMax) return 0;
-  }
-  if(neighborIndex  == 17) {
-    cellR -= 8 ;
-    if(cellR   < 0) return 0;
-  }
-
-  // compute the new cellId according to the new Z,Phi,R coordinates
+  if( cellPhi == _cellPhiMax ) cellPhi = 0;
+  else if ( cellPhi < 0 ) cellPhi = _cellPhiMax-1 ;
+  // compute neighbor cellId according to the new Z,Phi,R coordinates
   cellId = GlobalMethodsClass::CellIdZPR(cellZ, cellPhi, cellR, arm) ;
 
   return cellId ;
@@ -235,12 +172,12 @@ void LumiCalClustererClass::calculateEngyPosCM(	std::vector <int> const& cellIdV
       yHit      += position[1] * weightHit;
       zHit      += position[2] * weightHit;
       totEngy   += calHit->getEnergy();
-      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
-
+      //      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
     }
-    if(weightSum > 0) {
+    if(weightSum > 0.) {
       xHit     /= weightSum;   yHit   /= weightSum; zHit /= weightSum;
-      thetaHit /= weightSum;
+      thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
+      //      thetaHit /= weightSum;
       loopFlag = 0;
     } else {
       // initialize counters and recalculate with the Energy-weights method
@@ -248,7 +185,7 @@ void LumiCalClustererClass::calculateEngyPosCM(	std::vector <int> const& cellIdV
       totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
     }
   }
-
+  //  std::cout<<"CalculateEngyPosCM: pos(x,y,z): "<< xHit <<", "<< yHit <<", "<< zHit << std::endl;
   cluster = LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0);
 
 
@@ -266,7 +203,7 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
 
   int	numElementsInCluster, cellIdHit;
   double	totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
-  totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
+  totEngy = xHit = yHit = zHit = 0., weightHit = weightSum = 0.;
 
   int loopFlag = 1;
   while(loopFlag == 1) {
@@ -280,14 +217,15 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
       xHit      += thisHit->getPosition()[0] * weightHit;
       yHit      += thisHit->getPosition()[1] * weightHit;
       zHit      += thisHit->getPosition()[2] * weightHit;
-
-      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
+      //      thetaHit  += atan( sqrt( xHit*xHit + yHit*yHit ) / fabs ( zHit )) * weightHit; 
+      //      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
 
       totEngy   += cellEngyV[k];
     }
     if(weightSum > 0) {
       xHit     /= weightSum;   yHit   /= weightSum; zHit /= weightSum;
-      thetaHit /= weightSum;
+      thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
+      //      thetaHit /= weightSum;
       loopFlag = 0;
     } else {
       // initialize counters and recalculate with the Energy-weights method
@@ -307,43 +245,58 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
    -------------------------------------------------------------------------- */
 void LumiCalClustererClass::updateEngyPosCM(IMPL::CalorimeterHitImpl* calHit, LCCluster & clusterCM) {
 
-  GlobalMethodsClass::WeightingMethod_t method;
 
   double	engyHit = (double)calHit->getEnergy();
-  clusterCM.addToEnergy(engyHit);
+  GlobalMethodsClass::WeightingMethod_t method =  clusterCM.getMethod();
 
-  method = clusterCM.getMethod();
+  clusterCM.addToEnergy(engyHit);
 
   double weightHit = posWeight(calHit,method);
 
   if(weightHit > 0){
     double xCM      = clusterCM.getX();
     double yCM      = clusterCM.getY();
-    double thetaCM  = clusterCM.getTheta();
-    double phiCM    = clusterCM.getPhi();
+    double zCM      = clusterCM.getZ();
+    //    double thetaCM  = clusterCM.getTheta();
+    //    double phiCM    = clusterCM.getPhi();
     double weightCM = clusterCM.getWeight();
 
-    xCM *= weightCM; yCM *= weightCM; thetaCM *= weightCM; phiCM *= weightCM;
-
-    int	cellIdHit = (int)  calHit->getCellID0();
+    xCM *= weightCM; yCM *= weightCM; zCM *= weightCM;
+    // thetaCM *= weightCM;
+    //(BP) this is bug - must not calculate average phi this way !
+    //     use cos or sin  
+    //  phiCM *= weightCM;
+    
+    //(BP) not used
+    //    int	cellIdHit = (int)  calHit->getCellID0();
     double xHit      = (double)calHit->getPosition()[0];
     double yHit      = (double)calHit->getPosition()[1];
-    double thetaHit  = thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta);
-    double phiHit    = thetaPhiCell(cellIdHit, GlobalMethodsClass::COPhi);
+    double zHit      = (double)calHit->getPosition()[2];
+    //    double thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit )/fabs(zHit));
+    //double phiHit    = atan2( yHit, xHit);
 
-    xHit *= weightHit; yHit *= weightHit; thetaHit *= weightHit;  phiHit *= weightHit;
+    xHit *= weightHit; yHit *= weightHit; zHit *= weightHit;
+    // thetaHit *= weightHit;
+    //(BP) same bug as above
+    //phiHit *= weightHit;
 
     weightCM += weightHit;
     xCM      += xHit;	xCM	/= weightCM;
     yCM      += yHit;	yCM	/= weightCM;
-    thetaCM  += thetaHit;	thetaCM	/= weightCM;
-    phiCM    += phiHit;	phiCM	/= weightCM;
-
+    zCM      += zHit;	zCM	/= weightCM;
+    //((BP)    phiCM    += phiHit;	phiCM	/= weightCM;
+    //   thetaCM  += thetaHit;	thetaCM	/= weightCM;
+    //   double phiCM = atan2( yCM, xCM );
+    /*
     clusterCM.setX(xCM);
     clusterCM.setY(yCM);
+    clusterCM.setZ(zCM);
+    */
+    clusterCM.setPosition( xCM, yCM, zCM );
     clusterCM.setWeight(weightCM);
-    clusterCM.setTheta(thetaCM);
-    clusterCM.setPhi(phiCM);
+    // SetX/Y/Z 
+    //    clusterCM.setTheta(thetaCM);
+    //    clusterCM.setPhi(phiCM);
   }
 
 }
@@ -372,7 +325,9 @@ LCCluster LumiCalClustererClass::getEngyPosCMValues(	std::vector <int> const& ce
       xHit      += thisHit->getPosition()[0] * weightHit;
       yHit      += thisHit->getPosition()[1] * weightHit;
       zHit      += thisHit->getPosition()[2] * weightHit;
-      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
+      //      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
+      // (BP) 
+      thetaHit = atan( sqrt( xHit*xHit + yHit*yHit)/fabs(zHit));
       totEngy   += thisHit->getEnergy();
     }
     if(weightSum > 0) {
@@ -482,19 +437,18 @@ double LumiCalClustererClass::getEngyInMoliereFraction( std::map < int , IMPL::C
 							double moliereFraction,
 							std::map < int , int >  & flag  ){
 
-  double	engyAroundCM = 0.;
   std::map < int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator, calEnd;
 
   double	distanceToScan = _moliereRadius * moliereFraction;
+  double	engyAroundCM = 0.;
 
   calHitsCellIdIterator = calHitsCellId.begin();
   calEnd    = calHitsCellId.end();
   for(; calHitsCellIdIterator != calEnd; ++calHitsCellIdIterator) {
-    const int cellIdHit = calHitsCellIdIterator->first;
     const IMPL::CalorimeterHitImpl * calHit = calHitsCellIdIterator->second;
-
     const double distanceCM = distance2D(clusterCM.getPosition(),calHit->getPosition());
 
+    const int cellIdHit = calHitsCellIdIterator->first;
     if(distanceCM < distanceToScan && flag[cellIdHit] == 0){
       engyAroundCM += calHit->getEnergy();
       flag[cellIdHit] = 1;
@@ -507,39 +461,54 @@ double LumiCalClustererClass::getEngyInMoliereFraction( std::map < int , IMPL::C
 
 /* --------------------------------------------------------------------------
    compute the weighed generated-theta / weighed zPosition of a cluster
+
    -------------------------------------------------------------------------- */
 void LumiCalClustererClass::getThetaPhiZCluster( std::map < int , IMPL::CalorimeterHitImpl* >  const& calHitsCellId,
 						 std::vector <int> const& clusterIdToCellId,
 						 double totEngy, double * output   ) {
 
   int	numElementsInCluster, cellIdHit;
-  double	zCell, zCluster = 0., thetaCell, thetaCluster = 0., phiCell, phiCluster = 0.;
+  double	zCell, zCluster = 0.; // (BP) thetaCell, thetaCluster = 0., phiCell, phiCluster = 0.;
+  double        xCell, xCluster = 0., yCell, yCluster = 0.;
   double	weightHit, weightSum = -1., logWeightConstFactor = 0.;
+  // (BP) hardwired method ?!
   GlobalMethodsClass::WeightingMethod_t method = GlobalMethodsClass::LogMethod;
 
   while(weightSum < 0){
     numElementsInCluster = clusterIdToCellId.size();
     for(int hitNow = 0; hitNow < numElementsInCluster; hitNow++) {
       cellIdHit  = clusterIdToCellId[hitNow];
-      thetaCell  = thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta);
-      phiCell    = thetaPhiCell(cellIdHit, GlobalMethodsClass::COPhi);
+      //      thetaCell  = thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta);
+      //      phiCell    = thetaPhiCell(cellIdHit, GlobalMethodsClass::COPhi);
+      xCell      = calHitsCellId.at(cellIdHit)->getPosition()[0];
+      yCell      = calHitsCellId.at(cellIdHit)->getPosition()[1];
       zCell      = calHitsCellId.at(cellIdHit)->getPosition()[2];
+      //(BP) posWeight returns always weight >= 0.
       weightHit  = posWeight(calHitsCellId.at(cellIdHit),totEngy,method,(_logWeightConst + logWeightConstFactor));
 
       if(weightHit > 0){
 	if(weightSum < 0) weightSum = 0.;
 	weightSum    += weightHit;
-	thetaCluster += weightHit * thetaCell;
-	phiCluster   += weightHit * phiCell;
-	zCluster     += zCell * weightHit;
+	//(BP) bug again
+	//	thetaCluster += weightHit * thetaCell;
+	//	phiCluster   += weightHit * phiCell;
+	xCluster += xCell * weightHit;
+	yCluster += yCell * weightHit;
+	zCluster += zCell * weightHit;
       }
     }
+    // (BP) even one hit with positive weight make this false, is it what we want ?
+    // since weightHit is always >= 0  this will happen if all hits weights are 0 !
+    // and reducing logWeightConstFactor does not help in case weightSum < 0 (?!).....
     if(weightSum < 0) logWeightConstFactor -= .5;
   }
-  thetaCluster /= weightSum;  phiCluster /= weightSum;  zCluster /= weightSum;
+  //  thetaCluster /= weightSum;  phiCluster /= weightSum;  zCluster /= weightSum;
+  xCluster /= weightSum; yCluster /= weightSum; zCluster /= weightSum;
 
-  output[0] = thetaCluster;
-  output[1] = phiCluster;
+  //(BP)  output[0] = thetaCluster;
+  //(BP)  output[1] = phiCluster;
+  output[0] = atan( sqrt( xCluster*xCluster + yCluster*yCluster )/fabs( zCluster ));
+  output[1] = atan2( yCluster, xCluster );
   output[2] = zCluster;
 
   return ;
@@ -565,6 +534,7 @@ double LumiCalClustererClass::thetaPhiCell(int cellId, GlobalMethodsClass::Coord
     //(BP) account for possible layer offset
     //    phiCell   = 2*M_PI * (double(cellIdPhi) + .5) / _cellPhiMax;
     phiCell   = (double(cellIdPhi) + .0) * _phiCellLength + double( (cellIdZ)%2 ) * _zLayerPhiOffset;
+    phiCell = ( phiCell > M_PI ) ? phiCell - 2.*M_PI : phiCell;
     outputVal = phiCell;
   }
 

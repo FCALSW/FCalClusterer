@@ -47,11 +47,14 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
     allClusterIds.clear();
     clusterIdToCellIdIterator = clusterIdToCellId.begin();
     numClusters               = clusterIdToCellId.size();
-    for(int clusterNow=0; clusterNow<numClusters; clusterNow++, clusterIdToCellIdIterator++){
-      clusterId   = (int)(*clusterIdToCellIdIterator).first;  // Id of cluster
 
+    for(int clusterNow=0; clusterNow<numClusters; clusterNow++, clusterIdToCellIdIterator++){
+
+      clusterId   = (int)(*clusterIdToCellIdIterator).first;  // Id of cluster
       allClusterIds.push_back(clusterId);
+
     }
+
 
     numClusters2 =  allClusterIds.size();
     for(int clusterNow1=0; clusterNow1<numClusters2; clusterNow1++) {
@@ -67,17 +70,26 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
 										       clusterId2,
 										       clusterCM[clusterId1],
 										       clusterCM[clusterId2] );
-
+	/* BP. in the following only distance seems to be important
+	 * so make it simpler    
 	clusterPairWeightsNow->setWeight( "minEngyDistance",
 					  _minSeparationDistance,
 					  _minClusterEngySignal );
 
-	if(clusterPairWeightsNow->weight < 0) {
+	if(clusterPairWeightsNow->weight < 0) {         // at least one condition is not true
 	  clusterPairWeightsNow->setWeight("distance");
-	  clusterPairWeightsV.push_back(clusterPairWeightsNow);
-	} else {
+	  if( clusterPairWeightsNow->weight <= minSeparationDistance ){
+	    clusterPairWeightsV.push_back(clusterPairWeightsNow);
+	  }else{
+	    delete clusterPairWeightsNow;
+	  }
+	} else {                                        // both conditions are false
 	  delete clusterPairWeightsNow;
 	}
+	*/
+	clusterPairWeightsNow->setWeight( "distance" );
+	if( clusterPairWeightsNow->weight < _minSeparationDistance ) clusterPairWeightsV.push_back(clusterPairWeightsNow);
+	else                                                        delete clusterPairWeightsNow;
       }
     }
 
@@ -86,6 +98,7 @@ void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> 
 
     // choose the pair with the shortest weight (distance)
     sort(clusterPairWeightsV.begin(), clusterPairWeightsV.end(), SuperTrueClusterWeights::Compare);
+
 
     clusterId1 = clusterPairWeightsV[0]->superClusterId;
     clusterId2 = clusterPairWeightsV[0]->trueClusterId;

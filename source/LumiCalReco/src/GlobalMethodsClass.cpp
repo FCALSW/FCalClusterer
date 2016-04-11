@@ -25,7 +25,7 @@ using streamlog::MESSAGE;
 #include <iomanip>
 #include <sstream>
 
-// utility copied from marlin to avoid C++11 dep
+// utility copied from marlin 
 template <class T>
 bool convert(std::string input, T &value) {
  std::istringstream stream(input);
@@ -58,31 +58,44 @@ GlobalMethodsClass :: ~GlobalMethodsClass(){
    (1):	return a cellId for a given Z (layer), R (cylinder) and Phi (sector)
    (2):	return Z (layer), R (cylinder) and Phi (sector) for a given cellId
    -------------------------------------------------------------------------- */
+
+#define SHIFT_I_32Fcal 0  // I = 10 bits  ( ring )
+#define SHIFT_J_32Fcal 10 // J = 10 bits  ( sector)
+#define SHIFT_K_32Fcal 20 // K = 10 bits  ( layer )
+#define SHIFT_S_32Fcal 30 // S =  2 bits  ( side/arm ) 
+
+#define MASK_I_32Fcal (unsigned int) 0x000003FF
+#define MASK_J_32Fcal (unsigned int) 0x000FFC00
+#define MASK_K_32Fcal (unsigned int) 0x3FF00000
+#define MASK_S_32Fcal (unsigned int) 0xC0000000
+
 int GlobalMethodsClass::CellIdZPR(int cellZ, int cellPhi, int cellR, int arm) {
 
   int cellId = 0;
-
-  cellId |= ( cellZ   <<  0 ) ;
-  cellId |= ( cellPhi << 10 ) ;
-  cellId |= ( cellR   << 20 ) ;
-  cellId |= ( arm     << 30 ) ;
-
+  int side = ( arm < 0 ) ? 0 : arm;
+  cellId  = (
+          ( (side    << SHIFT_S_32Fcal) & MASK_S_32Fcal) |
+          ( (cellR   << SHIFT_I_32Fcal) & MASK_I_32Fcal) |
+          ( (cellPhi << SHIFT_J_32Fcal) & MASK_J_32Fcal) |
+          ( (cellZ   << SHIFT_K_32Fcal) & MASK_K_32Fcal)
+               );
   return cellId;
 }
 
-void GlobalMethodsClass::CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm) {
+void GlobalMethodsClass::CellIdZPR(int cellID, int& cellZ, int& cellPhi, int& cellR, int& arm) {
 
   // compute Z,Phi,R indices according to the cellId
-  cellZ   = (cellId >> 0  ) & (int)(( 1 << 10 ) -1) ; 
-  cellPhi = (cellId >> 10 ) & (int)(( 1 << 10 ) -1) ;
-  cellR   = (cellId >> 20 ) & (int)(( 1 << 10 ) -1) ;
-  arm     = (cellId >> 30 ) & (int)(( 1 <<  2 ) -1) ; arm = ( arm == 0 ) ? -1 : 1;
-  return;
 
+        cellR   = ((((unsigned int)cellID)&MASK_I_32Fcal) >> SHIFT_I_32Fcal);
+        cellPhi = ((((unsigned int)cellID)&MASK_J_32Fcal) >> SHIFT_J_32Fcal);
+        cellZ   = ((((unsigned int)cellID)&MASK_K_32Fcal) >> SHIFT_K_32Fcal);
+        arm     = ((((unsigned int)cellID)&MASK_S_32Fcal) >> SHIFT_S_32Fcal);
+  return;
 }
 
 int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t ZPR) {
 
+ 
   int cellZ, cellPhi, cellR, arm;
   CellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
   arm = ( arm == 0 ) ? -1 : 1;
@@ -112,14 +125,16 @@ void GlobalMethodsClass::SetConstants() {
   if ( procPTR )
     _lcalRecoPars = procPTR->parameters();
   else{                                                // try with My+_procName
-    std::string my_procName = "My" + _procName; 
-    _lcalRecoPars = procMgr->getActiveProcessor( my_procName )->parameters();
+    _procName = "My" + _procName;
+    procPTR = procMgr->getActiveProcessor( _procName ); 
+    _lcalRecoPars = procPTR -> parameters();
   }
   if( !_lcalRecoPars ) {
     streamlog_out( MESSAGE ) << " GlobalMethodsClass::SetConstants : Non of processor names ("<<_procName<< ", My"<<_procName<< ") found !" << std::endl;
     exit( EXIT_FAILURE );
   }
 
+  // GEAR access
   // geometry parameters of LumiCal
   // inner and outer radii [mm]
   GlobalParamD[RMin] = _lcalGearPars.getExtent()[0];
@@ -136,13 +151,17 @@ void GlobalMethodsClass::SetConstants() {
   GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
   GlobalParamI[NumCellsZ] = _lcalGearPars.getLayerLayout().getNLayers();
 
- // beam crossing angle
+ // beam crossing angle ( convert to rad )
   GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle") / 1000.; 
 
   // layer thickness
   GlobalParamD[ZLayerThickness] = _lcalGearPars.getLayerLayout().getThickness(0);
+
+  //------------------------------------------------------------------------ 
+  // Processor Parameters 
+  // Clustering/Reco parameters
   //(BP) layer relative phi offset - must go sometimes to GEAR params
-  const std::string parname = "ZLayerStagger";
+  const std::string parname = "ZLayerPhiOffset";
   double val = 0.;
     if ( _lcalRecoPars->isParameterSet(parname) ){ 
       val = _lcalRecoPars->getFloatVal( parname );
@@ -150,20 +169,19 @@ void GlobalMethodsClass::SetConstants() {
       marlin::ProcessorParameter* par = marlin::CMProcessor::instance()->getParam( _procName, parname );
       //      val = (double)std::stof( par->defaultValue() );
       if ( convert( par->defaultValue(), val ) ){
-	streamlog_out(MESSAGE)<<"\tParameter <"<< parname <<"> not set default value : "<< val << "\t is used"<<"\n";
+	streamlog_out(WARNING)<<"\tParameter <"<< parname <<"> not set default value : "<< val << "\t is used"<<"\n";
       }else{ 
-	streamlog_out(MESSAGE)<<"\tParameter <"<< parname <<"> not set default value : "<< 0.  << "\t is used"<<"\n";
+	streamlog_out(WARNING)<<"\tParameter <"<< parname <<"> not set default value : "<< 0.  << "\t is used"<<"\n";
       }
    }
    
-  // check units just in case
-  val = ( val < GlobalParamD[PhiCellLength] ) ? val : val*M_PI/180.;
-  GlobalParamD[ZLayerPhiOffset] = val;  
+  // check units just in case ( convert to rad as needed )
+  val = ( val <= GlobalParamD[PhiCellLength] ) ? val : val*M_PI/180.;
+  GlobalParamD[ZLayerPhiOffset] = val; 
 
-  // Clustering/Reco parameters
-  // logarithmic constant for position reconstruction
   EnergyCalibrationFactor = _lcalRecoPars->getFloatVal("EnergyCalibConst");
 
+  // logarithmic constant for position reconstruction
   GlobalParamD[LogWeightConstant] = _lcalRecoPars->getFloatVal("LogWeigthConstant");
   
   GlobalParamD[MinHitEnergy] = _lcalRecoPars->getFloatVal("MinHitEnergy");
@@ -192,6 +210,9 @@ void GlobalMethodsClass::SetConstants() {
   GlobalParamS[WeightingMethod] = _lcalRecoPars->getStringVal(  "WeightingMethod" );
   GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal("ElementsPercentInShowerPeakLayer");
   GlobalParamI[NumOfNearNeighbor] = _lcalRecoPars->getIntVal("NumOfNearNeighbor");
+  // IO
+  GlobalParamS[LumiInColName] = _lcalRecoPars->getStringVal(  "LumiInColName" );
+
 }
 
 
@@ -222,6 +243,8 @@ double GlobalMethodsClass::SignalGevConversion( Parameter_t optName , double val
 void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> &thetaPhiCell) {
 
   // compute Z,Phi,R coordinates according to the cellId
+  // returned Phi is in the range (-M_PI, M_PI )
+ 
   int cellIdZ, cellIdPhi, cellIdR, arm;
   CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
 
@@ -234,7 +257,7 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
   //(BP) use phiCell size and account for possible layers relative offset/stagger
   // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]) + double( cellIdZ % 2 ) * GlobalParamD[;
   double phiCell   = (double(cellIdPhi) + .0) * GlobalParamD[PhiCellLength] + double( (cellIdZ) % 2 ) * GlobalParamD[ZLayerPhiOffset];
-
+  phiCell = ( phiCell > M_PI ) ? phiCell-2.*M_PI : phiCell;
   // fill output container
   thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;
   thetaPhiCell[GlobalMethodsClass::COPhi]   = phiCell;
@@ -274,6 +297,7 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
   case GeV_to_Signal:	                 return "GeV_to_Signal";
   case Signal_to_GeV:                    return "Signal_to_GeV";
   case BeamCrossingAngle:                return "BeamCrossingAngle";
+  case LumiInColName:                    return "LumiInColName";
   default: return "Unknown Parameter";
   }
 

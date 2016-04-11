@@ -10,7 +10,8 @@
 
 // verbosity
 #define _GENERAL_CLUSTERER_DEBUG 0
-#define _CLUSTER_BUILD_DEBUG 1
+#define _CREATE_CLUSTERS_DEBUG 0
+#define _CLUSTER_BUILD_DEBUG 0
 #define _VIRTUALCLUSTER_BUILD_DEBUG 0
 #define _MOL_RAD_CORRECT_DEBUG 0
 
@@ -123,6 +124,9 @@ protected:
   //  VInt _armsToCluster;
 
   CellIDDecoder<SimCalorimeterHit> * _mydecoder;
+
+  // global to local rotations mtx elements
+  std::map < int , std::map< std::string, double> > RotMat;
 
   // methods:
   int	getCalHits( EVENT::LCEvent * evt,

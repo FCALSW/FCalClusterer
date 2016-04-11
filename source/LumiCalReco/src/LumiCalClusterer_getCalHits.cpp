@@ -25,11 +25,6 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 					MapIntMapIntVCalHit & calHits) {
 
   EVENT::LCCollection * col = NULL;
-  // (BP) LumiCal rotation ( local -> global )
-  const double CSBX[2] = { cos( M_PI - _beamCrossingAngle ),
-                           cos( _beamCrossingAngle )        };
-  const double SNBX[2] = { sin( M_PI - _beamCrossingAngle ),
-                           sin( _beamCrossingAngle  )       };
   try {
     col = evt->getCollection(_lumiName.c_str());
   } // try
@@ -42,93 +37,116 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
   }
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
-    streamlog_out( DEBUG ) << std::endl  << "Getting hit information ...."
-	      << std::endl << std::endl;
+  streamlog_out( MESSAGE4 ) << std::endl  << "Getting hit information .... event: "<< evt->getEventNumber() << std::endl;
 #endif
 
     if (not _mydecoder) {
       _mydecoder = new CellIDDecoder<SimCalorimeterHit> (col);
     }
     const int nHitsCol = col->getNumberOfElements();
+    if ( nHitsCol < _clusterMinNumHits ) return 0;
+
     for (int i=0; i<nHitsCol; ++i) {
       
-      int arm(0), layer, rCell, phiCell;
-      //int side(0);
+      int arm(0), layer(0);
+      //int rCell(0), phiCell(0);
 
       // get the hit from the LCCollection with index i
       IMPL::SimCalorimeterHitImpl * calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
+
+      const double engyHit = (double)calHitIn -> getEnergy();
+     if(engyHit < _hitMinEnergy)	continue;
 
       // ???????? DECIDE/FIX - the global coordinates are going to change in new Mokka
       // versions, so the z must be extracted from the cellId instead ... ????????
       /// APS: Can be taken from the position of the calohit, when it is stored
 
       // get parameters from the input IMPL::CalorimeterHitImpl
-      //      const int cellid = (int)calHitIn->getCellID0();
-      layer   = (*_mydecoder)( calHitIn )["K"] ;    // counts from 1
-      phiCell = (*_mydecoder)( calHitIn )["J"] ;    //        from 0
-      rCell   = (*_mydecoder)( calHitIn )["I"] ;    //        from 0
-      arm     = (*_mydecoder)( calHitIn )["S-1"] ;  //        from 0
+     
+     arm     = (*_mydecoder)( calHitIn )["S-1"] ;          //        from 0
+     //     int rCell   = (*_mydecoder)( calHitIn )["I"] ;            //        from 0
+     //     int phiCell = (*_mydecoder)( calHitIn )["J"] ;            //        from 0
+     layer   = (*_mydecoder)( calHitIn )["K"] ;            // counts from 1
 
-      const double engyHit = (double)calHitIn -> getEnergy();
+     //          
+
 
       ///APS Calculate the cellID with the function from here
-      const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
-      // detector layer (ring) - count layers from zero and not from one
+     // (BP) don't do this. Use original.
+     //      const int cellId_test = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
+       const int cellId = calHitIn->getCellID0(); 
+       /*       if( cellId_test != cellId ) 
+	 std::cout<<" mydecoder says S,I,J,K "<< arm <<", "<< rCell <<", "<< phiCell <<", "<< layer <<std::endl;
+       */
+      // detector layer  - count layers from zero and not from one
       layer -= 1 ;
+     // determine the side (arm) of the hit -> (+,-)1
+      arm = (( arm == 0 ) ? -1 : 1);
 
        // skip this hit if the following conditions are met
       if(layer >= _maxLayerToAnalyse || layer < 0 )	continue;
-      if(engyHit < _hitMinEnergy)	continue;
 
       
       /*(BP) it is not safe - in case non-zero crossing angle
             - phi sectors numbering order changes on -ve side
             - in some models there is layers relative phi offset  
              also in local system zHit is +ve always
+     
       const double rHit = (rCell+0.5) * _rCellLength + _rMin;
-      // BP: add relative layer offset
       //const double phiHit = (phiCell+0.5) * _phiCellLength;
-      const double phiHit = (phiCell+0.5) * _phiCellLength + double( layer%2 )*_zLayerPhiOffset;
+      const double phiHit =  phiCell * _phiCellLength + double( (layer+1)%2 )*_zLayerPhiOffset;
 
-      // compute x.y hit coordinates ( local )
+      // compute x.y.z hit coordinates ( local )
       const float xHit = rHit * cos(phiHit);
       const float yHit = rHit * sin(phiHit);
-     
+      const float zHit = _zFirstLayer + float( layer ) * _zLayerThickness;
+
       // write x,y,z to an array
       float hitPosV[3] = {xHit, yHit, zHit};
       */
-      const float xHit = (double)calHitIn -> getPosition()[0];
-      const float yHit = (double)calHitIn -> getPosition()[1];
-      const float zHit = (double)calHitIn -> getPosition()[2];
+         
+      // rotate to local Lcal reference system 
+      const float* Pos = calHitIn->getPosition();     
+      float xl =  Pos[0]*RotMat[arm]["cos"] - Pos[2]*RotMat[arm]["sin"];
+      float yl =  Pos[1];
+      float zl =  Pos[0]*RotMat[arm]["sin"] + Pos[2]*RotMat[arm]["cos"];
 
-
-
-      // write x,y,z to an array
-      // rotate to local Lcal
- 	float hitPosV[3];
-	hitPosV[0] =  xHit*CSBX[arm] - zHit*SNBX[arm];
-	hitPosV[1] =  yHit;
-	hitPosV[2] =  xHit*SNBX[arm] + zHit*CSBX[arm];
-
-     // determine the side (arm) of the hit -> (+,-)1
-      arm = (( arm == 0 ) ? -1 : 1);
       // (BP) keep wrong sign of zHit local as it was  
-      // in case it  matters
-      //     hitPosV[2] *= arm;
+      // in case it  matters ( still some guys might want to determine arm using sign of z )
+       zl *= arm;
+       float locPos[3] = { xl, yl, zl };
+
+#if _GENERAL_CLUSTERER_DEBUG == 1
+  	std::cout << "\t CellId, Pos(x,y,z), hit energy [MeV]: "
+		  << std::setw(8)
+		  << cellId << "\t ("
+		  << locPos[0] << ", " 
+		  << locPos[1] << ", " 
+		  << locPos[2] << "), " 
+		  << std::scientific << std::setprecision(3)
+		  << 1000.*engyHit
+		  <<std::endl;
+#endif    
+     // 
       // create a new IMPL::CalorimeterHitImpl
       IMPL::CalorimeterHitImpl *calHitNew = new IMPL::CalorimeterHitImpl();
 
       // write the parameters to the new IMPL::CalorimeterHitImpl
       calHitNew -> setCellID0(cellId);
       calHitNew -> setEnergy(engyHit);
-      calHitNew -> setPosition(hitPosV);
+      calHitNew -> setPosition(locPos);
 
       // add the IMPL::CalorimeterHitImpl to a vector according to the detector
       // arm, and sum the total collected energy at either arm
-      calHits[arm /* arm is variable */ ][layer].push_back( calHitNew );
+      calHits[arm][layer].push_back( calHitNew );
       _numHitsInArm[arm]++;
       _totEngyArm[arm] += engyHit;
     }//for all simHits
+
+#if _GENERAL_CLUSTERER_DEBUG == 1
+    streamlog_out( MESSAGE4 ) << std::endl  << "Energy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
+			   << "Number of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << "\n\n";
+#endif
 
     if(    (( _numHitsInArm[-1] < _clusterMinNumHits) || (_totEngyArm[-1] < _minClusterEngySignal))
 	   && (( _numHitsInArm[ 1] < _clusterMinNumHits) || (_totEngyArm[ 1] < _minClusterEngySignal)) ){

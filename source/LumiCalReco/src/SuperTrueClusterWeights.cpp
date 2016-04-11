@@ -21,17 +21,15 @@ SuperTrueClusterWeights::SuperTrueClusterWeights(	int superClusterIdNow,
 
 void SuperTrueClusterWeights::setWeight(std::string weightMethod) {
 
-  if(weightMethod == "distance")	weight = distance;
+  weight  = ( weightMethod == "distance" ) ? distance : deltaEngy ;
 
-  if(weightMethod == "deltaEngy") weight = deltaEngy;
 }
 
 void SuperTrueClusterWeights::setWeight(std::string weightMethod, double minSeparationDistance, double minClusterEngyGeV) {
 
   if(weightMethod == "minEngyDistance") {
-    if(distance > minSeparationDistance && minEngy > minClusterEngyGeV)
-      weight = 1.;
-    else
-      weight = -1.;
+
+    weight = (distance > minSeparationDistance && minEngy > minClusterEngyGeV) ?  1. : -1. ;
+
   }
 }

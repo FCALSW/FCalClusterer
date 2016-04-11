@@ -60,7 +60,7 @@ void LCCluster::clear() {
 
 std::ostream& operator<<(std::ostream & o, const LCCluster& rhs) {
   o << "  Energy "              << std::setw(10) << rhs._energy
-    << "  Method "              << std::setw(4) << rhs._method
+    << "  Method "              << std::setw(4)  << rhs._method
     << "  Weight "              << std::setw(10) << rhs._weight
     << "  pos(x,y,z) =  ( "
     << std::setw(10) << rhs._position[0] << " , "

@@ -1,3 +1,4 @@
+
 /* =========================================================================
    GENERAL NOTES:
    ============================================================================
@@ -50,7 +51,8 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _minSeparationDistance(), _minClusterEngyGeV(), _minClusterEngySignal(),
   _totEngyArm(),
   _numHitsInArm(),
-  _mydecoder(NULL)
+  _mydecoder(NULL),
+  RotMat()
 {
 }
 
@@ -79,6 +81,10 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
   _elementsPercentInShowerPeakLayer	= GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
   _nNearNeighbor			= GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor);                // = 6; // number of near neighbors to consider
   _beamCrossingAngle                    = GlobalParamD.at(GlobalMethodsClass::BeamCrossingAngle)/2.;
+  RotMat[-1]["cos"]                     = cos( M_PI - _beamCrossingAngle );
+  RotMat[-1]["sin"]                     = sin( M_PI - _beamCrossingAngle );
+  RotMat[ 1]["cos"]                     = cos( _beamCrossingAngle );
+  RotMat[ 1]["sin"]                     = sin( _beamCrossingAngle );
 
   // the minimal energy to take into account in the initial clustering pass is
   // defined as _middleEnergyHitBoundFrac of the minimal energy that is taken into
@@ -193,8 +199,10 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     /* --------------------------------------------------------------------------
        Construct clusters for each arm
        -------------------------------------------------------------------------- */
-#if _GENERAL_CLUSTERER_DEBUG == 1
-    streamlog_out( DEBUG ) << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
+#if _CLUSTER_BUILD_DEBUG == 1
+    std::cout << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
+    std::cout  << "\tEnergy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
+	       << "\tNumber of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << "\n\n";
 #endif
 
     buildClusters( calHits[armNow],

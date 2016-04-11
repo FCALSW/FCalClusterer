@@ -17,12 +17,12 @@ public:
 			  LCCluster superClusterCM,
 			  LCCluster trueClusterCM);
 
-  double	distance2D(double *pos1, double *pos2);
-  void	setWeight(std::string weightMethod);
-  void	setWeight(std::string weightMethod, double minSeparationDistance, double minClusterEngyGeV);
+  double distance2D(double *pos1, double *pos2);
+  void	 setWeight(std::string weightMethod);
+  void	 setWeight(std::string weightMethod, double minSeparationDistance, double minClusterEngyGeV);
 
-  int	superClusterId, trueClusterId;
-  double	distance, deltaEngy, minEngy, weight;
+  int	 superClusterId, trueClusterId;
+  double distance, deltaEngy, minEngy, weight;
 
   static inline bool Compare(SuperTrueClusterWeights * a, SuperTrueClusterWeights * b) {
     return a->weight < b->weight;

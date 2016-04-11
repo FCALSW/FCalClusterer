@@ -54,8 +54,11 @@ namespace EVENT{
     virtual void end() ;
 
     // Processor Parameters
-    std::string	LumiInColName, LumiClusterColName, LumiRecoParticleColName ;
-    double _zLayerStagger;
+    std::string	LumiInColName;
+    std::string LumiClusterColName;
+    std::string LumiRecoParticleColName ;
+    double _BeamCrossingAngle;
+    double _zLayerPhiOffset;
     double _rMoliere,_minClusterEngy, _minHitEnergy, _logWeigthConstant;
     double _ElementsPercentInShowerPeakLayer, _MiddleEnergyHitBoundFrac;
     double _EnergyCalibConst;

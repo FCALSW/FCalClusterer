@@ -24,14 +24,18 @@ public:
   int	ResetStats();
   void	SetStatsMC(EVENT::MCParticle * mcParticle);
   void	SetStatsMC();
+  void  PrintInfo();
 
-  int	Id, Pdg, SignMC, ParentId, NumMCDaughters;
-  int	OutsideFlag, MergedFlag, HighestEnergyFlag, ModifiedFlag;
-  int   NumHits;
+  int   	Id, Pdg, SignMC, ParentId, NumMCDaughters;
+  int   	OutsideFlag, MatchFlag, HighestEnergyFlag, ModifiedFlag;
+  int           NumHits;
   double	Engy, Theta, Phi, RZStart;
   double	VtxX, VtxY, VtxZ, EndPointX, EndPointY, EndPointZ;
   double	EngyMC, ThetaMC, PhiMC;
-  double clusterPosition[3];
+  double        DiffTheta, DiffPosXY;
+  double        clusterPosition[3];           // cluster position at Zbeg
+  double        mcpPosition[3];               // MCparticle position at Zbeg
+
   std::vector <int> MergedV;
 
   std::string	OutsideReason;

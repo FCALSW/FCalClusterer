@@ -18,11 +18,12 @@ using namespace streamlog;
    -------------------------------------------------------------------------- */
 ClusterClass::ClusterClass(int idNow):
   GlobalMethodsClass(),
-  Id(idNow), Pdg(0), SignMC(0), ParentId(idNow), NumMCDaughters(0),
-  OutsideFlag(0), MergedFlag(0), HighestEnergyFlag(0), ModifiedFlag(0),NumHits(0),
+  Id(idNow), Pdg(0), SignMC(0), ParentId(-1), NumMCDaughters(0),
+  OutsideFlag(0), MatchFlag(0), HighestEnergyFlag(0), ModifiedFlag(0),NumHits(0),
   Engy(0.0), Theta(0.0), Phi(0.0), RZStart(0.0),
   VtxX(0.0), VtxY(0.0), VtxZ(0.0), EndPointX(0.0), EndPointY(0.0), EndPointZ(0.0),
   EngyMC(0.0), ThetaMC(0.0), PhiMC(0.0),
+  DiffTheta(0.), DiffPosXY(0.),
   MergedV(0),
   OutsideReason(""),
   Hit()
@@ -32,6 +33,9 @@ ClusterClass::ClusterClass(int idNow):
   clusterPosition[0] = 0.0;
   clusterPosition[1] = 0.0;
   clusterPosition[2] = 0.0;
+  mcpPosition[0] = 0.0;
+  mcpPosition[1] = 0.0;
+  mcpPosition[2] = 0.0;
 }
 
 ClusterClass::~ClusterClass() {
@@ -58,43 +62,27 @@ void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
   const double MCmomY = (double)mcParticle->getMomentum()[1];
   const double MCmomZ = (double)mcParticle->getMomentum()[2];
 
-  SignMC = int(MCmomZ / fabs(MCmomZ));
+  SignMC = int (MCmomZ / fabs(MCmomZ));
   // unboost momentum
   double betgam = tan( GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2. );
   double gama = sqrt( 1.+ betgam*betgam);
-  double locPX = betgam*EngyMC - gama*MCmomX;
+  double localPX =-betgam*EngyMC + gama*MCmomX;
+  // position at face of Lcal
+  mcpPosition[0] = VtxX + GlobalParamD[ZStart]*tan(localPX /MCmomZ);
+  mcpPosition[1] = VtxY + double(SignMC)*GlobalParamD[ZStart]*tan(MCmomY/MCmomZ);
+  mcpPosition[2] = GlobalParamD[ZStart]*double(SignMC);
 
-  double MCr = sqrt( locPX*locPX  + MCmomY*MCmomY);
+  double MCr = sqrt( localPX*localPX  + MCmomY*MCmomY);
   ThetaMC = atan(MCr / fabs(MCmomZ));                  // Theta in local LCal coordinates
+  // (BP)get phi angle in the range (0.; +- M_PI) - default in LC  
+  PhiMC = atan2( mcpPosition[1], mcpPosition[0]);
 
   // correction for the polar angle for cases where the particle does not
   // come from the IP (according to a projection on the face of LumiCal)
   if( fabs(VtxZ) > _VERY_SMALL_NUMBER ) {
-    //    cout <<"   ---   "<< Id << "\t" << ThetaMC << "\t -> \t" ;
     MCr = tan(ThetaMC) * (GlobalParamD[ZStart] - fabs(VtxZ));
     ThetaMC = atan( MCr / GlobalParamD[ZStart] );
-    // cout << ThetaMC << "\t r,z:  " << MCr <<"\t" << Abs(vtxZ) <<  "\t"
-    //      <<  mcParticle->getDaughters().size() << endl ;
-    // EVENT::MCParticle *mcParticleParent = mcParticle -> getDaughters()[0];
-    // cout << "\t\t\t"<< mcParticleParent->getVertex()[2]
-    //      <<  "\t"<< mcParticleParent->id() <<  "\t"<< endl ;
   }
-  // (BP)get phi angle in the range (0.; +- M_PI) - default in LC  
-  PhiMC = atan2( MCmomY, MCmomX );
-  /*(BP) replaced with above 
-  PhiMC = atan(fabs(MCmomY / MCmomX));
-  if(MCmomZ > 0) {
-    // if(MCmomX>0 && MCmomY>0)   PhiMC = PhiMC;//no change, unneeded
-    if(MCmomX<0 && MCmomY>0)      PhiMC = M_PI   - PhiMC;
-    else if(MCmomX<0 && MCmomY<0) PhiMC = M_PI   + PhiMC;
-    else if(MCmomX>0 && MCmomY<0) PhiMC = 2*M_PI - PhiMC;
-  } else {
-    if(MCmomX>0 && MCmomY>0)      PhiMC = M_PI   - PhiMC;
-    //if(MCmomX<0 && MCmomY>0)    PhiMC = PhiMC;//no change, unneeded
-    else if(MCmomX<0 && MCmomY<0) PhiMC = 2*M_PI - PhiMC;
-    else if(MCmomX>0 && MCmomY<0) PhiMC = M_PI   + PhiMC;
-  }
-  */
 
 
   // find the original parent of the particle
@@ -165,12 +153,10 @@ int ClusterClass::ResetStats() {
   if( NumHits < GlobalParamI[ClusterMinNumHits] ){
     OutsideFlag = 1;
     OutsideReason = " Number of hits below minimum";
-    return 0;
   }
 
   double xtemp(0.0), ytemp(0.0), ztemp(0.0);
-  for( std::map < int , double > :: iterator hitIterator = Hit.begin();
-       hitIterator != Hit.end(); ++hitIterator) {
+  for( std::map < int , double > :: iterator hitIterator = Hit.begin();  hitIterator != Hit.end(); ++hitIterator) {
     int cellId = hitIterator->first;
     ThetaPhiCell(cellId , thetaPhiCellV);
 
@@ -183,56 +169,67 @@ int ClusterClass::ResetStats() {
     thetaSum  += thetaPhiCellV[GlobalMethodsClass::COTheta] * weightNow;
     const double phi = thetaPhiCellV[GlobalMethodsClass::COPhi];
     ztemp += thetaPhiCellV[GlobalMethodsClass::COZ] * weightNow;
-    xtemp += cos(phi) * weightNow;
-    ytemp += sin(phi) * weightNow;
+    const double rcell = thetaPhiCellV[GlobalMethodsClass::COR];
+    xtemp += rcell*cos(phi) * weightNow;
+    ytemp += rcell*sin(phi) * weightNow;
   }
 
 
-  Theta    = thetaSum / weightSum;
-  double xCOG = xtemp / weightSum;
-  double yCOG = ytemp / weightSum;
-  double zCOG = ztemp / weightSum;
+  Theta  = thetaSum / weightSum;
+  xtemp /= weightSum;
+  ytemp /= weightSum;
+  ztemp /= weightSum;
   RZStart  = atan(fabs(Theta)) * GlobalParamD[ZStart];
-  //  RZStart  = atan(fabs(Theta)) * zCOG;
-  Phi = atan2(yCOG, xCOG);
-  // (BP) Phi = ( Phi >= 0. ) ? Phi : Phi + 2.0 * M_PI;
+  Phi = atan2(ytemp, xtemp);
   
   clusterPosition[0] = RZStart*cos(Phi);
   clusterPosition[1] = RZStart*sin(Phi);
-  clusterPosition[2] = zCOG;
+  clusterPosition[2] = GlobalParamD[ZStart]*double(SignMC); //ztemp*double(SignMC);
   
   if( Theta < GlobalParamD[ThetaMin] || Theta > GlobalParamD[ThetaMax] ){
     OutsideFlag = 1;
     OutsideReason = "Reconstructed outside the fiducial volume";
-    return 0;
   }
 
   if(engySum < GlobalParamD[MinClusterEngySignal]) {
     OutsideFlag = 1;
     OutsideReason = "Cluster energy below minimum";
-    return 0;
   }
 
-#if _CLUSTER_RESET_STATS_DEBUG == 1
-  streamlog_out( MESSAGE4 ) << std::endl;
+
+  return 1;
+}
+
+void ClusterClass::PrintInfo(){
+
+  streamlog_out( MESSAGE4 ) << std::endl
     << "Cluster Information:   " << Id << std::endl
     << std::setw(30) << "sign, engyHits, engyMC:  "
     << std::setw(13) << SignMC
     << std::setw(13) << SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , Engy)
     << std::setw(13) << EngyMC << std::endl
-    << std::setw(30) << "theta mc,rec:"
+    << std::setw(30) << "theta mc,rec:  "
     << std::setw(13) << ThetaMC
     << std::setw(13) << Theta << std::endl
-    << std::setw(30) << "phi mc,rec:"
+    << std::setw(30) << "phi mc,rec:  "
     << std::setw(13) << PhiMC
     << std::setw(13) << Phi << std::endl
-    << std::setw(30) << "vertex X,Y,Z: "
+    << std::setw(30) << "vertex X,Y,Z:  "
     << std::setw(13) << VtxX
     << std::setw(13) << VtxY
-    << std::setw(13) << VtxZ
+    << std::setw(13) << VtxZ << std::endl
+    << std::setw(30) << "CLstart  X,Y,Z:  "
+    /*
+    << std::setw(13) << clusterPosition[0]
+    << std::setw(13) << clusterPosition[1]
+    << std::setw(13) << clusterPosition[2] << std::endl
+    */
+			    << std::setw(13) << RZStart*cos(Phi)
+			    << std::setw(13) << RZStart*sin(Phi)
+			    << std::setw(13) << GlobalParamD[ZStart]*double(SignMC) << std::endl
+    << std::setw(30) << "MCstart  X,Y,Z: "
+    << std::setw(13) << mcpPosition[0]
+    << std::setw(13) << mcpPosition[1]
+    << std::setw(13) << mcpPosition[2] << std::endl
     << std::endl;
- #endif
-
-  return 1;
 }
-

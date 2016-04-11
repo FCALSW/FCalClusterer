@@ -29,7 +29,8 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   LumiInColName(""),
 						   LumiClusterColName(""),
 						   LumiRecoParticleColName(""),
-						   _zLayerStagger(3.75),
+						   _BeamCrossingAngle(0.0),
+						   _zLayerPhiOffset(3.75),
 						   _rMoliere(16.),
 						   _minClusterEngy(2.),
 						   _minHitEnergy(5.e-6),
@@ -46,7 +47,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   NumEvt(0),
 						   EvtNumber(0),
 						   OutDirName(""),
-						   OutRootFileName("LcalRootOut"),
+						   OutRootFileName(""),
 						   NumEventsTree(0),
 						   MemoryResidentTree(0),
 						   OutputManager(),
@@ -66,7 +67,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 
   registerInputCollection(LCIO::SIMCALORIMETERHIT,
 			  "LumiCal_Collection" ,
-			  "Collection Containing the Hits in the LumiCal" ,
+			  "Collection Containing Hits in the LumiCal" ,
 			  LumiInColName ,
 			  std::string("LumiCalCollection") ) ;
 
@@ -99,9 +100,9 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 				OutDirName,
 				std::string("rootOut") );
    registerProcessorParameter(	"OutRootFileName" ,
-				"Name of output ROOT file ( without suffix)" ,
+				"Name of output ROOT file ( without suffix) NO DEFAULT. If no name provided root file will not be generated" ,
 				OutRootFileName,
-				std::string("LcalRootOut") );
+				std::string("") );
   registerProcessorParameter(   "NumEventsTree",
 				"Number of events in memory resident ROOT tree.",
 				NumEventsTree,
@@ -117,9 +118,9 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
                                " Sets minimum for logarithmic energy weights",
                                _logWeigthConstant,
 			       6. );
-  registerProcessorParameter(  "ZLayerStagger",
+  registerProcessorParameter(  "ZLayerPhiOffset",
                                " Relative offset of LCal z-layers [deg] default is half of the phi sector size",
-                               _zLayerStagger,
+                               _zLayerPhiOffset,
                                3.75 );
   registerProcessorParameter(  "EnergyCalibConst",
                                " Calibration const E_dep = EnergyCalibConst*E_primary ( default for LCal ILD) ",
@@ -167,20 +168,23 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
    ========================================================================= */
 void MarlinLumiCalClusterer::init(){
 
-  	printParameters();
 
   // global vars
   NumRun = 0 ;
   NumEvt = SkipNEvents;
+  //  LumiInColName = "LumiCalSimHits";
 
-
-  //  GlobalMethods = new GlobalMethodsClass();
-  
+  //  GlobalMethods = new GlobalMethodsClass(); 
   GlobalMethods.SetConstants();
+  _BeamCrossingAngle = GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.;
 
-  double beta = tan( GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+  // Lorentz boost params
+  double beta = tan( _BeamCrossingAngle );
   _betagamma = beta;
   _gamma = sqrt( 1. + sqr(beta) );
+
+
+  printParameters();
   /* --------------------------------------------------------------------------
      Print out Processor Parameters
      -------------------------------------------------------------------------- */
@@ -216,8 +220,8 @@ void MarlinLumiCalClusterer::processRunHeader( LCRunHeader * /* run */ ) {
 void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
 
   // increment / initialize global variables
-  NumEvt++;
-  EvtNumber = evt->getEventNumber();
+  NumEvt++;                             // number of processed events 
+  EvtNumber = evt->getEventNumber();    // event number 
 
   streamlog_out( DEBUG ) << std::endl
 	    << "Run MarlinLumiCalClusterer::processEvent - event counter: NumEvt = " << NumEvt
@@ -230,7 +234,7 @@ void MarlinLumiCalClusterer::processEvent( EVENT::LCEvent * evt ) {
 
 }
 
-void MarlinLumiCalClusterer::check( EVENT::LCEvent * evt ) {
+void MarlinLumiCalClusterer::check( EVENT::LCEvent * /* evt */ ) {
   /*----  NOP for now ---- */
 }
 
@@ -246,8 +250,6 @@ void MarlinLumiCalClusterer::end(){
 			 << "Went through " << NumEvt << " events from " << NumRun << " file(s)" 
 			 << std::endl;
 
-  // write to the root tree
-  OutputManager.WriteToRootTree("forceWrite" , NumEvt);
 
 
   // write out the counter map
@@ -261,6 +263,10 @@ void MarlinLumiCalClusterer::end(){
     std::string counterName = (std::string)(*OutputManager.CounterIterator).first;
     std::cout << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
   }
+
+  // write to the root tree
+  OutputManager.WriteToRootTree("forceWrite" , NumEvt);
+
   // (BP) It is done by destructor!
   //OutputManager.CleanUp();       
 

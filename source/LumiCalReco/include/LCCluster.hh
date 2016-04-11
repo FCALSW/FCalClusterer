@@ -36,9 +36,11 @@ public:
 
   inline void setX( double x) { _position[0] = x; CalculatePhi(); }
   inline void setY( double y) { _position[1] = y; CalculatePhi(); }
+  inline void setZ( double y) { _position[1] = y; CalculateTheta(); }
+  inline void setPosition( double x, double y, double z) { _position[0]=x; _position[1]=y; _position[2]=z; CalculatePhi(); CalculateTheta(); }
   inline void setWeight (double w) { _weight = w; }
   inline void setTheta  (double t) { _theta = t; }
-  inline void setPhi    (double p) { _phi = p; CalculatePhi(); }
+  inline void setPhi    (double p) { _phi = p; }
 
   void addToEnergy( double E) { _energy += E; }
   friend std::ostream& operator<<(std::ostream & o, const LCCluster& rhs);
@@ -47,6 +49,7 @@ public:
 private:
 
   void CalculatePhi();
+  void CalculateTheta();
   double _position[3];
   double _energy, _weight;
   GlobalMethodsClass::WeightingMethod_t _method;
@@ -57,6 +60,10 @@ private:
 
 inline void LCCluster::CalculatePhi() {
   _phi = atan2(_position[1],_position[0]);
+  return;
+}
+inline void LCCluster::CalculateTheta() {
+  _theta = atan( sqrt( _position[1]*_position[1] + _position[0]*_position[0])/fabs( _position[2] ));
   return;
 }
 
