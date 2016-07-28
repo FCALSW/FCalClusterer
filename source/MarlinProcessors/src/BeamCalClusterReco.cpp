@@ -106,6 +106,7 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_thetaFake(NULL),
                                            m_checkPlots(0),
                                            m_originalParticles(0),
+                                           m_MCinBeamCal(NULL),
                                            m_BCalClusterColName(""),
                                            m_BCalRPColName(""),
                                            m_EfficiencyFileName("")
@@ -732,7 +733,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
   vector<double> te_signal, te_bg, te_sigma;
   int ndf(m_BCG->getBCLayers());
   // loop over towers
-  for (size_t it = 0; it < m_BCG->getPadsPerLayer(); it++){
+  for (int it = 0; it < m_BCG->getPadsPerLayer(); it++){
     // get tower energies, average, sigma
     signalPads.getTowerEnergies(it, te_signal);
     backgroundPads.getTowerEnergies(it, te_bg);
@@ -746,7 +747,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
 
     // calculate chi2 for this tower in all layers starting from defined
     double chi2(0.);
-    for (size_t il = m_startLookingInLayer; il< m_BCG->getBCLayers(); il++){
+    for (int il = m_startLookingInLayer; il< m_BCG->getBCLayers(); il++){
       te_signal_sum += te_signal[il];
       te_bg_sum += te_bg[il];
       chi2+= pow((te_signal[il] - te_bg[il])/te_sigma[il],2);
@@ -755,7 +756,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
     // calculate sums for this tower in counting layers
     te_signal_sum = 0.;
     te_bg_sum = 0.;
-    for (size_t il = m_startLookingInLayer; il< m_startLookingInLayer+m_NShowerCountingLayers; il++){
+    for (int il = m_startLookingInLayer; il< m_startLookingInLayer+m_NShowerCountingLayers; il++){
       te_signal_sum += te_signal[il];
       te_bg_sum += te_bg[il];
     }
