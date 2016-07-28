@@ -12,49 +12,13 @@ SET( FCAL_USE_GEAR True ) ##not optional
 SET( FCAL_USE_streamlog True ) ##not optional
 OPTION( FCAL_USE_Marlin  " Build Marlin Processors" True )
 
-OPTION( USE_CXX11  "Build with c++11 standard" True )
-
 SET( CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} )
 
-FIND_PACKAGE( ILCUTIL REQUIRED COMPONENTS ILCSOFT_CMAKE_MODULES )
+FIND_PACKAGE( ILCUTIL 1.3.0 REQUIRED COMPONENTS ILCSOFT_CMAKE_MODULES )
 # load default settings from ILCSOFT_CMAKE_MODULES
 INCLUDE( ilcsoft_default_settings )
 
 LIST( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
-
-INCLUDE(CheckCXXCompilerFlag)
-
-SET(COMPILER_FLAGS -Wall -Wextra -Wshadow -Weffc++ -pedantic -Wno-long-long -Wuninitialized -Wl,-no-undefined  )
-MESSAGE( STATUS "FLAGS ${COMPILER_FLAGS}" )
-FOREACH( FLAG ${COMPILER_FLAGS} )
-  CHECK_CXX_COMPILER_FLAG( "${FLAG}" CXX_FLAG_WORKS_${FLAG} )
-  IF( ${CXX_FLAG_WORKS_${FLAG}} )
-    MESSAGE ( STATUS "Adding ${FLAG} to CXX_FLAGS" )
-    SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
-  ELSE()
-    MESSAGE ( STATUS "NOT Adding ${FLAG} to CXX_FLAGS ${CXX_FLAG_WORKS}" )
-  ENDIF()
-ENDFOREACH()
-
-IF( ${USE_CXX11} )
-  SET( FLAG "-std=c++11" )
-  CHECK_CXX_COMPILER_FLAG( ${FLAG} CXX_FLAG_WORKS_${FLAG} )
-  IF( ${CXX_FLAG_WORKS_${FLAG}} )
-    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
-  ELSE()
-    MESSAGE( FATAL "NOT Adding ${FLAG} to CXX_FLAGS ${CXX_FLAG_WORKS}" )
-  ENDIF()
-ENDIF()
-
-## Remove duplicate CXXFLAGS because we can, not necessary though
-SEPARATE_ARGUMENTS( CMAKE_CXX_FLAGS )
-##Remove duplicate arguments
-LIST( REMOVE_DUPLICATES CMAKE_CXX_FLAGS )
-SET(FLAGS "")
-FOREACH( FLAG ${CMAKE_CXX_FLAGS} )
-    SET(FLAGS "${FLAGS} ${FLAG}")
-ENDFOREACH()
-SET(CMAKE_CXX_FLAGS "${FLAGS}")
 
 # FIND_PACKAGE( Cppcheck  )
 # IF ( CPPCHECK_FOUND )
