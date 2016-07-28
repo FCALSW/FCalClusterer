@@ -2,9 +2,14 @@
 | v0-03 |
  -------
 
-BeamCalReco:
+BeamCalReco (A.Sailer):
 * Reduce memory footprint and fix memory leaks for Parameterized background method
 * Silence warnigns from root integral and getrandom, enabled for DEBUG0
+* Compatible with ROOT 6
+
+LumiCalReco (B.Pawlik):
+* Massive fixes, mainly coordinate system, cluster merging. Creating ClustersClass Map and root output is optional now
+* Fix LCIO interface to pass hit positions, geo info. Create LucasGear for Marlin reco, and more...
 
  -------
 | v0-02 |
