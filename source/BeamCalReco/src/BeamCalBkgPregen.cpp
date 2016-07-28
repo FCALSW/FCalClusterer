@@ -116,6 +116,7 @@ void BeamCalBkgPregen::init(vector<string> &bg_files, const int n_bx)
   if( int(nBackgroundBX) < m_nBX*10 ) {
     streamlog_out(ERROR) << "There are not enough BeamCal " \
      " Background files to calculate a proper average!" << std::endl;
+    throw std::runtime_error( "Not enough BeamCal Background bunch crossings available");
   }
 
   //we use a set so no duplication occurs
