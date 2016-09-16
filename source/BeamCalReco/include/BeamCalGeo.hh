@@ -54,8 +54,8 @@ public:
   double getThetaFromRing(int layer, int ring) const;
   double getThetaFromRing(int ring) const;
 
-  double getPadPhi(int ring, int pad) const;
-  double getPadPhi(int globalPandIndex) const;
+  virtual double getPadPhi(int ring, int pad) const;
+  virtual double getPadPhi(int globalPandIndex) const;
 
 protected:
 
