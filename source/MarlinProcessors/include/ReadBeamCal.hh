@@ -64,6 +64,7 @@ class ReadBeamCal : public marlin::Processor {
   BCPadEnergies* m_padEnergiesRight;
 
   BeamCalGeo* m_bcg;
+  bool m_usingDD4HEP;
 
 private://to shut the warnings up
   ReadBeamCal(const ReadBeamCal&);

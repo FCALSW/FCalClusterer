@@ -1,10 +1,8 @@
 #include "ReadBeamCal.hh"
+#include "ProcessorUtilities.hh"
 
 #include <BeamCal.hh>
-#include <BeamCalGeoGear.hh>
-#include <BeamCalGeoCached.hh>
 #include <BCUtilities.hh>
-
 
 #include <EVENT/LCCollection.h>
 #include <EVENT/MCParticle.h>
@@ -56,7 +54,8 @@ ReadBeamCal::ReadBeamCal() : Processor("ReadBeamCal"),
 			     m_random3(NULL),
 			     m_padEnergiesLeft(NULL),
 			     m_padEnergiesRight(NULL),
-			     m_bcg(NULL) {
+			     m_bcg(NULL),
+                             m_usingDD4HEP(false) {
 
   // modify processor description
   _description = "ReadBeamCal reads the simulation for the pairs and creates two std::vector<double> in a tree, which can then be used later on for Overlay, calculation of fluctiuations, etc." ;
@@ -93,7 +92,7 @@ void ReadBeamCal::init() {
   printParameters() ;
 
   m_nEvt = 0;
-  m_bcg = new BeamCalGeoCached(marlin::Global::GEAR);
+  m_bcg = ProcessorUtilities::getBeamCalGeo(m_usingDD4HEP);
   m_padEnergiesLeft = new BCPadEnergies(m_bcg);
   m_padEnergiesRight = new BCPadEnergies(m_bcg);
  
@@ -124,7 +123,7 @@ void ReadBeamCal::processEvent( LCEvent * evt ) {
   for(int i=0; i < nHits; i++) {
     SimCalorimeterHit *bcalhit = static_cast<SimCalorimeterHit*>(colBCal->getElementAt(i));
     int side, layer, cylinder, sector;
-    BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, cylinder, sector);
+    BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, cylinder, sector, m_usingDD4HEP);
     const float energy = bcalhit->getEnergy();
     try{
       (side == 0 ) ?
