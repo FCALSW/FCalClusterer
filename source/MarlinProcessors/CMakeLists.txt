@@ -9,7 +9,11 @@ SET( BeamCalProcessor_SOURCE src/ReadBeamCal.cpp src/BeamCalClusterReco.cpp)
 SET( LumiCalProcessor_SOURCE src/MarlinLumiCalClusterer.cc)
 
 
-ADD_LIBRARY ( FCalClusterer SHARED ${BeamCalProcessor_SOURCE} ${LumiCalProcessor_SOURCE} )
+IF( DD4hep_FOUND )
+  SET( DD4hepProcessor_SOURCE src/DrawBeamCalFromDD4hep.cpp )
+ENDIF()
+
+ADD_LIBRARY ( FCalClusterer SHARED ${BeamCalProcessor_SOURCE} ${LumiCalProcessor_SOURCE} ${DD4hepProcessor_SOURCE} )
 
 #LibrariesToLink
 SET( FCAL_LIBRARIES LumiCalReco BeamCalReco )

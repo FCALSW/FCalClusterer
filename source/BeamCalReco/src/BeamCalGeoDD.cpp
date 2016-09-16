@@ -2,6 +2,15 @@
 
 #include <DD4hep/LCDD.h>
 #include <DD4hep/Detector.h>
+#include <DD4hep/DD4hepUnits.h>
+#include <DDRec/DetectorData.h>
+#include <DDRec/API/IDDecoder.h>
+
+// ----- include for verbosity dependend logging ---------
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
+
 //#include <DD4hep/UserExtension/BeamCalInfo.h>
 // Use the DDRec CalorimeterExtension, I guess?
 // Use DDSegmentation RPphi parameters? This knows about tghe inner radius, too
@@ -13,6 +22,7 @@ class BeamCalInfo;
 #include <algorithm>
 
 BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.detector("BeamCal")),
+								m_segmentation(lcdd.readout("BeamCalCollection").segmentation()),
 								m_innerRadius(0.0),
 								m_outerRadius(0.0),
 								m_layers(0),
@@ -20,95 +30,237 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
 								m_phiSegmentation(0),
 								m_radSegmentation(0),
 								m_nPhiSegments(0),
+								m_layerDistanceToIP(0),
 								m_cutOut(0),
 								m_beamCalZPosition(0),
 								m_deadAngle(0),
 								m_crossingAngle(0),
 								m_padsPerRing(0),
 								m_padsBeforeRing(0),
-								m_padsPerLayer(0),
-								m_padsPerBeamCal(0)
+								m_padsPerLayer(-1),
+								m_padsPerBeamCal(-1)
  {
+   std::cout << __PRETTY_FUNCTION__  << std::endl;
+   m_crossingAngle=20.0;// mrad!!!
+
+   // DD4hep::DDRec::LayeredCalorimeterData * getExtension(unsigned int includeFlag, unsigned int excludeFlag=0);
+
+   const DD4hep::Geometry::DetElement& theDetector = m_BeamCal;
+   const DD4hep::DDRec::LayeredCalorimeterData * theExtension = theDetector.extension<DD4hep::DDRec::LayeredCalorimeterData>();
+
+   // this->SetDefaultSubDetectorParameters(*const_cast<DD4hep::DDRec::LayeredCalorimeterData*>(theExtension),theDetector.name(), pandora::SUB_DETECTOR_OTHER, parameters);
+   //      subDetectorNameMap[parameters.m_subDetectorName.Get()] = parameters;
+
+   m_innerRadius = theExtension->extent[0]/dd4hep::mm;
+   m_outerRadius = theExtension->extent[1]/dd4hep::mm;
+   m_beamCalZPosition = theExtension->extent[2]/dd4hep::mm;
+
+
+   const std::vector<DD4hep::DDRec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
+
+   // -1 because of the graphite layer
+   m_layers = layers.size()-1;
+
+    for (size_t i = 0; i< layers.size(); i++)
+    {
+        const DD4hep::DDRec::LayeredCalorimeterStruct::Layer & theLayer = layers.at(i);
+	//Distance to center of sensitive element
+	m_layerDistanceToIP.push_back((theLayer.distance+theLayer.inner_thickness)/dd4hep::mm);
+    }
+
+   
+   // parameters.m_innerPhiCoordinate = inputParameters.inner_phi0/dd4hep::rad;
+   // parameters.m_innerSymmetryOrder = inputParameters.inner_symmetry;
+   // parameters.m_outerRCoordinate = inputParameters.extent[1]/dd4hep::mm;
+   // parameters.m_outerZCoordinate = inputParameters.extent[3]/dd4hep::mm;
+   // parameters.m_outerPhiCoordinate = inputParameters.outer_phi0/dd4hep::rad;
+   // parameters.m_outerSymmetryOrder = inputParameters.outer_symmetry;
+   // parameters.m_isMirroredInZ = true;
+
 
   std::cout << __PRETTY_FUNCTION__  << std::endl;
 
+  streamlog_out(MESSAGE) << "Segmentation Type" << m_segmentation.type()  << std::endl;
+  streamlog_out(MESSAGE) <<"FieldDef: " << m_segmentation.segmentation()->fieldDescription()  << std::endl;
+
+  if (m_segmentation.type() != "PolarGridRPhi2" ){
+    streamlog_out(ERROR) << "Cannot use this segmentation type" 
+			 << "(" << m_segmentation.type() << ")"
+			 <<  "for BeamCalReco at the moment"  << std::endl;
+    throw std::runtime_error( "BeamCalReco: Incompatible segmentation type" );
+  }
+
+
+
+  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
+  ParVec* rPar = dynamic_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_r_values"));
+  ParVec* pPar = dynamic_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_phi_values"));
+  std::vector<double> rValues = rPar->typedValue();
+  std::vector<double> pValues = pPar->typedValue();
+
+  m_rings = rValues.size()-1;
+  m_radSegmentation = rValues;
+  m_phiSegmentation = pValues;
+
+  for (int i = 0; i < m_rings;++i) {
+    const int NUMBER_OF_SENSOR_SEGMENTS = 8;
+    m_nPhiSegments.push_back(int((2*M_PI-m_deadAngle)/m_phiSegmentation[i]+0.5)/NUMBER_OF_SENSOR_SEGMENTS);
+
+    m_radSegmentation[i] = m_radSegmentation[i]/dd4hep::mm;
+
+    std::cout <<  "Ring " << i
+	      << "  nSegments " << m_nPhiSegments.back()
+	      << "  Radius " << m_radSegmentation[i]
+	      << std::endl;
+
+  }
+
+  //DeadAngle Calculations
+  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
+  ParDou* oPPar = dynamic_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
+  double offsetPhi = oPPar->typedValue();
+  m_deadAngle = 2.0 * ( M_PI + offsetPhi/dd4hep::radian );
+
+
+  m_padsPerRing.resize(m_rings+1);
+  m_padsBeforeRing.resize(m_rings+1);
+
+  setPadsInRing();
+  setPadsBeforeRing();
+  setPadsPerLayer();
+  setPadsPerBeamCal();
+
+  std::cout << "Pads Per Layer " << m_padsPerLayer  << std::endl;
+  std::cout << "Layers in BeamCal " << m_layers  << std::endl;
+  std::cout << "Pads Per BeamCal " << m_padsPerBeamCal  << std::endl;
+  std::cout << "CutOutRadius " << getCutout()  << std::endl;
 }
+// [ VERBOSE "BCReco"] Pads Per Layer 1157
+// [ VERBOSE "BCReco"] Pads Per BeamCal 47437
+// [ VERBOSE "BCReco"] CutOutRadius 72.32981755374473
 
 //Wrappers around DD4hep Interface:
 inline double                BeamCalGeoDD::getBCInnerRadius() const { 
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getInnerRadius();
+  return m_innerRadius;
 }
 
 inline double                BeamCalGeoDD::getBCOuterRadius() const { 
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //return m_BeamCal.extension<BeamCalInfo>()->getOuterRadius();
+  return m_outerRadius;
 }
 
 inline int                   BeamCalGeoDD::getBCLayers()      const { 
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //return m_BeamCal.extension<BeamCalInfo>()->getNumberOfLayers();
+  return m_layers;
 } 
 
 inline int                   BeamCalGeoDD::getBCRings()       const { 
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //return m_BeamCal.extension<BeamCalInfo>()->getNumberOfRings();
+  return m_rings;
 }
 
 inline std::vector<double> const&  BeamCalGeoDD::getSegmentation()  const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //return m_BeamCal.extension<BeamCalInfo>()->getPhiSegmentationsPerRing();
+  return m_phiSegmentation;
 }
 
 inline std::vector<int> const& BeamCalGeoDD::getNSegments()     const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //return m_BeamCal.extension<BeamCalInfo>()->getNumberPhiSegmentationsPerRing();
+  return m_nPhiSegments;
 }
 
 inline double                BeamCalGeoDD::getCutout()        const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //return m_BeamCal.extension<BeamCalInfo>()->getCutoutRadius();
+  const double cutOutRadius =  tan(m_crossingAngle)*getLayerZDistanceToIP(m_layers-1)+3.5;
+  return cutOutRadius;
 }
 
 inline double                BeamCalGeoDD::getBCZDistanceToIP() const { 
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+  return m_beamCalZPosition;
 }
 
 
-inline double BeamCalGeoDD::getLayerZDistanceToIP(int) const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+inline double BeamCalGeoDD::getLayerZDistanceToIP(int layer) const {
+  return m_layerDistanceToIP.at(layer);
 }
 
 inline std::vector<double> const& BeamCalGeoDD::getPhiSegmentation() const {
   throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
-inline int BeamCalGeoDD::getPadsBeforeRing(int) const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+inline int BeamCalGeoDD::getPadsBeforeRing(int ring) const {
+  return m_padsBeforeRing.at(ring);
 }
+
+// [ VERBOSE "BCReco"] PadsBeforeRing 0 0
+// [ VERBOSE "BCReco"] PadsBeforeRing 1 32
+// [ VERBOSE "BCReco"] PadsBeforeRing 2 72
+// [ VERBOSE "BCReco"] PadsBeforeRing 3 120
+// [ VERBOSE "BCReco"] PadsBeforeRing 4 168
+// [ VERBOSE "BCReco"] PadsBeforeRing 5 224
+// [ VERBOSE "BCReco"] PadsBeforeRing 6 288
+
+// [ VERBOSE "BCReco"] PadsBeforeRing 7 360
+// [ VERBOSE "BCReco"] PadsBeforeRing 8 432
+// [ VERBOSE "BCReco"] PadsBeforeRing 9 512
+// [ VERBOSE "BCReco"] PadsBeforeRing 10 600
+// [ VERBOSE "BCReco"] PadsBeforeRing 11 696
+// [ VERBOSE "BCReco"] PadsBeforeRing 12 792
+// [ VERBOSE "BCReco"] PadsBeforeRing 13 896
+// [ VERBOSE "BCReco"] PadsBeforeRing 14 1008
+// [ VERBOSE "BCReco"] PadsBeforeRing 15 1128
+
+void BeamCalGeoDD::setPadsBeforeRing() {
+  int nPads = 0;
+  for (int ring = 0; ring <= m_rings; ++ring) {//we want the number of pads _before_ the ring
+    std::cout << "PadsBeforeRing " << ring << " " << nPads  << std::endl;
+    m_padsBeforeRing[ring] = nPads;
+    nPads += getPadsInRing(ring);
+  }
+  return;
+}
+
+
+void BeamCalGeoDD::setPadsPerLayer() {
+  std::cout << __PRETTY_FUNCTION__  << std::endl;
+  std::cout << getBCRings()  << std::endl;
+  m_padsPerLayer = getPadsBeforeRing( getBCRings() );
+}
+
+void BeamCalGeoDD::setPadsPerBeamCal() {
+  std::cout << __PRETTY_FUNCTION__  << std::endl;
+  m_padsPerBeamCal = getPadsPerLayer() * getBCLayers();
+}
+
+int BeamCalGeoDD::getPadsInRing( int ring ) const {
+  return m_padsPerRing[ring];
+}
+
+
+void BeamCalGeoDD::setPadsInRing()  {
+  std::cout << __PRETTY_FUNCTION__  << std::endl;
+  for (int ring = 0; ring < m_rings; ++ring) {
+    m_padsPerRing[ring] = BeamCalGeo::getPadsInRing(ring);
+  }//for all rings
+}//setPadsRings
+
 
 inline double BeamCalGeoDD::getFullKeyHoleCutoutAngle() const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+  return getDeadAngle();
 }
 
 inline double BeamCalGeoDD::getDeadAngle() const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+  return m_deadAngle;
 }
 
 inline double BeamCalGeoDD::getCrossingAngle() const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+  return m_crossingAngle;
 }
 
 inline std::vector<double> const& BeamCalGeoDD::getRadSegmentation() const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
-  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+  return m_radSegmentation;
+}
+
+
+
+int BeamCalGeoDD::getFirstFullRing() const {
+  int ring = 0;
+  while ( getCutout() > getRadSegmentation()[ring] ) { ++ring; }
+  return ring;
 }
 
 

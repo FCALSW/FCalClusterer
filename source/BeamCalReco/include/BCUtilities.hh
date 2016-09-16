@@ -77,7 +77,7 @@ namespace BCUtil{
   }
 
   void DecodeCellID(lcio::CellIDDecoder<lcio::SimCalorimeterHit> &mydecoder, const lcio::SimCalorimeterHit* hit, 
-		    int& side, int& layer, int& cylinder, int& sector);
+		    int& side, int& layer, int& cylinder, int& sector, bool dd4hep=false);
  
   // inline const gear::CalorimeterParameters& BCPs() { return marlin::Global::GEAR->getBeamCalParameters(); }
 

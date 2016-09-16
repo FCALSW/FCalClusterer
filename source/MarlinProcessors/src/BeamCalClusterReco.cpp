@@ -258,10 +258,14 @@ BeamCalGeo* BeamCalClusterReco::getBeamCalGeo(){
 
 #ifdef FCAL_WITH_DD4HEP
   DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
-  const DD4hep::Geometry::DetElement& beamcal = lcdd.detector("BeamCal");
-  if (beamcal.isValid()){
-    streamlog_out(DEBUG) << "Creating DD4hep Based geometry" << std::endl;
-    return new BeamCalGeoDD(lcdd);
+  try {
+    const DD4hep::Geometry::DetElement& beamcal = lcdd.detector("BeamCal");
+    if (beamcal.isValid()){
+      streamlog_out(DEBUG) << "Creating DD4hep Based geometry" << std::endl;
+      m_usingDD4HEP = true;
+      return new BeamCalGeoDD(lcdd);
+    }
+  } catch (...) {
   }
 #endif
 
@@ -402,7 +406,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     for(int i=0; i < nHits; i++) {
       SimCalorimeterHit *bcalhit = static_cast<SimCalorimeterHit*>(colBCal->getElementAt(i));
       int side, layer, ring, sector;
-      BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, ring, sector);
+      BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, ring, sector, m_usingDD4HEP);
       const float energy = bcalhit->getEnergy();
       depositedEnergy += energy;
 
@@ -418,6 +422,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 	  padEnergiesRight.addEnergy(layer, ring, sector, energy);
 	}
       } catch (std::out_of_range &e){
+
 	streamlog_out(DEBUG1) << "Filling from signal: " << e.what()
 			      << std::setw(10) << layer
 			      << std::setw(10) << ring

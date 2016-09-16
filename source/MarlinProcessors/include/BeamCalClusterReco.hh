@@ -132,7 +132,7 @@ private:
   ///Creates the BeamCalGeometry either from DD4hep if compiled with DD4hep and
   ///the geometry is available or from GearFile in all other cases
   BeamCalGeo* getBeamCalGeo();
-
+  bool m_usingDD4HEP;
 } ;
 
 

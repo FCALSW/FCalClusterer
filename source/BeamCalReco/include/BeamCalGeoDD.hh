@@ -3,6 +3,9 @@
 
 #include "BeamCalGeo.hh"
 
+#include <DD4hep/LCDD.h>
+#include <DD4hep/Detector.h>
+
 namespace DD4hep{
   namespace Geometry {
     struct DetElement;
@@ -46,6 +49,7 @@ public:
   virtual double                getLayerZDistanceToIP(const int lr) const;
   virtual double                getDeadAngle()       const;
 
+  virtual int                   getFirstFullRing()   const;
   virtual double                getFullKeyHoleCutoutAngle() const ;
   virtual int                   getPadsBeforeRing( int ring ) const;
   virtual double                getCrossingAngle()   const;
@@ -58,9 +62,12 @@ public:
   //we have 8 full segments
   virtual int getSymmetryFold() const { return 8; }
 
+  virtual int getPadsInRing( int ring ) const;
+
 
 private:
-  const DD4hep::Geometry::DetElement& m_BeamCal;
+  DD4hep::Geometry::DetElement m_BeamCal;
+  DD4hep::Geometry::Segmentation m_segmentation;
 
   ///Read From DD4hep/DDRec/Segemnation
   double		m_innerRadius;
@@ -70,6 +77,7 @@ private:
   std::vector<double>	m_phiSegmentation;
   std::vector<double>	m_radSegmentation;
   std::vector<int>	m_nPhiSegments;
+  std::vector<double>   m_layerDistanceToIP;
   double		m_cutOut;
   double		m_beamCalZPosition;
   double                m_deadAngle;
@@ -81,6 +89,11 @@ private:
   std::vector<int>	m_padsBeforeRing;
   int			m_padsPerLayer;
   int			m_padsPerBeamCal;
+
+  void setPadsInRing();
+  void setPadsBeforeRing();
+  void setPadsPerLayer();
+  void setPadsPerBeamCal();
 
 
 };

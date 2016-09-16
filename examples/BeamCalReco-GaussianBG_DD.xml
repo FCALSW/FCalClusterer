@@ -6,15 +6,7 @@
 
  <global>
    <parameter name="LCIOInputFiles">
-     Signal/ElectronsInBeamCal_1500GEV_1.slcio
-     Signal/ElectronsInBeamCal_1500GEV_2.slcio
-     Signal/ElectronsInBeamCal_1500GEV_3.slcio
-     Signal/ElectronsInBeamCal_1500GEV_4.slcio
-     Signal/ElectronsInBeamCal_1500GEV_5.slcio
-     Signal/ElectronsInBeamCal_1500GEV_6.slcio
-     Signal/ElectronsInBeamCal_1500GEV_7.slcio
-     Signal/ElectronsInBeamCal_1500GEV_8.slcio
-     Signal/ElectronsInBeamCal_1500GEV_9.slcio
+     Electrons_DD4hep.slcio
  </parameter>
   <!-- limit the number of processed records (run+evt): -->
   <parameter name="MaxRecordNumber" value=" 10 " />
@@ -37,13 +29,13 @@
  <processor name="BCReco" type="BeamCalClusterReco">
    <!--BeamCalClusterReco takes a list of beamcal background files from the ReadBeamCalprocessor, adds NumberOfBX of them together and puts the signal hits from thelcio input file on top of that, and then clustering is attempted.-->
    <!--Name of BeamCal Collection-->
-   <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit">BeamCalCollection </parameter>
+   <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit"> BeamCalCollection </parameter>
    <!--Flag to create the TEfficiency for fast tagging library-->
    <parameter name="CreateEfficiencyFile" type="bool"> true </parameter>
    <!--Energy in a Cluster to consider it an electron-->
    <parameter name="ETCluster" type="FloatVec">0.5 2 1  </parameter>
    <!--Energy in a Pad, after subtraction of background required to consider it for signal-->
-   <parameter name="ETPad" type="FloatVec">0.5 0.3 0.2  </parameter>
+   <parameter name="ETPad" type="FloatVec">0.1 0.3 0.2  </parameter>
    <!--The name of the rootFile which will contain the TEfficiency objects-->
    <parameter name="EfficiencyFilename" type="string">TaggingEfficiency.root </parameter>
    <!--How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged]-->
@@ -57,9 +49,9 @@
   <!--Minimum number of pads in a single tower to be considered for signal-->
   <parameter name="MinimumTowerSize" type="int">4 </parameter>
   <!--Number of Bunch Crossings of Background-->
-  <parameter name="NumberOfBX" type="int">40 </parameter>
+  <parameter name="NumberOfBX" type="int"> 1 </parameter>
   <!--Number of Event that should be printed to PDF File-->
-  <parameter name="PrintThisEvent" type="int">1 </parameter>
+  <parameter name="PrintThisEvent" type="int"> 1 </parameter>
   <!--Name of the Reconstructed Cluster collection-->
   <parameter name="RecoClusterCollectionname" type="string" lcioOutType="Cluster">BCalClusters </parameter>
   <!--Name of the Reconstructed Particle collection-->
@@ -75,7 +67,7 @@
   <!--Use the cuts for the pads specified in ETPad, if false, the variance in each pad is used times SigmaPad Factor-->
   <parameter name="UseConstPadCuts" type="bool">false </parameter>
   <!--Use Chi2 selection criteria to detect high energy electron in the signal.-->
-  <parameter name="UseChi2Selection" type="bool">true </parameter>
+  <parameter name="UseChi2Selection" type="bool"> false </parameter>
   <!--Limit on square norm of tower energy chi2/ndf, where chi2 = (E_dep - E_bg)^2/sig^2. Reasonable value for pregenerated bkg is 5., for gaussian is 2. -->
   <parameter name="TowerChi2ndfLimit" type="double"> 2.0 </parameter>
   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
