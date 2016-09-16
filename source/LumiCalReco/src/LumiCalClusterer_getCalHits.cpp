@@ -49,7 +49,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
     for (int i=0; i<nHitsCol; ++i) {
       
       int arm(0), layer(0);
-      //int rCell(0), phiCell(0);
+      int rCell(0), phiCell(0);
 
       // get the hit from the LCCollection with index i
       IMPL::SimCalorimeterHitImpl * calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
@@ -62,12 +62,15 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       /// APS: Can be taken from the position of the calohit, when it is stored
 
       // get parameters from the input IMPL::CalorimeterHitImpl
-     
-     arm     = (*_mydecoder)( calHitIn )["S-1"] ;          //        from 0
-     int rCell   = (*_mydecoder)( calHitIn )["I"] ;        //        from 0
-     int phiCell = (*_mydecoder)( calHitIn )["J"] ;        //        from 0
-     layer   = (*_mydecoder)( calHitIn )["K"] ;            // counts from 1
-
+     if( not true ) {
+       arm     = (*_mydecoder)( calHitIn )["S-1"] ;          // from 0
+       rCell   = (*_mydecoder)( calHitIn )["I"] ;        // from 0
+       phiCell = (*_mydecoder)( calHitIn )["J"] ;        // from 0
+       layer   = (*_mydecoder)( calHitIn )["K"] ;            // counts from 1
+     } else {
+       arm =(*_mydecoder)( calHitIn )["barrel"] ;      // from 0
+       layer   = (*_mydecoder)( calHitIn )["layer"] ;  // counts from 1
+     }
      //          
 
 
