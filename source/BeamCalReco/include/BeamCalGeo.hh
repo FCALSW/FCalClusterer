@@ -30,6 +30,7 @@ public:
   virtual std::vector<double> const&  getPhiSegmentation() const = 0;
   virtual std::vector<double> const&  getRadSegmentation() const = 0;
   virtual std::vector<int>    const&  getNSegments()       const = 0;
+
   virtual double                getCutout()          const = 0;
   virtual double                getBCZDistanceToIP() const = 0;
   virtual double                getLayerZDistanceToIP(const int lr) const = 0;
@@ -43,8 +44,8 @@ public:
   virtual int getPadsInRing( int ring ) const;
   virtual int getSymmetryFold() const = 0;
 
-  virtual double getPadsDistance(int globalPadIndex1, int globalPadIndex2) const = 0;
-  virtual void   getPadExtentsById(int globalPadIndex, double *extents) const = 0;
+  double getPadsDistance(int globalPadIndex1, int globalPadIndex2) const;
+  void   getPadExtentsById(int globalPadIndex, double *extents) const;
 
   void   getPadExtents(int cylinder, int sector, double *extents) const;
   double getPadMiddlePhi(int cylinder, int sector) const;
@@ -54,8 +55,8 @@ public:
   double getThetaFromRing(int layer, int ring) const;
   double getThetaFromRing(int ring) const;
 
-  virtual double getPadPhi(int ring, int pad) const;
-  virtual double getPadPhi(int globalPandIndex) const;
+  double getPadPhi(int ring, int pad) const;
+  double getPadPhi(int globalPandIndex) const;
 
 protected:
 

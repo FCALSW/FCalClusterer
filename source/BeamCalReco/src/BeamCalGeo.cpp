@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <algorithm>
 
 
 //Return the double[6] pointer with innerRadius, Outerradius, Phi1 and Phi2, middle radius, middle phi
@@ -341,4 +342,25 @@ int BeamCalGeo::getLayer(int padIndex) const {
   int ring = 0;
   while ( getCutout() > getRadSegmentation()[ring] ) { ++ring; }
   return ring;
+}
+
+void BeamCalGeo::getPadExtentsById(int globalPadIndex, double *extents) const {
+  int layer=0, ring=0, pad=0;
+  getLayerRingPad( globalPadIndex, layer, ring, pad);
+  this->getPadExtents(ring, pad, extents);
+}
+
+
+double BeamCalGeo::getPadsDistance(int padIndex1, int padIndex2) const {
+  const double DEGRAD=M_PI/180.;
+  static double e1[6], e2[6];
+  static int prev_pi1(-1), prev_pi2(-1);
+  if ( padIndex1 != prev_pi1) getPadExtentsById(padIndex1, e1), prev_pi1 = padIndex1;
+  if ( padIndex2 != prev_pi2) getPadExtentsById(padIndex2, e2), prev_pi2 = padIndex2;
+  //std::cout << padIndex1 << "\t" << padIndex2 << "\t" << e2[4] << "\t" << e2[5] << std::endl;
+
+  double dx = e1[4]*cos(e1[5]*DEGRAD) - e2[4]*cos(e2[5]*DEGRAD);
+  double dy = e1[4]*sin(e1[5]*DEGRAD) - e2[4]*sin(e2[5]*DEGRAD);
+  double d = sqrt(dx*dx+dy*dy);
+  return d;
 }

@@ -25,15 +25,6 @@ public:
   virtual int getLayer(int padIndex) const;
   virtual int getRing(int padIndex) const;
   virtual int getLocalPad(int padIndex) const;
-  virtual void getLayerRingPad(int padIndex, int& layer, int& ring, int& pad) const;
-  virtual bool arePadsNeighbours(int padIndex1, int padIndex2, bool mustBeInSameLayer = false) const;
-
-  virtual int getPadIndex(int layer, int ring, int pad) const throw(std::out_of_range);
-  // virtual double getPadPhi(int ring, int pad) const;
-  // virtual double getPadPhi(int globalPandIndex) const;
-
-  virtual double getThetaFromRing(int layer, double averageRing) const;
-
 
   virtual double                getBCInnerRadius()   const;
   virtual double                getBCOuterRadius()   const;
@@ -52,11 +43,6 @@ public:
   virtual double                getFullKeyHoleCutoutAngle() const ;
   virtual int                   getPadsBeforeRing( int ring ) const;
   virtual double                getCrossingAngle()   const;
-
-
-  virtual double getPadsDistance(int globalPadIndex1, int globalPadIndex2) const;
-  virtual void getPadExtentsById(int globalPadIndex, double *extents) const;
-
 
   //we have 8 full segments
   virtual int getSymmetryFold() const { return 8; }
