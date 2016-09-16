@@ -40,7 +40,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
 								m_padsPerLayer(-1),
 								m_padsPerBeamCal(-1)
  {
-   std::cout << __PRETTY_FUNCTION__  << std::endl;
+
    m_crossingAngle=20.0;// mrad!!! FIXME
 
    // DD4hep::DDRec::LayeredCalorimeterData * getExtension(unsigned int includeFlag, unsigned int excludeFlag=0);
@@ -68,18 +68,6 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
 	m_layerDistanceToIP.push_back((theLayer.distance+theLayer.inner_thickness)/dd4hep::mm);
     }
 
-   
-   // parameters.m_innerPhiCoordinate = inputParameters.inner_phi0/dd4hep::rad;
-   // parameters.m_innerSymmetryOrder = inputParameters.inner_symmetry;
-   // parameters.m_outerRCoordinate = inputParameters.extent[1]/dd4hep::mm;
-   // parameters.m_outerZCoordinate = inputParameters.extent[3]/dd4hep::mm;
-   // parameters.m_outerPhiCoordinate = inputParameters.outer_phi0/dd4hep::rad;
-   // parameters.m_outerSymmetryOrder = inputParameters.outer_symmetry;
-   // parameters.m_isMirroredInZ = true;
-
-
-  std::cout << __PRETTY_FUNCTION__  << std::endl;
-
   streamlog_out(MESSAGE) << "Segmentation Type" << m_segmentation.type()  << std::endl;
   streamlog_out(MESSAGE) <<"FieldDef: " << m_segmentation.segmentation()->fieldDescription()  << std::endl;
 
@@ -105,13 +93,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
   for (int i = 0; i < m_rings;++i) {
     const int NUMBER_OF_SENSOR_SEGMENTS = 8;
     m_nPhiSegments.push_back(int((2*M_PI-m_deadAngle)/m_phiSegmentation[i]+0.5)/NUMBER_OF_SENSOR_SEGMENTS);
-
     m_radSegmentation[i] = m_radSegmentation[i]/dd4hep::mm;
-
-    std::cout <<  "Ring " << i
-	      << "  nSegments " << m_nPhiSegments.back()
-	      << "  Radius " << m_radSegmentation[i]
-	      << std::endl;
 
   }
   // the outer radius needs to be fixed as well
@@ -132,14 +114,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
   setPadsPerLayer();
   setPadsPerBeamCal();
 
-  std::cout << "Pads Per Layer " << m_padsPerLayer  << std::endl;
-  std::cout << "Layers in BeamCal " << m_layers  << std::endl;
-  std::cout << "Pads Per BeamCal " << m_padsPerBeamCal  << std::endl;
-  std::cout << "CutOutRadius " << getCutout()  << std::endl;
 }
-// [ VERBOSE "BCReco"] Pads Per Layer 1157
-// [ VERBOSE "BCReco"] Pads Per BeamCal 47437
-// [ VERBOSE "BCReco"] CutOutRadius 72.32981755374473
 
 //Wrappers around DD4hep Interface:
 inline double                BeamCalGeoDD::getBCInnerRadius() const { 
@@ -209,7 +184,6 @@ inline int BeamCalGeoDD::getPadsBeforeRing(int ring) const {
 void BeamCalGeoDD::setPadsBeforeRing() {
   int nPads = 0;
   for (int ring = 0; ring <= m_rings; ++ring) {//we want the number of pads _before_ the ring
-    std::cout << "PadsBeforeRing " << ring << " " << nPads  << std::endl;
     m_padsBeforeRing[ring] = nPads;
     nPads += getPadsInRing(ring);
   }
@@ -218,13 +192,10 @@ void BeamCalGeoDD::setPadsBeforeRing() {
 
 
 void BeamCalGeoDD::setPadsPerLayer() {
-  std::cout << __PRETTY_FUNCTION__  << std::endl;
-  std::cout << getBCRings()  << std::endl;
   m_padsPerLayer = getPadsBeforeRing( getBCRings() );
 }
 
 void BeamCalGeoDD::setPadsPerBeamCal() {
-  std::cout << __PRETTY_FUNCTION__  << std::endl;
   m_padsPerBeamCal = getPadsPerLayer() * getBCLayers();
 }
 
@@ -234,7 +205,6 @@ int BeamCalGeoDD::getPadsInRing( int ring ) const {
 
 
 void BeamCalGeoDD::setPadsInRing()  {
-  std::cout << __PRETTY_FUNCTION__  << std::endl;
   for (int ring = 0; ring < m_rings; ++ring) {
     m_padsPerRing[ring] = BeamCalGeo::getPadsInRing(ring);
   }//for all rings
