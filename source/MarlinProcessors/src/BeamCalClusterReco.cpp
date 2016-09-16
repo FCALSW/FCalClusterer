@@ -265,7 +265,15 @@ BeamCalGeo* BeamCalClusterReco::getBeamCalGeo(){
       m_usingDD4HEP = true;
       return new BeamCalGeoDD(lcdd);
     }
+  } catch( std::runtime_error &e ) {
+    streamlog_out(ERROR) << " Failed to created BeamCalGeometry from DD4hep: "
+			 << e.what()
+			 << std::endl;
+    streamlog_out(ERROR) << " Falling back to using GEAR as geometry source."
+			 << std::endl;
   } catch (...) {
+    streamlog_out(ERROR) << " Falling back to using GEAR as geometry source."
+			 << std::endl;
   }
 #endif
 

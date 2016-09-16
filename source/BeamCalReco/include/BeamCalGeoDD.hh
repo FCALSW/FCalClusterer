@@ -69,7 +69,7 @@ private:
   DD4hep::Geometry::DetElement m_BeamCal;
   DD4hep::Geometry::Segmentation m_segmentation;
 
-  ///Read From DD4hep/DDRec/Segemnation
+  ///Read From DD4hep/DDRec/Segmentation
   double		m_innerRadius;
   double		m_outerRadius;
   int			m_layers;
@@ -78,23 +78,25 @@ private:
   std::vector<double>	m_radSegmentation;
   std::vector<int>	m_nPhiSegments;
   std::vector<double>   m_layerDistanceToIP;
-  double		m_cutOut;
   double		m_beamCalZPosition;
   double                m_deadAngle;
-  double                m_crossingAngle;
-
 
   //calculated
   std::vector<int>	m_padsPerRing;
   std::vector<int>	m_padsBeforeRing;
   int			m_padsPerLayer;
   int			m_padsPerBeamCal;
+  double                m_crossingAngle;
+  double		m_cutOut;
+  int                   m_firstFullRing;
 
   void setPadsInRing();
   void setPadsBeforeRing();
   void setPadsPerLayer();
   void setPadsPerBeamCal();
-
+  void setCrossingAngle();
+  void setFirstFullRing();
+  void setCutOut();
 
 };
 
