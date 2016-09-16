@@ -80,6 +80,12 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
   m_radSegmentation = rValues;
   m_phiSegmentation = pValues;
 
+  //DeadAngle Calculations
+  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
+  ParDou* oPPar = dynamic_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
+  double offsetPhi = oPPar->typedValue();
+  m_deadAngle = 2.0 * ( M_PI + offsetPhi/dd4hep::radian );
+
   for (int i = 0; i < m_rings;++i) {
     const int NUMBER_OF_SENSOR_SEGMENTS = 8;
     m_nPhiSegments.push_back(int((2*M_PI-m_deadAngle)/m_phiSegmentation[i]+0.5)/NUMBER_OF_SENSOR_SEGMENTS);
@@ -88,12 +94,6 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
   }
   // the outer radius needs to be fixed as well
   m_radSegmentation[m_rings] = m_radSegmentation[m_rings]/dd4hep::mm;
-
-  //DeadAngle Calculations
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
-  ParDou* oPPar = dynamic_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
-  double offsetPhi = oPPar->typedValue();
-  m_deadAngle = 2.0 * ( M_PI + offsetPhi/dd4hep::radian );
 
 
   m_padsPerRing.resize(m_rings+1);
