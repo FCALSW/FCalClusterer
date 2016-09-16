@@ -1,4 +1,11 @@
  -------
+| v0-04 |
+ -------
+
+BeamCalReco:
+* Implemented compatibility with DD4hep Geometry
+
+ -------
 | v0-03 |
  -------
 
