@@ -48,12 +48,14 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
   m_beamCalZPosition = theExtension->extent[2]/dd4hep::mm;
   const std::vector<DD4hep::DDRec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
 
-  // -1 because of the graphite layer
-  //FIXME: What if there is no graphite layer?, count sensitives only?
-  m_layers = layers.size()-1;
-
-  for (size_t i = 1; i < layers.size(); i++) {
+  m_layers = layers.size();
+  for (size_t i = 0; i < layers.size(); i++) {
     const DD4hep::DDRec::LayeredCalorimeterStruct::Layer & theLayer = layers.at(i);
+    //no inner thickness means no sensitive detector, like the old graphite layer
+    if ( theLayer.inner_thickness == 0.0 ) {
+      m_layers--;
+      continue;
+    }
     //Distance to center of sensitive element
     m_layerDistanceToIP.push_back((theLayer.distance+theLayer.inner_thickness)/dd4hep::mm);
   }
