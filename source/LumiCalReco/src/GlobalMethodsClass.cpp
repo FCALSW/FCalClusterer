@@ -8,6 +8,15 @@
 #include <gear/CalorimeterParameters.h>
 #include <gear/GearMgr.h>
 
+#ifdef FCAL_WITH_DD4HEP
+
+#include <DD4hep/LCDD.h>
+#include <DD4hep/Detector.h>
+#include <DD4hep/DD4hepUnits.h>
+#include <DDRec/DetectorData.h>
+#include <DDRec/API/IDDecoder.h>
+
+#endif
 
 
 #include <streamlog/loglevels.h>
@@ -20,10 +29,8 @@ using streamlog::MESSAGE;
 #include <sstream>
 #include <cmath>
 #include <cstdlib>
-#include <cassert>
 #include <iostream>
 #include <iomanip>
-#include <sstream>
 
 // utility copied from marlin 
 template <class T>
@@ -38,6 +45,7 @@ double GlobalMethodsClass::EnergyCalibrationFactor = 0.0105;
 
 GlobalMethodsClass :: GlobalMethodsClass() :
   _procName( "MarlinLumiCalClusterer" ),
+  _useDD4HEP(false),
   GlobalParamI(),
   GlobalParamD(),
   GlobalParamS()
@@ -45,6 +53,7 @@ GlobalMethodsClass :: GlobalMethodsClass() :
 }
 GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
   _procName( name ),
+  _useDD4HEP(false),
   GlobalParamI(),
   GlobalParamD(),
   GlobalParamS()
@@ -110,10 +119,6 @@ int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t Z
 
 void GlobalMethodsClass::SetConstants() {
 
-
-  // BP. access gear file
-  gear::GearMgr* gearMgr =  marlin::Global::GEAR;
-  const gear::CalorimeterParameters& _lcalGearPars = gearMgr->getLcalParameters();
   
   // BP. access processor parameters
   marlin::StringParameters* _lcalRecoPars = NULL;
@@ -121,41 +126,26 @@ void GlobalMethodsClass::SetConstants() {
   marlin::Processor* procPTR = procMgr->getActiveProcessor( _procName );
   //procMgr->dumpRegisteredProcessorsXML();
 
-
-  if ( procPTR )
+  if ( procPTR ) {
     _lcalRecoPars = procPTR->parameters();
-  else{                                                // try with My+_procName
+  } else{                                                // try with My+_procName
     _procName = "My" + _procName;
-    procPTR = procMgr->getActiveProcessor( _procName ); 
-    _lcalRecoPars = procPTR -> parameters();
+    procPTR = procMgr->getActiveProcessor( _procName );
+    if( procPTR) {
+      _lcalRecoPars = procPTR -> parameters();
+    }
   }
   if( !_lcalRecoPars ) {
     streamlog_out( MESSAGE ) << " GlobalMethodsClass::SetConstants : Non of processor names ("<<_procName<< ", My"<<_procName<< ") found !" << std::endl;
     exit( EXIT_FAILURE );
   }
 
-  // GEAR access
-  // geometry parameters of LumiCal
-  // inner and outer radii [mm]
-  GlobalParamD[RMin] = _lcalGearPars.getExtent()[0];
-  GlobalParamD[RMax] = _lcalGearPars.getExtent()[1];
-
-  // starting/end position [mm]
-  GlobalParamD[ZStart] = _lcalGearPars.getExtent()[2];
-  GlobalParamD[ZEnd]   = _lcalGearPars.getExtent()[3];
-
-  // cell division numbers
-  GlobalParamD[RCellLength]   = _lcalGearPars.getLayerLayout().getCellSize0(0);
-  GlobalParamD[PhiCellLength] = _lcalGearPars.getLayerLayout().getCellSize1(0);
-  GlobalParamI[NumCellsR]   = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
-  GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
-  GlobalParamI[NumCellsZ] = _lcalGearPars.getLayerLayout().getNLayers();
-
- // beam crossing angle ( convert to rad )
-  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle") / 1000.; 
-
-  // layer thickness
-  GlobalParamD[ZLayerThickness] = _lcalGearPars.getLayerLayout().getThickness(0);
+  //SetGeometryConstants
+  if( SetGeometryDD4HEP() ) {
+    _useDD4HEP=true;
+  } else {
+    SetGeometryGear();
+  }
 
   //------------------------------------------------------------------------ 
   // Processor Parameters 
@@ -322,4 +312,91 @@ void GlobalMethodsClass::PrintAllParameters() const {
   }
   streamlog_out(MESSAGE) << "---------------------------------------------------------------" << std::endl;
 
+}
+
+void GlobalMethodsClass::SetGeometryGear() {
+
+  // GEAR access
+  // BP. access gear file
+  gear::GearMgr* gearMgr =  marlin::Global::GEAR;
+  const gear::CalorimeterParameters& _lcalGearPars = gearMgr->getLcalParameters();
+  // geometry parameters of LumiCal
+  // inner and outer radii [mm]
+  GlobalParamD[RMin] = _lcalGearPars.getExtent()[0];
+  GlobalParamD[RMax] = _lcalGearPars.getExtent()[1];
+
+  // starting/end position [mm]
+  GlobalParamD[ZStart] = _lcalGearPars.getExtent()[2];
+  GlobalParamD[ZEnd]   = _lcalGearPars.getExtent()[3];
+
+  // cell division numbers
+  GlobalParamD[RCellLength]   = _lcalGearPars.getLayerLayout().getCellSize0(0);
+  GlobalParamD[PhiCellLength] = _lcalGearPars.getLayerLayout().getCellSize1(0);
+  GlobalParamI[NumCellsR]   = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
+  GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
+  GlobalParamI[NumCellsZ] = _lcalGearPars.getLayerLayout().getNLayers();
+
+ // beam crossing angle ( convert to rad )
+  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle") / 1000.; 
+
+  // layer thickness
+  GlobalParamD[ZLayerThickness] = _lcalGearPars.getLayerLayout().getThickness(0);
+}
+
+
+bool GlobalMethodsClass::SetGeometryDD4HEP() {
+#ifdef FCAL_WITH_DD4HEP
+  std::cout << __PRETTY_FUNCTION__  << std::endl;
+  DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+
+  DD4hep::Geometry::DetElement lumical(lcdd.detector("LumiCal"));
+  DD4hep::Geometry::Segmentation readout(lcdd.readout("LumiCalCollection").segmentation());
+
+  streamlog_out(MESSAGE) << "Segmentation Type" << readout.type()  << std::endl;
+  streamlog_out(MESSAGE) <<"FieldDef: " << readout.segmentation()->fieldDescription()  << std::endl;
+
+  const DD4hep::DDRec::LayeredCalorimeterData * theExtension = lumical.extension<DD4hep::DDRec::LayeredCalorimeterData>();
+  const std::vector<DD4hep::DDRec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
+
+  GlobalParamD[RMin] = theExtension->extent[0]/dd4hep::mm;
+  GlobalParamD[RMax] = theExtension->extent[1]/dd4hep::mm;
+
+  // starting/end position [mm]
+  GlobalParamD[ZStart] = theExtension->extent[2]/dd4hep::mm;
+  GlobalParamD[ZEnd]   = theExtension->extent[3]/dd4hep::mm;
+
+  // cell division numbers
+  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
+  ParDou* rPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_r"));
+  ParDou* pPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_phi"));
+
+  GlobalParamD[RCellLength]   = rPar->typedValue()/dd4hep::mm;
+  GlobalParamD[PhiCellLength] = pPar->typedValue()/dd4hep::radian;
+  GlobalParamI[NumCellsR]     = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
+  GlobalParamI[NumCellsPhi]   = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
+  GlobalParamI[NumCellsZ]     = layers.size();
+
+  // beam crossing angle ( convert to rad )
+  DD4hep::Geometry::DetElement::Children children = lumical.children();
+
+  if( children.empty() ) {
+    throw std::runtime_error( "Cannot obtain crossing angle from this LumiCal, update lcgeo?" );
+  }
+
+  for( DD4hep::Geometry::DetElement::Children::const_iterator it = children.begin(); it != children.end(); ++it ) {
+    DD4hep::Geometry::Position loc(0.0, 0.0, 0.0);
+    DD4hep::Geometry::Position glob(0.0, 0.0, 0.0);
+    it->second.localToWorld( loc, glob );
+    GlobalParamD[BeamCrossingAngle] = 2.0*fabs( atan( glob.x() / glob.z() ) / dd4hep::rad );
+    break;
+  }
+
+  // layer thickness
+  GlobalParamD[ZLayerThickness] = layers[0].thickness;
+  
+  //successfully created geometry from DD4hep
+  return true;
+#endif
+  //no dd4hep geometry
+  return false;
 }
