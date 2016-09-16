@@ -21,7 +21,9 @@
  <processor name="MyInitializeDD4hep" type="InitializeDD4hep">
  <!--InitializeDD4hep reads a compact xml file and initializes the DD4hep::LCDD object-->
   <!--Name of the DD4hep compact xml file to load-->
-  <parameter name="DD4hepXMLFile" type="string">/cvmfs/ilc.desy.de/sw/x86_64_gcc48_sl6/v01-17-08/lcgeo/v00-05/CLIC/compact/CLIC_o2_v02/CLIC_o2_v02.xml  </parameter>
+  <parameter name="DD4hepXMLFile" type="string">
+    /cvmfs/ilc.desy.de/sw/x86_64_gcc48_sl6/v01-17-10/lcgeo/v00-08/CLIC/compact/CLIC_o2_v04/CLIC_o2_v04.xml
+  </parameter>
   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
   <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
 </processor>
