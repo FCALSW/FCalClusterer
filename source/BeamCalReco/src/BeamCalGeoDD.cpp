@@ -12,84 +12,102 @@ class BeamCalInfo;
 #include <vector>
 #include <algorithm>
 
-BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.detector("BeamCal")) {
+BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.detector("BeamCal")),
+								m_innerRadius(0.0),
+								m_outerRadius(0.0),
+								m_layers(0),
+								m_rings(0),
+								m_phiSegmentation(0),
+								m_radSegmentation(0),
+								m_nPhiSegments(0),
+								m_cutOut(0),
+								m_beamCalZPosition(0),
+								m_deadAngle(0),
+								m_crossingAngle(0),
+								m_padsPerRing(0),
+								m_padsBeforeRing(0),
+								m_padsPerLayer(0),
+								m_padsPerBeamCal(0)
+ {
+
+  std::cout << __PRETTY_FUNCTION__  << std::endl;
 
 }
 
 //Wrappers around DD4hep Interface:
 inline double                BeamCalGeoDD::getBCInnerRadius() const { 
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getInnerRadius();
 }
 
 inline double                BeamCalGeoDD::getBCOuterRadius() const { 
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //return m_BeamCal.extension<BeamCalInfo>()->getOuterRadius();
 }
 
 inline int                   BeamCalGeoDD::getBCLayers()      const { 
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //return m_BeamCal.extension<BeamCalInfo>()->getNumberOfLayers();
 } 
 
 inline int                   BeamCalGeoDD::getBCRings()       const { 
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //return m_BeamCal.extension<BeamCalInfo>()->getNumberOfRings();
 }
 
 inline std::vector<double> const&  BeamCalGeoDD::getSegmentation()  const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //return m_BeamCal.extension<BeamCalInfo>()->getPhiSegmentationsPerRing();
 }
 
 inline std::vector<int> const& BeamCalGeoDD::getNSegments()     const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //return m_BeamCal.extension<BeamCalInfo>()->getNumberPhiSegmentationsPerRing();
 }
 
 inline double                BeamCalGeoDD::getCutout()        const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //return m_BeamCal.extension<BeamCalInfo>()->getCutoutRadius();
 }
 
 inline double                BeamCalGeoDD::getBCZDistanceToIP() const { 
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
 
 inline double BeamCalGeoDD::getLayerZDistanceToIP(int) const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
 inline std::vector<double> const& BeamCalGeoDD::getPhiSegmentation() const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
 inline int BeamCalGeoDD::getPadsBeforeRing(int) const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
 inline double BeamCalGeoDD::getFullKeyHoleCutoutAngle() const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
 inline double BeamCalGeoDD::getDeadAngle() const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
 inline double BeamCalGeoDD::getCrossingAngle() const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 
 inline std::vector<double> const& BeamCalGeoDD::getRadSegmentation() const {
-  throw std::runtime_error("Not Implemented");
+  throw std::runtime_error(__PRETTY_FUNCTION__);
   //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
 }
 

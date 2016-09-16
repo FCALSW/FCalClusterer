@@ -257,13 +257,15 @@ registerProcessorParameter ("PrintThisEvent",
 BeamCalGeo* BeamCalClusterReco::getBeamCalGeo(){
 
 #ifdef FCAL_WITH_DD4HEP
- DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
- const DD4hep::Geometry::DetElement& beamcal = lcdd.detector("BeamCal");
- if (beamcal.isValid()){
-   return new BeamCalGeoDD(lcdd);
- }
+  DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+  const DD4hep::Geometry::DetElement& beamcal = lcdd.detector("BeamCal");
+  if (beamcal.isValid()){
+    streamlog_out(DEBUG) << "Creating DD4hep Based geometry" << std::endl;
+    return new BeamCalGeoDD(lcdd);
+  }
 #endif
 
+  streamlog_out(DEBUG) << "Creating GEAR based geometry" << std::endl;
   return new BeamCalGeoCached(marlin::Global::GEAR);
 }
 
