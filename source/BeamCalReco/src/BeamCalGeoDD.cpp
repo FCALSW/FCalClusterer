@@ -41,7 +41,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
 								m_padsPerBeamCal(-1)
  {
    std::cout << __PRETTY_FUNCTION__  << std::endl;
-   m_crossingAngle=20.0;// mrad!!!
+   m_crossingAngle=20.0;// mrad!!! FIXME
 
    // DD4hep::DDRec::LayeredCalorimeterData * getExtension(unsigned int includeFlag, unsigned int excludeFlag=0);
 
@@ -61,7 +61,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
    // -1 because of the graphite layer
    m_layers = layers.size()-1;
 
-    for (size_t i = 0; i< layers.size(); i++)
+    for (size_t i = 1; i < layers.size(); i++)
     {
         const DD4hep::DDRec::LayeredCalorimeterStruct::Layer & theLayer = layers.at(i);
 	//Distance to center of sensitive element
@@ -114,6 +114,8 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
 	      << std::endl;
 
   }
+  // the outer radius needs to be fixed as well
+  m_radSegmentation[m_rings] = m_radSegmentation[m_rings]/dd4hep::mm;
 
   //DeadAngle Calculations
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
@@ -165,7 +167,7 @@ inline std::vector<int> const& BeamCalGeoDD::getNSegments()     const {
 }
 
 inline double                BeamCalGeoDD::getCutout()        const {
-  const double cutOutRadius =  tan(m_crossingAngle)*getLayerZDistanceToIP(m_layers-1)+3.5;
+  const double cutOutRadius =  tan(m_crossingAngle/1000.0)*getLayerZDistanceToIP(m_layers-1)+3.5;
   return cutOutRadius;
 }
 

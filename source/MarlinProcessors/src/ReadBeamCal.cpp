@@ -177,7 +177,7 @@ void ReadBeamCal::end(){
 
   if( streamlog::out.write< DEBUG >() ) {
 
-    BeamCal bc(marlin::Global::GEAR);
+    BeamCal bc( *m_bcg );
 
     gStyle->SetOptStat(0);
     bc.SetLogz(1);

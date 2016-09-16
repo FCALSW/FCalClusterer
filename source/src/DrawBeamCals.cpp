@@ -58,7 +58,7 @@ int drawBeamCals(int argn, char **argc) {
   //  c.SetRightMargin(0.3);
   TH2F frame ("frame", "frame", 20, -200, 200, 20, -200, 200);
   gStyle->SetOptTitle(0);
-  BeamCal bc (gearMgr);
+  BeamCal bc (*geoCache);
   //bc.SetLogz(true);
   bc.SetBeamCalHisto( &(signalBeamCals[0]) );
   bc.SetAxisMin(1e-6);

@@ -39,7 +39,7 @@ class BeamCal {
 
   BeamCal(const BeamCal&);
   BeamCal& operator=(const BeamCal&);
-  BeamCal(gear::GearMgr* gearMgr);
+  BeamCal(BeamCalGeo const& geo);
 
   TH3D* getBeamCalHistogram(TString title);
 
@@ -104,7 +104,7 @@ class BeamCal {
 
 
  private:
-  BeamCalGeo* m_BCG;
+  BeamCalGeo const& m_BCG;
   Int_t m_bLogZ;
   Int_t m_nSymmetryfold;
   Int_t m_nFullfold;

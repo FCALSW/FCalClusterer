@@ -911,11 +911,11 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   // Deal with the data //
   ////////////////////////
 
-  BeamCal bc(marlin::Global::GEAR);
+  BeamCal bc(*m_BCG);
   bc.SetLogz(1);
   bc.SetBeamCalHisto(padEnergies,"tempLeft");
 
-  Double_t ymax = 20;
+  Double_t ymax = 0.5*double(m_nBXtoOverlay);
 
 
   for (int layer = startLayer; layer < startLayer + 4; ++layer) {

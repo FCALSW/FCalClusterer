@@ -3,7 +3,7 @@
 #include "BCPadEnergies.hh"
 #include "BCUtilities.hh"
 
-#include "BeamCalGeoCached.hh"
+#include "BeamCalGeo.hh"
 
 #include <gear/GEAR.h>
 #include <gear/GearMgr.h>
@@ -27,8 +27,8 @@
 #include <iostream>
 
 
-BeamCal::BeamCal(gear::GearMgr* gearMgr):
-  m_BCG(new BeamCalGeoCached(gearMgr)),
+BeamCal::BeamCal(BeamCalGeo const& geo):
+  m_BCG(geo),
   m_bLogZ(0),
   m_nSymmetryfold(8),
   m_nFullfold(m_nSymmetryfold + 1),
@@ -40,12 +40,12 @@ BeamCal::BeamCal(gear::GearMgr* gearMgr):
   m_h3BeamCalHisto(NULL)
 {
 
-  for( int ring=0; ring< m_BCG->getBCRings(); ring++){
-    const int padsInThisRing = m_BCG->getPadsInRing(ring);
+  for( int ring=0; ring< m_BCG.getBCRings(); ring++){
+    const int padsInThisRing = m_BCG.getPadsInRing(ring);
 
     for(int phiPad=0; phiPad < padsInThisRing; phiPad++){
       double extents[6];
-      m_BCG->getPadExtents(ring, phiPad, extents);
+      m_BCG.getPadExtents(ring, phiPad, extents);
       m_MapCrowns[ring][phiPad] = ( extents[2] < extents[3] ) ?
 		   TCrown(0,0,extents[0],extents[1],extents[2],extents[3]):
 		   TCrown(0,0,extents[0],extents[1],extents[2],extents[3]+360.0);
@@ -57,7 +57,6 @@ BeamCal::BeamCal(gear::GearMgr* gearMgr):
 
 BeamCal::~BeamCal() {
   delete m_h3BeamCalHisto;
-  delete m_BCG;
 }
 
 void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
@@ -83,8 +82,8 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
     pad->Update();
   }
 
-  for( int i=0; i<m_BCG->getBCRings(); i++){
-    for(int k=0; k<m_BCG->getPadsInRing(i); k++){
+  for( int i=0; i<m_BCG.getBCRings(); i++){
+    for(int k=0; k<m_BCG.getPadsInRing(i); k++){
       Double_t energy = BeamCalEnergy->GetBinContent(k+1, i+1);
       if(m_NormalizeByArea) {
 	energy = energy/GetPadArea(i, k);
@@ -157,8 +156,8 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
   }
   pad->Update();
 
-  for(int i=0; i<m_BCG->getBCRings(); i++){
-    for(int k=0; k<m_BCG->getPadsInRing(i); k++){
+  for(int i=0; i<m_BCG.getBCRings(); i++){
+    for(int k=0; k<m_BCG.getPadsInRing(i); k++){
       m_MapCrowns[i][k].DrawClone();
     }
   }
@@ -178,7 +177,7 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2F *frame, Int_t layerNumber){
   TH2D *BeamCalEnergy = (TH2D*)m_h3BeamCalHisto->Project3D("yz");
   BeamCalDraw(pad, BeamCalEnergy, frame);
   //We Reset the Axis Range of the Histogram
-  m_h3BeamCalHisto->SetAxisRange(0, m_BCG->getBCLayers(),"X");
+  m_h3BeamCalHisto->SetAxisRange(0, m_BCG.getBCLayers(),"X");
 }
 
 
@@ -194,7 +193,7 @@ TH1D* BeamCal::BeamCalDrawLayers(TPad *pad, Option_t* options){
   //  std::cout << "BC E Max " <<   BeamCalEnergy->GetMaximum() << std::endl;
   if(m_NormalizeByArea) {
     //Area in cm2
-    Double_t area = TMath::Pi()*(m_BCG->getBCOuterRadius()*m_BCG->getBCOuterRadius()-m_BCG->getBCInnerRadius()*m_BCG->getBCInnerRadius())/100.;
+    Double_t area = TMath::Pi()*(m_BCG.getBCOuterRadius()*m_BCG.getBCOuterRadius()-m_BCG.getBCInnerRadius()*m_BCG.getBCInnerRadius())/100.;
     std::cout << "AREA  " << area << std::endl;
     BeamCalEnergy->Scale(1./area);
     BeamCalEnergy->SetXTitle("Layer");
@@ -238,8 +237,8 @@ Double_t BeamCal::GetPadArea(Int_t cylinder, Int_t sector) const {
 Double_t BeamCal::GetCylinderArea(Int_t cylinder) const {
 
   Double_t OuterRadius,InnerRadius;
-  InnerRadius = m_BCG->getBCInnerRadius()+cylinder*(m_BCG->getBCOuterRadius()-m_BCG->getBCInnerRadius())/m_BCG->getBCRings();
-  OuterRadius = m_BCG->getBCInnerRadius()+(cylinder+1)*(m_BCG->getBCOuterRadius()-m_BCG->getBCInnerRadius())/m_BCG->getBCRings();
+  InnerRadius = m_BCG.getBCInnerRadius()+cylinder*(m_BCG.getBCOuterRadius()-m_BCG.getBCInnerRadius())/m_BCG.getBCRings();
+  OuterRadius = m_BCG.getBCInnerRadius()+(cylinder+1)*(m_BCG.getBCOuterRadius()-m_BCG.getBCInnerRadius())/m_BCG.getBCRings();
   return  (OuterRadius*OuterRadius-InnerRadius*InnerRadius)*TMath::Pi()/100.;
 }
 
@@ -264,8 +263,8 @@ void BeamCal::FillPadFlux(TH1D *BCPadFlux) {
   }
 
   for( int h=1; h<=m_h3BeamCalHisto->GetNbinsX(); ++h) {
-    for( int i=1; i<=m_BCG->getBCRings(); ++i) {
-      for(int k=1; k<=m_BCG->getPadsInRing(i-1); ++k) {
+    for( int i=1; i<=m_BCG.getBCRings(); ++i) {
+      for(int k=1; k<=m_BCG.getPadsInRing(i-1); ++k) {
 	if(m_NormalizeByArea) {  
 	  BCPadFlux->Fill(m_h3BeamCalHisto->GetBinContent(h,i,k)*factor/GetPadArea(i-1,k));
 	} else {
@@ -320,15 +319,15 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
   
   //Create the histograms
   RootUtils::Colors mycols;
-  for (Int_t i = 0; i < m_BCG->getBCRings(); ++i) {
-    Int_t bins = m_BCG->getPadsInRing(i);
+  for (Int_t i = 0; i < m_BCG.getBCRings(); ++i) {
+    Int_t bins = m_BCG.getPadsInRing(i);
     Double_t extents[6];
-    this->m_BCG->getPadExtents(i, 1, extents);
-    if( not (extents[0] > this->m_BCG->getCutout()) ){
+    this->m_BCG.getPadExtents(i, 1, extents);
+    if( not (extents[0] > this->m_BCG.getCutout()) ){
 #warning "FixMe number of bins in drawphidistributions"
       //calculate bins for the limited range
-      const double degreesDeadAngle = m_BCG->getDeadAngle()*TMath::RadToDeg();
-      double limitedBinSize =  (360.0-degreesDeadAngle) / double(m_BCG->getPadsInRing(i));
+      const double degreesDeadAngle = m_BCG.getDeadAngle()*TMath::RadToDeg();
+      double limitedBinSize =  (360.0-degreesDeadAngle) / double(m_BCG.getPadsInRing(i));
       std::vector<double> binning;
       //leave a gap between 175 and 185..., so zero to
 
@@ -364,13 +363,13 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
   
   //Now fill them with the distributions
   Double_t maximum = -1;
-  for(int j = 1; j <= m_BCG->getBCRings(); ++j) { //cylinder
-    for(int k = 1; k <= m_BCG->getPadsInRing(j-1); ++k) { //sector
+  for(int j = 1; j <= m_BCG.getBCRings(); ++j) { //cylinder
+    for(int k = 1; k <= m_BCG.getPadsInRing(j-1); ++k) { //sector
       const Double_t binContent = m_h3BeamCalHisto->GetBinContent(layer, j, k);
       const Double_t binError   = m_h3BeamCalHisto->GetBinError(layer, j, k);
 
       if(binContent > 0 ) {
-	Double_t phiBin = this->m_BCG->getPadMiddlePhi(j-1, k-1);
+	Double_t phiBin = this->m_BCG.getPadMiddlePhi(j-1, k-1);
 	// if( j == 9 ) {
 	//   int binnumber = phiHistos[j-1].FindBin(phiBin);
 	//   std::cout << phiBin
@@ -445,9 +444,9 @@ void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, TString title){
 
   int layer=-1, cylinder=-1, sector=-1;
   double energy;
-  for (int i = 0; i < m_BCG->getPadsPerBeamCal() ;++i) {
+  for (int i = 0; i < m_BCG.getPadsPerBeamCal() ;++i) {
     try {
-      m_BCG->getLayerRingPad(i, layer, cylinder, sector);
+      m_BCG.getLayerRingPad(i, layer, cylinder, sector);
       energy = bcpads->getEnergy(i);
       m_h3BeamCalHisto->Fill(layer, cylinder, sector, energy);
     }  catch(std::out_of_range &e) {
@@ -475,10 +474,10 @@ void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, const BCPadEnergies *
   m_h3BeamCalHisto = getBeamCalHistogram(title);
 
   int layer=-1, cylinder=-1, sector=-1;
-  for (int i = 0; i < m_BCG->getPadsPerBeamCal() ;++i) {
+  for (int i = 0; i < m_BCG.getPadsPerBeamCal() ;++i) {
     try {
       double energy, error;
-      m_BCG->getLayerRingPad(i, layer, cylinder, sector);
+      m_BCG.getLayerRingPad(i, layer, cylinder, sector);
       energy = bcpads->getEnergy(i);
       error =  bcErrors->getEnergy(i);
       m_h3BeamCalHisto->Fill(layer, cylinder, sector, energy);
@@ -509,13 +508,13 @@ TH3D* BeamCal::getBeamCalHistogram(TString title){
 
   // std::cout << "Creating new Histogram with "
   // 	    << std::setw(10) << m_nLayers + 1
-  // 	    << std::setw(10) << m_BCG->getBCRings()+1
+  // 	    << std::setw(10) << m_BCG.getBCRings()+1
   // 	    << std::setw(10) << 160
   // 	    << std::endl;
 TH3D *histo = new TH3D(title, title,
-		       m_BCG->getBCLayers()+1, 0.5, m_BCG->getBCLayers() + 1.5, //layers start at 1
-		       m_BCG->getBCRings(),  -0.5, m_BCG->getBCRings()-0.5,      //cylinder, start at 0
-		       m_BCG->getPadsInRing( m_BCG->getBCRings()-1), -0.5, m_BCG->getPadsInRing( m_BCG->getBCRings()-1)-0.5 //sectors // start at 0
+		       m_BCG.getBCLayers()+1, 0.5, m_BCG.getBCLayers() + 1.5, //layers start at 1
+		       m_BCG.getBCRings(),  -0.5, m_BCG.getBCRings()-0.5,      //cylinder, start at 0
+		       m_BCG.getPadsInRing( m_BCG.getBCRings()-1), -0.5, m_BCG.getPadsInRing( m_BCG.getBCRings()-1)-0.5 //sectors // start at 0
 		  );
  histo->SetDirectory(0);
  return histo;
@@ -558,4 +557,4 @@ TH3D *histo = new TH3D(title, title,
  }//assignment op
 
 
-int BeamCal::GetMaxSegmentation() {  return m_BCG->getPadsInRing( m_BCG->getBCRings()-1 ); }
+int BeamCal::GetMaxSegmentation() {  return m_BCG.getPadsInRing( m_BCG.getBCRings()-1 ); }
