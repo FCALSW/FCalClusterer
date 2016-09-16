@@ -77,12 +77,12 @@ BeamCalClusterReco aBeamCalClusterReco ;
 
 class LackingFilesException :public std::runtime_error {
 public:
-LackingFilesException(std::string error) : std::runtime_error(error) { }
+LackingFilesException(std::string const& error) : std::runtime_error(error) { }
 };
 
 class WrongParameterException :public std::runtime_error {
 public:
-WrongParameterException(std::string error) : std::runtime_error(error) { }
+WrongParameterException(std::string const& error) : std::runtime_error(error) { }
 };
 
 
