@@ -121,7 +121,8 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_MCinBeamCal(NULL),
                                            m_BCalClusterColName(""),
                                            m_BCalRPColName(""),
-                                           m_EfficiencyFileName("")
+                                           m_EfficiencyFileName(""),
+                                           m_usingDD4HEP(false)
 {
 
 // modify processor description
