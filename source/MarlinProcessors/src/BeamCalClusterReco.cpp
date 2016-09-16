@@ -46,6 +46,18 @@
 #include <TStyle.h>
 #include <TMarker.h>
 
+//DD4hep (optional for now)
+#ifdef FCAL_WITH_DD4HEP
+#include <DD4hep/LCDD.h>
+namespace DD4hep{
+  namespace Geometry {
+    struct DetElement;
+    struct LCDD;
+  }
+}
+#include "BeamCalGeoDD.hh"
+#endif
+
 //STDLIB
 #include <numeric>
 #include <iomanip>
@@ -240,6 +252,22 @@ registerProcessorParameter ("PrintThisEvent",
 
 }
 
+///Creates the BeamCalGeometry either from DD4hep if compiled with DD4hep and
+///the geometry is available or from GearFile in all other cases
+BeamCalGeo* BeamCalClusterReco::getBeamCalGeo(){
+
+#ifdef FCAL_WITH_DD4HEP
+ DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+ const DD4hep::Geometry::DetElement& beamcal = lcdd.detector("BeamCal");
+ if (beamcal.isValid()){
+   return new BeamCalGeoDD(lcdd);
+ }
+#endif
+
+  return new BeamCalGeoCached(marlin::Global::GEAR);
+}
+
+
 void BeamCalClusterReco::init() {
 
   Global::EVENTSEEDER->registerProcessor(this);
@@ -263,7 +291,7 @@ void BeamCalClusterReco::init() {
     throw WrongParameterException("== Error From BeamCalClusterReco == startingRings must always start with 0");
   }
 
-  m_BCG = new BeamCalGeoCached(marlin::Global::GEAR);
+  m_BCG = getBeamCalGeo();
 
   // select which background we have
   if(      string("Pregenerated") == m_bgMethodName ) {

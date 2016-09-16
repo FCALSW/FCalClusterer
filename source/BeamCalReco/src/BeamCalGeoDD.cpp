@@ -16,7 +16,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
 
 }
 
-//Wrappers around Gear Interface:
+//Wrappers around DD4hep Interface:
 inline double                BeamCalGeoDD::getBCInnerRadius() const { 
   throw std::runtime_error("Not Implemented");
   //  return m_BeamCal.extension<BeamCalInfo>()->getInnerRadius();
@@ -58,6 +58,40 @@ inline double                BeamCalGeoDD::getBCZDistanceToIP() const {
 }
 
 
+inline double BeamCalGeoDD::getLayerZDistanceToIP(int) const {
+  throw std::runtime_error("Not Implemented");
+  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+}
+
+inline std::vector<double> const& BeamCalGeoDD::getPhiSegmentation() const {
+  throw std::runtime_error("Not Implemented");
+  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+}
+
+inline int BeamCalGeoDD::getPadsBeforeRing(int) const {
+  throw std::runtime_error("Not Implemented");
+  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+}
+
+inline double BeamCalGeoDD::getFullKeyHoleCutoutAngle() const {
+  throw std::runtime_error("Not Implemented");
+  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+}
+
+inline double BeamCalGeoDD::getDeadAngle() const {
+  throw std::runtime_error("Not Implemented");
+  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+}
+
+inline double BeamCalGeoDD::getCrossingAngle() const {
+  throw std::runtime_error("Not Implemented");
+  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+}
+
+inline std::vector<double> const& BeamCalGeoDD::getRadSegmentation() const {
+  throw std::runtime_error("Not Implemented");
+  //  return m_BeamCal.extension<BeamCalInfo>()->getZPosition();
+}
 
 
 // void BeamCalGeoDD::countNumberOfPadsInRing(){
@@ -243,4 +277,36 @@ bool BeamCalGeoDD::arePadsNeighbours(int globalPadIndex1, int globalPadIndex2, b
 
   return false;
 
+}
+
+
+
+void BeamCalGeoDD::getPadExtentsById(int globalPadIndex, double *extents) const
+{
+  // pad index within layer
+  int padIndex = globalPadIndex%this->getPadsPerLayer();
+
+  std::vector<int>::const_iterator it_cylinder =
+    std::upper_bound(m_padsBeforeRing.begin(), m_padsBeforeRing.end(), padIndex)-1;
+  int cylinder = int(it_cylinder - m_padsBeforeRing.begin());
+  int sector = padIndex - m_padsBeforeRing.at(cylinder);
+
+  this->getPadExtents(cylinder, sector, extents);
+  //std::cout << m_padsBeforeRing.at(cylinder) << "\t" << cylinder << "\t" << sector <<"\t" << extents[4] << "\t" << extents[5]<< std::endl;
+}
+
+
+double BeamCalGeoDD::getPadsDistance(int padIndex1, int padIndex2) const
+{
+  const double DEGRAD=M_PI/180.;
+  static double e1[6], e2[6];
+  static int prev_pi1(-1), prev_pi2(-1);
+  if ( padIndex1 != prev_pi1) getPadExtentsById(padIndex1, e1), prev_pi1 = padIndex1;
+  if ( padIndex2 != prev_pi2) getPadExtentsById(padIndex2, e2), prev_pi2 = padIndex2;
+  //std::cout << padIndex1 << "\t" << padIndex2 << "\t" << e2[4] << "\t" << e2[5] << std::endl;
+
+  double dx = e1[4]*cos(e1[5]*DEGRAD) - e2[4]*cos(e2[5]*DEGRAD);
+  double dy = e1[4]*sin(e1[5]*DEGRAD) - e2[4]*sin(e2[5]*DEGRAD);
+  double d = sqrt(dx*dx+dy*dy);
+  return d;
 }

@@ -37,9 +37,27 @@ public:
   virtual int                   getBCLayers()        const;
   virtual int                   getBCRings()         const;
   virtual std::vector<double>  const& getSegmentation()    const;
+  virtual std::vector<double> const&  getPhiSegmentation() const;
+  virtual std::vector<double> const&  getRadSegmentation() const;
   virtual std::vector<int> const& getNSegments()       const;
   virtual double                getCutout()          const;
   virtual double                getBCZDistanceToIP() const;
+
+  virtual double                getLayerZDistanceToIP(const int lr) const;
+  virtual double                getDeadAngle()       const;
+
+  virtual double                getFullKeyHoleCutoutAngle() const ;
+  virtual int                   getPadsBeforeRing( int ring ) const;
+  virtual double                getCrossingAngle()   const;
+
+
+  virtual double getPadsDistance(int globalPadIndex1, int globalPadIndex2) const;
+  virtual void getPadExtentsById(int globalPadIndex, double *extents) const;
+
+
+  //we have 8 full segments
+  virtual int getSymmetryFold() const { return 8; }
+
 
 private:
   const DD4hep::Geometry::DetElement& m_BeamCal;

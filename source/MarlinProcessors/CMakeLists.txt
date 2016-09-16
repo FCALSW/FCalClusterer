@@ -11,7 +11,13 @@ SET( LumiCalProcessor_SOURCE src/MarlinLumiCalClusterer.cc)
 
 ADD_LIBRARY ( FCalClusterer SHARED ${BeamCalProcessor_SOURCE} ${LumiCalProcessor_SOURCE} )
 
-TARGET_LINK_LIBRARIES ( FCalClusterer BeamCalReco LumiCalReco )
+#LibrariesToLink
+SET( FCAL_LIBRARIES LumiCalReco BeamCalReco )
+IF( DD4hep_FOUND )
+  SET( FCAL_LIBRARIES ${FCAL_LIBRARIES} ${DD4hep_LIBRARIES} )
+ENDIF()
+
+TARGET_LINK_LIBRARIES ( FCalClusterer ${FCAL_LIBRARIES} )
 
 IF( CPPCHECK_FOUND )
   ADD_CPPCHECK( FCalClusterer UNUSED_FUNCTIONS STYLE POSSIBLE_ERRORS FORCE FAIL_ON_WARNINGS )
