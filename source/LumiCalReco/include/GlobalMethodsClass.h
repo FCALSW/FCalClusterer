@@ -24,6 +24,8 @@ class GlobalMethodsClass {
 
  private:
   std::string _procName;
+  bool _useDD4HEP;
+
  public:
 
   enum Parameter_t{
@@ -94,6 +96,11 @@ class GlobalMethodsClass {
   static int  CellIdZPR(int cellId, Coordinate_t ZPR);
 
   void PrintAllParameters() const;
+
+private:
+  void SetGeometryGear();
+  bool SetGeometryDD4HEP();
+
 
 };
 
