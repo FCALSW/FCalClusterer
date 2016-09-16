@@ -23,8 +23,8 @@ LIST( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 # FIND_PACKAGE( Cppcheck  )
 # IF ( CPPCHECK_FOUND )
 #   INCLUDE( CppcheckTargets )
+#   MESSAGE (STATUS "Cppcheck ${CPPCHECK_FOUND}" )
 # ENDIF()
-# MESSAGE (STATUS "Cppcheck ${CPPCHECK_FOUND}" )
 
 FOREACH( pkg LCIO GEAR streamlog Marlin ) #DD4hep
   IF ( ${FCAL_USE_${pkg}} )
