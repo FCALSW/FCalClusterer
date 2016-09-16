@@ -126,10 +126,6 @@ inline int                   BeamCalGeoDD::getBCRings()       const {
   return m_rings;
 }
 
-inline std::vector<double> const&  BeamCalGeoDD::getSegmentation()  const {
-  return m_phiSegmentation;
-}
-
 inline std::vector<int> const& BeamCalGeoDD::getNSegments()     const {
   return m_nPhiSegments;
 }
@@ -148,7 +144,7 @@ inline double BeamCalGeoDD::getLayerZDistanceToIP(int layer) const {
 }
 
 inline std::vector<double> const& BeamCalGeoDD::getPhiSegmentation() const {
-  throw std::runtime_error(__PRETTY_FUNCTION__);
+  return m_phiSegmentation;
 }
 
 inline int BeamCalGeoDD::getPadsBeforeRing(int ring) const {

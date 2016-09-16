@@ -39,7 +39,6 @@ public:
   virtual double                getBCOuterRadius()   const;
   virtual int                   getBCLayers()        const;
   virtual int                   getBCRings()         const;
-  virtual std::vector<double>  const& getSegmentation()    const;
   virtual std::vector<double> const&  getPhiSegmentation() const;
   virtual std::vector<double> const&  getRadSegmentation() const;
   virtual std::vector<int> const& getNSegments()       const;
