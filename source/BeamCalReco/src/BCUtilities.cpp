@@ -5,10 +5,10 @@ void BCUtil::DecodeCellID(lcio::CellIDDecoder<lcio::SimCalorimeterHit> &mydecode
 
   if( usingDD4HEP ){
     try{
-      side     = mydecoder( hit )[ "barrel" ] - 1;
+      side     = mydecoder( hit )[ "barrel" ] - 1; // 1 and 2 originally, change to 0 and 1
       cylinder = mydecoder( hit )["r"] ;
       sector   = mydecoder( hit )["phi"] ;
-      layer    = mydecoder( hit )["layer"] -1 ;
+      layer    = mydecoder( hit )["layer"] - 1 ; //starting at 1
     } catch (Exception &e) {
       std::cout << "Exception in BCUtil with DD4hep:" << e.what()  << std::endl;
     }
