@@ -247,7 +247,9 @@ void BeamCalGeoDD::setCrossingAngle() {
     DD4hep::Geometry::Position glob(0.0, 0.0, 0.0);
     it->second.localToWorld( loc, glob );
     m_crossingAngle = 2.0*fabs( atan( glob.x() / glob.z() ) / dd4hep::mrad );
-    return;
+    if( m_crossingAngle > 0 ){
+      return;
+    }
   }
   throw std::runtime_error( "Cannot obtain crossing angle from this BeamCal, update lcgeo?" );
 }
