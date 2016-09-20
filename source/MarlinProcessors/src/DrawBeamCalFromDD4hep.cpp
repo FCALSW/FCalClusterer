@@ -310,8 +310,8 @@ void DrawBeamCalFromDD4hep::drawCartesianGridXY() {
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
 
-  ParDou* parGridX = dynamic_cast<ParDou*>(m_seg.segmentation()->parameter("grid_size_x"));
-  ParDou* parGridY = dynamic_cast<ParDou*>(m_seg.segmentation()->parameter("grid_size_y"));
+  ParDou* parGridX = static_cast<ParDou*>(m_seg.segmentation()->parameter("grid_size_x"));
+  ParDou* parGridY = static_cast<ParDou*>(m_seg.segmentation()->parameter("grid_size_y"));
 
   double gridX = parGridX->typedValue();
   double gridY = parGridY->typedValue();
@@ -353,10 +353,10 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   TH2D g("g", "g;x [cm]; y [cm]", 200, -20, 20, 200, -20, 20); //16 bits to get colours from pal->GetValueColor
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
-  ParVec* rPar = dynamic_cast<ParVec*>(m_seg.segmentation()->parameter("grid_r_values"));
-  ParVec* pPar = dynamic_cast<ParVec*>(m_seg.segmentation()->parameter("grid_phi_values"));
+  ParVec* rPar = static_cast<ParVec*>(m_seg.segmentation()->parameter("grid_r_values"));
+  ParVec* pPar = static_cast<ParVec*>(m_seg.segmentation()->parameter("grid_phi_values"));
 
-  ParDou* oPPar = dynamic_cast<ParDou*>(m_seg.segmentation()->parameter("offset_phi"));
+  ParDou* oPPar = static_cast<ParDou*>(m_seg.segmentation()->parameter("offset_phi"));
 
 
   std::vector<double> rValues = rPar->typedValue();

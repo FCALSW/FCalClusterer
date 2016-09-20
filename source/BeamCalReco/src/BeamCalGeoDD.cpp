@@ -71,8 +71,8 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
   }
 
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
-  ParVec* rPar = dynamic_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_r_values"));
-  ParVec* pPar = dynamic_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_phi_values"));
+  ParVec* rPar = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_r_values"));
+  ParVec* pPar = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_phi_values"));
   std::vector<double> rValues = rPar->typedValue();
   std::vector<double> pValues = pPar->typedValue();
 
@@ -82,7 +82,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
 
   //DeadAngle Calculations
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
-  ParDou* oPPar = dynamic_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
+  ParDou* oPPar = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
   double offsetPhi = oPPar->typedValue();
   m_deadAngle = 2.0 * ( M_PI + offsetPhi/dd4hep::radian );
 
