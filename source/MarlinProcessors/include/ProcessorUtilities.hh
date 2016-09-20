@@ -2,7 +2,6 @@
 #define ProcessorUtilities_HH 1
 
 #include <BeamCalGeoCached.hh>
-#include <BeamCalGeoDD.hh>
 #include <BeamCalGeoGear.hh>
 
 #include <marlin/Global.h>
@@ -16,7 +15,7 @@ namespace DD4hep{
     struct LCDD;
   }
 }
-#include "BeamCalGeoDD.hh"
+#include <BeamCalGeoDD.hh>
 #endif
 
 
