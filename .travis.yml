@@ -1,0 +1,24 @@
+sudo: required
+dist: trusty
+
+services:
+  - docker
+
+# command to install dependencies
+install:
+  - shopt -s extglob dotglob
+  - mkdir FCalClusterer
+  - mv !(FCalClusterer) FCalClusterer
+  - shopt -u dotglob
+  - export FCalDIR=${PWD}/FCalClusterer
+  - cat $FCalDIR/.travis-ci.d/compile_and_test.sh
+  - curl -O http://cernvm.cern.ch/releases/production/cvm-docker-3.6.5.1.tar
+  - cat cvm-docker-3.6.5.1.tar | docker import - cernvm
+
+# command to run tests
+script:
+  - docker run -t -v $FCalDIR:/FCalClusterer cernvm /init /FCalClusterer/.travis-ci.d/compile_and_test.sh
+
+# Don't send e-mail notifications
+notifications:
+  email: false
