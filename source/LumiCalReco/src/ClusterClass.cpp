@@ -16,8 +16,7 @@ using namespace streamlog;
 /* --------------------------------------------------------------------------
    class ....
    -------------------------------------------------------------------------- */
-ClusterClass::ClusterClass(int idNow):
-  GlobalMethodsClass(),
+ClusterClass::ClusterClass(int idNow, GlobalMethodsClass& _gmc):
   Id(idNow), Pdg(0), SignMC(0), ParentId(-1), NumMCDaughters(0),
   OutsideFlag(0), MatchFlag(0), HighestEnergyFlag(0), ModifiedFlag(0),NumHits(0),
   Engy(0.0), Theta(0.0), Phi(0.0), RZStart(0.0),
@@ -26,10 +25,10 @@ ClusterClass::ClusterClass(int idNow):
   DiffTheta(0.), DiffPosXY(0.),
   MergedV(0),
   OutsideReason(""),
-  Hit()
+  Hit(),
+  gmc(_gmc)
 {
   // inherited method from GlobalMethods class, to set all global constants
-  SetConstants();
   clusterPosition[0] = 0.0;
   clusterPosition[1] = 0.0;
   clusterPosition[2] = 0.0;
@@ -64,13 +63,13 @@ void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
 
   SignMC = int (MCmomZ / fabs(MCmomZ));
   // unboost momentum
-  double betgam = tan( GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2. );
+  double betgam = tan( gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2. );
   double gama = sqrt( 1.+ betgam*betgam);
   double localPX =-betgam*EngyMC + gama*MCmomX;
   // position at face of Lcal
-  mcpPosition[0] = VtxX + GlobalParamD[ZStart]*tan(localPX /MCmomZ);
-  mcpPosition[1] = VtxY + double(SignMC)*GlobalParamD[ZStart]*tan(MCmomY/MCmomZ);
-  mcpPosition[2] = GlobalParamD[ZStart]*double(SignMC);
+  mcpPosition[0] = VtxX + gmc.GlobalParamD[GlobalMethodsClass::ZStart]*tan(localPX /MCmomZ);
+  mcpPosition[1] = VtxY + double(SignMC)*gmc.GlobalParamD[GlobalMethodsClass::ZStart]*tan(MCmomY/MCmomZ);
+  mcpPosition[2] = gmc.GlobalParamD[GlobalMethodsClass::ZStart]*double(SignMC);
 
   double MCr = sqrt( localPX*localPX  + MCmomY*MCmomY);
   ThetaMC = atan(MCr / fabs(MCmomZ));                  // Theta in local LCal coordinates
@@ -80,8 +79,8 @@ void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
   // correction for the polar angle for cases where the particle does not
   // come from the IP (according to a projection on the face of LumiCal)
   if( fabs(VtxZ) > _VERY_SMALL_NUMBER ) {
-    MCr = tan(ThetaMC) * (GlobalParamD[ZStart] - fabs(VtxZ));
-    ThetaMC = atan( MCr / GlobalParamD[ZStart] );
+    MCr = tan(ThetaMC) * (gmc.GlobalParamD[GlobalMethodsClass::ZStart] - fabs(VtxZ));
+    ThetaMC = atan( MCr / gmc.GlobalParamD[GlobalMethodsClass::ZStart] );
   }
 
 
@@ -150,7 +149,7 @@ int ClusterClass::ResetStats() {
     return 0;
   }
 
-  if( NumHits < GlobalParamI[ClusterMinNumHits] ){
+  if( NumHits < gmc.GlobalParamI[GlobalMethodsClass::ClusterMinNumHits] ){
     OutsideFlag = 1;
     OutsideReason = " Number of hits below minimum";
   }
@@ -158,10 +157,10 @@ int ClusterClass::ResetStats() {
   double xtemp(0.0), ytemp(0.0), ztemp(0.0);
   for( std::map < int , double > :: iterator hitIterator = Hit.begin();  hitIterator != Hit.end(); ++hitIterator) {
     int cellId = hitIterator->first;
-    ThetaPhiCell(cellId , thetaPhiCellV);
+    gmc.ThetaPhiCell(cellId , thetaPhiCellV);
 
     const double engyNow = hitIterator->second;
-    const double weightNow = GlobalParamD[LogWeightConstant] + log(engyNow/engySum);
+    const double weightNow = gmc.GlobalParamD[GlobalMethodsClass::LogWeightConstant] + log(engyNow/engySum);
 
     if(weightNow < 0) continue;
 
@@ -179,19 +178,19 @@ int ClusterClass::ResetStats() {
   xtemp /= weightSum;
   ytemp /= weightSum;
   ztemp /= weightSum;
-  RZStart  = atan(fabs(Theta)) * GlobalParamD[ZStart];
+  RZStart  = atan(fabs(Theta)) * gmc.GlobalParamD[GlobalMethodsClass::ZStart];
   Phi = atan2(ytemp, xtemp);
   
   clusterPosition[0] = RZStart*cos(Phi);
   clusterPosition[1] = RZStart*sin(Phi);
-  clusterPosition[2] = GlobalParamD[ZStart]*double(SignMC); //ztemp*double(SignMC);
+  clusterPosition[2] = gmc.GlobalParamD[GlobalMethodsClass::ZStart]*double(SignMC); //ztemp*double(SignMC);
   
-  if( Theta < GlobalParamD[ThetaMin] || Theta > GlobalParamD[ThetaMax] ){
+  if( Theta < gmc.GlobalParamD[GlobalMethodsClass::ThetaMin] || Theta > gmc.GlobalParamD[GlobalMethodsClass::ThetaMax] ){
     OutsideFlag = 1;
     OutsideReason = "Reconstructed outside the fiducial volume";
   }
 
-  if(engySum < GlobalParamD[MinClusterEngySignal]) {
+  if(engySum < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngySignal]) {
     OutsideFlag = 1;
     OutsideReason = "Cluster energy below minimum";
   }
@@ -206,7 +205,7 @@ void ClusterClass::PrintInfo(){
     << "Cluster Information:   " << Id << std::endl
     << std::setw(30) << "sign, engyHits, engyMC:  "
     << std::setw(13) << SignMC
-    << std::setw(13) << SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , Engy)
+    << std::setw(13) << gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , Engy)
     << std::setw(13) << EngyMC << std::endl
     << std::setw(30) << "theta mc,rec:  "
     << std::setw(13) << ThetaMC
@@ -226,7 +225,7 @@ void ClusterClass::PrintInfo(){
     */
 			    << std::setw(13) << RZStart*cos(Phi)
 			    << std::setw(13) << RZStart*sin(Phi)
-			    << std::setw(13) << GlobalParamD[ZStart]*double(SignMC) << std::endl
+			    << std::setw(13) << gmc.GlobalParamD[GlobalMethodsClass::ZStart]*double(SignMC) << std::endl
     << std::setw(30) << "MCstart  X,Y,Z: "
     << std::setw(13) << mcpPosition[0]
     << std::setw(13) << mcpPosition[1]

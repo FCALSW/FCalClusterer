@@ -14,10 +14,10 @@ namespace EVENT {
 /* --------------------------------------------------------------------------
    class ....
    -------------------------------------------------------------------------- */
-class ClusterClass : public GlobalMethodsClass {
+class ClusterClass {
 
 public:
-  ClusterClass(int idNow );
+  ClusterClass(int idNow, GlobalMethodsClass& gmc);
   ~ClusterClass();
 
   void	FillHit(int cellNow, double engyNow);
@@ -46,6 +46,7 @@ public:
   
   friend std::ostream& operator<<(std::ostream & o, const ClusterClass& rhs);
   
+  GlobalMethodsClass& gmc;
 
 };
 
