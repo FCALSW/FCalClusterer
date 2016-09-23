@@ -64,17 +64,16 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       // get parameters from the input IMPL::CalorimeterHitImpl
      
      arm     = (*_mydecoder)( calHitIn )["S-1"] ;          //        from 0
-     //     int rCell   = (*_mydecoder)( calHitIn )["I"] ;            //        from 0
-     //     int phiCell = (*_mydecoder)( calHitIn )["J"] ;            //        from 0
+     int rCell   = (*_mydecoder)( calHitIn )["I"] ;        //        from 0
+     int phiCell = (*_mydecoder)( calHitIn )["J"] ;        //        from 0
      layer   = (*_mydecoder)( calHitIn )["K"] ;            // counts from 1
 
      //          
 
 
       ///APS Calculate the cellID with the function from here
-     // (BP) don't do this. Use original.
-     //      const int cellId_test = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
-       const int cellId = calHitIn->getCellID0(); 
+       const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
+//       const int cellId = calHitIn->getCellID0(); 
        /*       if( cellId_test != cellId ) 
 	 std::cout<<" mydecoder says S,I,J,K "<< arm <<", "<< rCell <<", "<< phiCell <<", "<< layer <<std::endl;
        */
@@ -90,7 +89,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       /*(BP) it is not safe - in case non-zero crossing angle
             - phi sectors numbering order changes on -ve side
             - in some models there is layers relative phi offset  
-             also in local system zHit is +ve always
+            - also in local system zHit is +ve always
      
       const double rHit = (rCell+0.5) * _rCellLength + _rMin;
       //const double phiHit = (phiCell+0.5) * _phiCellLength;
