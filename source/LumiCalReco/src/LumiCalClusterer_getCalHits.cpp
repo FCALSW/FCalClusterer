@@ -55,7 +55,8 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       IMPL::SimCalorimeterHitImpl * calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
 
       const double engyHit = (double)calHitIn -> getEnergy();
-     if(engyHit < _hitMinEnergy)	continue;
+
+      if(engyHit < _hitMinEnergy)	continue;
 
       // ???????? DECIDE/FIX - the global coordinates are going to change in new Mokka
       // versions, so the z must be extracted from the cellId instead ... ????????

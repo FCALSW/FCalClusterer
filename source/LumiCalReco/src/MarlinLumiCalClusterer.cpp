@@ -496,7 +496,7 @@ try
 	for(int superClusterNow = 0; superClusterNow < numClusters; superClusterNow++, clusterIdToCellIdIterator++){
 	  int clusterId = (int)(*clusterIdToCellIdIterator).first;
 	// create a new cluster and put it on map
-	  clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId );
+	  clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId, GlobalMethods);
 	  clusterClassMap[armNow][clusterId] -> SignMC = armNow;
 
 	  int numElementsInCluster = clusterIdToCellId.at(armNow).at(clusterId).size();
