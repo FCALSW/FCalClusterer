@@ -306,7 +306,7 @@ try
     if ( particles ){
       numMCParticles = particles->getNumberOfElements();
       for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
-	MCParticle *particle = dynamic_cast<MCParticle*>( particles->getElementAt(jparticle) );
+	MCParticle *particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
 	// only primary particles wanted
        	if( particle->isCreatedInSimulation() ) continue;                           //<---- is primary ? 
 	  int pdg = particle->getPDG();
@@ -444,7 +444,7 @@ try
       }
 #endif
       for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
-	MCParticle * particle = dynamic_cast<MCParticle*>( particles->getElementAt(jparticle) );
+	MCParticle * particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
 	// only primary particles wanted
 	if( particle->isCreatedInSimulation() ) continue;                           //<--- is primary ? 
 	  int pdg = particle->getPDG();
