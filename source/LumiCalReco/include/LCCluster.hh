@@ -36,7 +36,7 @@ public:
 
   inline void setX( double x) { _position[0] = x; CalculatePhi(); }
   inline void setY( double y) { _position[1] = y; CalculatePhi(); }
-  inline void setZ( double y) { _position[1] = y; CalculateTheta(); }
+  inline void setZ( double z) { _position[2] = z; CalculateTheta(); }
   inline void setPosition( double x, double y, double z) { _position[0]=x; _position[1]=y; _position[2]=z; CalculatePhi(); CalculateTheta(); }
   inline void setWeight (double w) { _weight = w; }
   inline void setTheta  (double t) { _theta = t; }
