@@ -1,6 +1,6 @@
 # Reconstruction for the Forward Calorimeters of Future e+e- colliders
 
-LumiCal reconstruction based on work by @IftachSadeh
+LumiCal reconstruction based on work by [@IftachSadeh](https://github.com/iftachsadeh)
 http://alzt.tau.ac.il/~sadeh/mscThesis.html, http://arxiv.org/abs/1010.5992
 
 # Build Status
