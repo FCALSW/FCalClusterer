@@ -373,6 +373,10 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   ParDou* rPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_r"));
   ParDou* pPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_phi"));
 
+  if (rPar == NULL or pPar == NULL ) {
+    throw std::runtime_error( "Could not obtain parameters from segmentation" );
+  }
+
   GlobalParamD[RCellLength]   = rPar->typedValue()/dd4hep::mm;
   GlobalParamD[PhiCellLength] = pPar->typedValue()/dd4hep::radian;
   GlobalParamI[NumCellsR]     = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
