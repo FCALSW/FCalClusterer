@@ -63,14 +63,14 @@ std::map < int , double > snbx;
 
       int	numClusters, clusterId;
 
-      double ThetaMid = (GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMin] + GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMax])/2.;
-      double ThetaTol = (GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMax] - GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMin])/2.;
+      double ThetaMid = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMin] + gmc.GlobalParamD[GlobalMethodsClass::ThetaMax])/2.;
+      double ThetaTol = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMax] - gmc.GlobalParamD[GlobalMethodsClass::ThetaMin])/2.;
 
 
-      csbx[-1] = cos( M_PI - GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-      csbx[ 1] = cos( GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-      snbx[-1] = sin( M_PI - GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-      snbx[ 1] = sin( GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+      csbx[-1] = cos( M_PI - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+      csbx[ 1] = cos( gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+      snbx[-1] = sin( M_PI - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+      snbx[ 1] = sin( gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
       /* --------------------------------------------------------------------------
 	 create clusters using: LumiCalClustererClass
 	 -------------------------------------------------------------------------- */
@@ -105,7 +105,7 @@ std::map < int , double > snbx;
 	  //	  ClusterClass const* thisCluster = clusterClassMap[armNow][clusterId];
 	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
 
-	  const double clusterEnergy = GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
+	  const double clusterEnergy = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
 	  if( clusterEnergy < _minClusterEngy ) continue;
 
 	  const double clusterTheta = thisClusterInfo.getTheta();
@@ -195,7 +195,7 @@ std::map < int , double > snbx;
 	  particleId = (int)(*clusterClassMapIterator).first;
 
 	  engyNow  = clusterClassMap[armNow][particleId] -> Engy;
-	  engyNow  = GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , engyNow);
+	  engyNow  = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , engyNow);
 	  thetaNow = clusterClassMap[armNow][particleId] -> Theta;
 	  // highest energy RecoParticle
 	  if(clusterClassMap[armNow][particleId]->HighestEnergyFlag == 1){
@@ -248,7 +248,7 @@ std::map < int , double > snbx;
 	  clusterInFlag++;
 
 	  engyNow  = clusterClassMap[armNow][particleId] -> Engy;
-	  engyNow  = GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , engyNow);
+	  engyNow  = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , engyNow);
 	  thetaNow = clusterClassMap[armNow][particleId] -> Theta;
 	  phiNow   = clusterClassMap[armNow][particleId] -> Phi;
 	  rzstartNow = clusterClassMap[armNow][particleId] -> RZStart;
@@ -295,9 +295,9 @@ try
   {
    
 
-    const double thmin = GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMin];
-    const double thmax = GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMax];
-    const double LcalZstart = GlobalMethods.GlobalParamD[GlobalMethodsClass::ZStart];
+    const double thmin = gmc.GlobalParamD[GlobalMethodsClass::ThetaMin];
+    const double thmax = gmc.GlobalParamD[GlobalMethodsClass::ThetaMax];
+    const double LcalZstart = gmc.GlobalParamD[GlobalMethodsClass::ZStart];
     const double rmin = LcalZstart*tan(thmin);
     const double rmax = LcalZstart*tan(thmax);
     const double r0   = LcalZstart*tan(_BeamCrossingAngle);
@@ -314,7 +314,7 @@ try
 	  if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue;                //<---- detectable ?
 	  // energy above min 
 	  double engy = particle->getEnergy();
-	  if( engy < GlobalMethods.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue; 
+	  if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;
 	  double* p = (double*)particle->getMomentum();
 	  int sign = int ( p[2]/fabs( p[2] ));
 	  // check if within Lcal acceptance
@@ -424,11 +424,11 @@ try
     std::vector < myMCP > mcParticlesVecNeg;
 
 
-    const double LcalZstart = GlobalMethods.GlobalParamD[GlobalMethodsClass::ZStart];
-    const double Rmin = GlobalMethods.GlobalParamD[GlobalMethodsClass::RMin]; 
-    const double Rmax = GlobalMethods.GlobalParamD[GlobalMethodsClass::RMax]; 
-    const double thmin = GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMin];
-    const double thmax = GlobalMethods.GlobalParamD[GlobalMethodsClass::ThetaMax];
+    const double LcalZstart = gmc.GlobalParamD[GlobalMethodsClass::ZStart];
+    const double Rmin = gmc.GlobalParamD[GlobalMethodsClass::RMin];
+    const double Rmax = gmc.GlobalParamD[GlobalMethodsClass::RMax];
+    const double thmin = gmc.GlobalParamD[GlobalMethodsClass::ThetaMin];
+    const double thmax = gmc.GlobalParamD[GlobalMethodsClass::ThetaMax];
 
 #if _CREATE_CLUSTERS_DEBUG == 1
 	streamlog_out(MESSAGE4) << "CreateClusters: event = " << evt-> getEventNumber() << std::endl;
@@ -452,7 +452,7 @@ try
 	  if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue;                        //<--- detectable ?
 	  // energy above min 
 	  double engy = particle->getEnergy();
-	  if( engy < GlobalMethods.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;  //<--- Energy >  Emin ?
+	  if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;  //<--- Energy >  Emin ?
 	  double* pp = (double*)particle->getMomentum();
 	  int sign = int ( pp[2]/fabs( pp[2] ));
           // check if within Lcal acceptance
@@ -496,7 +496,7 @@ try
 	for(int superClusterNow = 0; superClusterNow < numClusters; superClusterNow++, clusterIdToCellIdIterator++){
 	  int clusterId = (int)(*clusterIdToCellIdIterator).first;
 	// create a new cluster and put it on map
-	  clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId, GlobalMethods);
+	  clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId, gmc);
 	  clusterClassMap[armNow][clusterId] -> SignMC = armNow;
 
 	  int numElementsInCluster = clusterIdToCellId.at(armNow).at(clusterId).size();
@@ -567,7 +567,7 @@ try
 	    int clusterId = (int)(*clusterClassMapIterator).first;
 
 
-	    double eneCL = GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy);
+	    double eneCL = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy);
 	    double phiCL = clusterClassMap[armNow][clusterId] -> Phi;
 	    double RZStart = clusterClassMap[armNow][clusterId] -> RZStart;
 	    double xs = RZStart*cos(phiCL);
@@ -588,7 +588,7 @@ try
 	      if( mcParticlesVec.size() > 1 ) {
 		double dPos1    = sqrt( ( sqr(xs - mcParticlesVec[1].x) + sqr( ys - mcParticlesVec[1].y)));
                 double dEne1    = fabs( mcParticlesVec[1].engy - eneCL);
-		if( dPos1 <  GlobalMethods.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0 ) {
+		if( dPos1 <  gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0 ) {
 		  clusterClassMap[armNow][clusterId]->SetStatsMC( mcParticlesVec[1].mcp );
 		  clusterClassMap[armNow][clusterId] -> DiffPosXY = dPos1;
 		  mcParticlesVec.erase( mcParticlesVec.begin()+1 ); 
@@ -599,7 +599,7 @@ try
 		}
 	      }else{
 		clusterClassMap[armNow][clusterId] -> DiffPosXY = dPos0;
-		if( dPos0 <  GlobalMethods.GlobalParamD[GlobalMethodsClass::MinSeparationDist] ){  
+		if( dPos0 <  gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] ){
 		  clusterClassMap[armNow][clusterId]->SetStatsMC( mcParticlesVec[0].mcp );
 		  mcParticlesVec.erase( mcParticlesVec.begin() ); 
 		}
@@ -608,7 +608,7 @@ try
 
 #if _CREATE_CLUSTERS_DEBUG == 1
 	    if( clusterClassMap[armNow][clusterId] -> Pdg != 0) {   
-	      double Ereco = GlobalMethods.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy); 
+	      double Ereco = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy);
 	streamlog_out( MESSAGE4 ) << "\tParticle Out ("
 		  << clusterClassMap[armNow][clusterId] -> OutsideReason << "):   " << clusterId << std::endl
 		  << "\t\t side(arm), pdg, parentId , NumMCDaughters = "

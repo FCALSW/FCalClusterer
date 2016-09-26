@@ -75,7 +75,7 @@ namespace EVENT{
     int MemoryResidentTree;
 
     OutputManagerClass	OutputManager;
-    GlobalMethodsClass	GlobalMethods;
+    GlobalMethodsClass	gmc;
     LumiCalClustererClass	LumiCalClusterer;
 
     void TryMarlinLumiCalClusterer(EVENT::LCEvent * evt);

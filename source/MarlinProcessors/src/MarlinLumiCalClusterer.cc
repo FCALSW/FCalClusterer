@@ -51,7 +51,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   NumEventsTree(0),
 						   MemoryResidentTree(0),
 						   OutputManager(),
-						   GlobalMethods(),
+						   gmc(),
                                                    LumiCalClusterer(LumiInColName),
                                                    _betagamma(0),
                                                    _gamma(1.) 
@@ -174,8 +174,8 @@ void MarlinLumiCalClusterer::init(){
   NumEvt = SkipNEvents;
   //  LumiInColName = "LumiCalSimHits";
 
-  GlobalMethods.SetConstants();
-  _BeamCrossingAngle = GlobalMethods.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.;
+  gmc.SetConstants();
+  _BeamCrossingAngle = gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.;
 
   // Lorentz boost params
   double beta = tan( _BeamCrossingAngle );
@@ -188,12 +188,12 @@ void MarlinLumiCalClusterer::init(){
      Print out Processor Parameters
      -------------------------------------------------------------------------- */
   streamlog_out(MESSAGE) << std::endl << "Global parameters for Processor:"<< name() <<"\t"<< type() << std::endl;
-  GlobalMethods.PrintAllParameters();
+  gmc.PrintAllParameters();
   streamlog_out(MESSAGE) << std::endl;
 
   //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
   LumiCalClusterer.setLumiCollectionName(LumiInColName);
-  LumiCalClusterer.init( GlobalMethods );
+  LumiCalClusterer.init( gmc );
 
 
   //OutputManager = new OutputManagerClass();
