@@ -52,6 +52,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _totEngyArm(),
   _numHitsInArm(),
   _mydecoder(NULL),
+  _useDD4hep(false),
   RotMat()
 {
 }
@@ -62,9 +63,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
    initial action before first event analysis starts:
    Called at the begining of the job before anything is read.
    ========================================================================= */
-void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& GlobalParamS,
-				  GlobalMethodsClass::ParametersInt    const& GlobalParamI,
-				  GlobalMethodsClass::ParametersDouble const& GlobalParamD ){
+void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
 
 
   /* --------------------------------------------------------------------------
@@ -73,14 +72,14 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
   _armsToCluster.push_back(-1);
   _armsToCluster.push_back(1);
      -------------------------------------------------------------------------- */
-  _methodCM				= GlobalParamS.at(GlobalMethodsClass::WeightingMethod);                  // GlobalMethodsClass::LogMethod
-  _clusterMinNumHits			= GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits);                // = 15
-  _hitMinEnergy				= GlobalParamD.at(GlobalMethodsClass::MinHitEnergy);                     // = 5e-6
-  _zLayerThickness			= GlobalParamD.at(GlobalMethodsClass::ZLayerThickness);                  // = 4.5
-  _zLayerPhiOffset			= GlobalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);                  // = 3.75 [deg]
-  _elementsPercentInShowerPeakLayer	= GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
-  _nNearNeighbor			= GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor);                // = 6; // number of near neighbors to consider
-  _beamCrossingAngle                    = GlobalParamD.at(GlobalMethodsClass::BeamCrossingAngle)/2.;
+  _methodCM				= gmc.GlobalParamS.at(GlobalMethodsClass::WeightingMethod); // GlobalMethodsClass::LogMethod
+  _clusterMinNumHits			= gmc.GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits); // = 15
+  _hitMinEnergy				= gmc.GlobalParamD.at(GlobalMethodsClass::MinHitEnergy); // = 5e-6
+  _zLayerThickness			= gmc.GlobalParamD.at(GlobalMethodsClass::ZLayerThickness); // = 4.5
+  _zLayerPhiOffset			= gmc.GlobalParamD.at(GlobalMethodsClass::ZLayerPhiOffset); // = 3.75 [deg]
+  _elementsPercentInShowerPeakLayer	= gmc.GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
+  _nNearNeighbor			= gmc.GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor); // = 6; // number of near neighbors to consider
+  _beamCrossingAngle                    = gmc.GlobalParamD.at(GlobalMethodsClass::BeamCrossingAngle)/2.;
   RotMat[-1]["cos"]                     = cos( M_PI - _beamCrossingAngle );
   RotMat[-1]["sin"]                     = sin( M_PI - _beamCrossingAngle );
   RotMat[ 1]["cos"]                     = cos( _beamCrossingAngle );
@@ -89,36 +88,36 @@ void LumiCalClustererClass::init( GlobalMethodsClass::ParametersString const& Gl
   // the minimal energy to take into account in the initial clustering pass is
   // defined as _middleEnergyHitBoundFrac of the minimal energy that is taken into
   // account when computing weighted averages in the log' weighting method
-  _middleEnergyHitBoundFrac = GlobalParamD.at(GlobalMethodsClass::MiddleEnergyHitBoundFrac);                     // =.01;
+  _middleEnergyHitBoundFrac = gmc.GlobalParamD.at(GlobalMethodsClass::MiddleEnergyHitBoundFrac);                     // =.01;
 
 
   /* --------------------------------------------------------------------------
      constants set by: GlobalMethodsClass
      -------------------------------------------------------------------------- */
-  _logWeightConst = GlobalParamD.at(GlobalMethodsClass::LogWeightConstant);
-  _moliereRadius  = GlobalParamD.at(GlobalMethodsClass::MoliereRadius);
+  _logWeightConst = gmc.GlobalParamD.at(GlobalMethodsClass::LogWeightConstant);
+  _moliereRadius  = gmc.GlobalParamD.at(GlobalMethodsClass::MoliereRadius);
 
   // minimal separation distance and energy (of either cluster) to affect a merge
-  _minSeparationDistance = GlobalParamD.at(GlobalMethodsClass::MinSeparationDist);
-  _minClusterEngyGeV = GlobalParamD.at(GlobalMethodsClass::MinClusterEngyGeV);
-  _minClusterEngySignal = GlobalParamD.at(GlobalMethodsClass::MinClusterEngySignal);
+  _minSeparationDistance = gmc.GlobalParamD.at(GlobalMethodsClass::MinSeparationDist);
+  _minClusterEngyGeV = gmc.GlobalParamD.at(GlobalMethodsClass::MinClusterEngyGeV);
+  _minClusterEngySignal = gmc.GlobalParamD.at(GlobalMethodsClass::MinClusterEngySignal);
 
 
-  _thetaContainmentBounds[0] = GlobalParamD.at(GlobalMethodsClass::ThetaMin);
-  _thetaContainmentBounds[1] = GlobalParamD.at(GlobalMethodsClass::ThetaMax);
+  _thetaContainmentBounds[0] = gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMin);
+  _thetaContainmentBounds[1] = gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMax);
 
-  _maxLayerToAnalyse = GlobalParamI.at(GlobalMethodsClass::NumCellsZ);
-  _cellRMax	   = GlobalParamI.at(GlobalMethodsClass::NumCellsR);
-  _cellPhiMax	   = GlobalParamI.at(GlobalMethodsClass::NumCellsPhi);
+  _maxLayerToAnalyse = gmc.GlobalParamI.at(GlobalMethodsClass::NumCellsZ);
+  _cellRMax	   = gmc.GlobalParamI.at(GlobalMethodsClass::NumCellsR);
+  _cellPhiMax	   = gmc.GlobalParamI.at(GlobalMethodsClass::NumCellsPhi);
 
-  _zFirstLayer = GlobalParamD.at(GlobalMethodsClass::ZStart);
-  _rMin	     = GlobalParamD.at(GlobalMethodsClass::RMin);
-  _rMax	     = GlobalParamD.at(GlobalMethodsClass::RMax);
+  _zFirstLayer = gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
+  _rMin	     = gmc.GlobalParamD.at(GlobalMethodsClass::RMin);
+  _rMax	     = gmc.GlobalParamD.at(GlobalMethodsClass::RMax);
 
-  _rCellLength   = GlobalParamD.at(GlobalMethodsClass::RCellLength);
-  _phiCellLength = GlobalParamD.at(GlobalMethodsClass::PhiCellLength);
+  _rCellLength   = gmc.GlobalParamD.at(GlobalMethodsClass::RCellLength);
+  _phiCellLength = gmc.GlobalParamD.at(GlobalMethodsClass::PhiCellLength);
 
-
+  _useDD4hep = gmc.isUsingDD4hep();
 
   /* --------------------------------------------------------------------------
      Print out Parameters

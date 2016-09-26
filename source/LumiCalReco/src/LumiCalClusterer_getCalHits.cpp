@@ -66,7 +66,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
      
 
       //using Mokka simulated files
-      if( not true ) {
+      if( not _useDD4hep ) {
 	arm     = (*_mydecoder)( calHitIn )["S-1"]; // from 0
 	rCell   = (*_mydecoder)( calHitIn )["I"]; // from 0
 	phiCell = (*_mydecoder)( calHitIn )["J"]; // from 0
