@@ -27,12 +27,8 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
   EVENT::LCCollection * col = NULL;
   try {
     col = evt->getCollection(_lumiName.c_str());
-  } // try
-  // if an exception has been thrown (no *col for this event) then do....
-  catch( EVENT::DataNotAvailableException &e){
-#if _GENERAL_CLUSTERER_DEBUG == 1
+  } catch ( EVENT::DataNotAvailableException &e ) {
     streamlog_out( ERROR ) << "Event has a SimCalorimeterHitImpl exception"<< std::endl;
-#endif
     return 0;
   }
 
@@ -48,8 +44,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
     for (int i=0; i<nHitsCol; ++i) {
       
-      int arm(0), layer(0);
-      //int rCell(0), phiCell(0);
+      int arm(0), layer(0), rCell(0), phiCell(0);
 
       // get the hit from the LCCollection with index i
       IMPL::SimCalorimeterHitImpl * calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
@@ -57,25 +52,36 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       const double engyHit = (double)calHitIn -> getEnergy();
      if(engyHit < _hitMinEnergy)	continue;
 
-      // ???????? DECIDE/FIX - the global coordinates are going to change in new Mokka
-      // versions, so the z must be extracted from the cellId instead ... ????????
-      /// APS: Can be taken from the position of the calohit, when it is stored
+      // get cell parameters from the input IMPL::CalorimeterHitImpl
 
-      // get parameters from the input IMPL::CalorimeterHitImpl
-     
-     arm     = (*_mydecoder)( calHitIn )["S-1"] ;          //        from 0
-     int rCell   = (*_mydecoder)( calHitIn )["I"] ;        //        from 0
-     int phiCell = (*_mydecoder)( calHitIn )["J"] ;        //        from 0
-     layer   = (*_mydecoder)( calHitIn )["K"] ;            // counts from 1
+#ifdef FCAL_WITH_DD4HEP
+     try{     
+       arm     = (*_mydecoder)( calHitIn )["barrel"] - 1 ;   //        from 0
+       layer   = (*_mydecoder)( calHitIn )["layer"] ;        // counts from 1
+       rCell   = (*_mydecoder)( calHitIn )["r"] ;            //        from 0
+       phiCell = (*_mydecoder)( calHitIn )["phi"] ;          //        from 0
+     } catch ( Exception &e) {
+       streamlog_out( ERROR )<<" Exception: " << e.what() << " in LumiCal_getCalHits with DD4HEP while encoding cellID: " << std::endl; 
+     } 
+#else
+     try{
+       arm     = (*_mydecoder)( calHitIn )["S-1"] ;          //        from 0
+       layer   = (*_mydecoder)( calHitIn )["K"] ;            // counts from 1
+       rCell   = (*_mydecoder)( calHitIn )["I"] ;            //        from 0
+       phiCell = (*_mydecoder)( calHitIn )["J"] ;            //        from 0
+     } catch ( Exception &e ) {
+       streamlog_out( ERROR )<<" Exception: " << e.what() << " in LumiCal_getCalHits without DD4HEP while encoding cellID " << std::endl; 
+     }
+#endif
 
      //          
 
 
       ///APS Calculate the cellID with the function from here
        const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
-//       const int cellId = calHitIn->getCellID0(); 
-       /*       if( cellId_test != cellId ) 
-	 std::cout<<" mydecoder says S,I,J,K "<< arm <<", "<< rCell <<", "<< phiCell <<", "<< layer <<std::endl;
+       /*  
+         const int cellId_test = calHitIn->getCellID0(); 
+         if( cellId_test != cellId )   std::cout<<" mydecoder says S,I,J,K "<< arm <<", "<< rCell <<", "<< phiCell <<", "<< layer <<std::endl;
        */
       // detector layer  - count layers from zero and not from one
       layer -= 1 ;
