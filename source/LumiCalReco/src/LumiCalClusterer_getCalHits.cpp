@@ -84,19 +84,10 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 	layer = (*_mydecoder)( calHitIn )["layer"]; // counts from 0
       }
 
+      //Calculate internal cellID
       int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
 
-     ///APS Calculate the cellID with the function from here
-     // (BP) don't do this. Use original. // APS: WHY?????
-     // int layer(0), phiCell(0), rCell(0);
-     // const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
-     //const int cellId = calHitIn->getCellID0();
-     /*       if( cellId_test != cellId ) 
-	      std::cout<<" mydecoder says S,I,J,K "<< arm <<", "<< rCell <<", "<< phiCell <<", "<< layer <<std::endl;
-     */
-
-
-       // skip this hit if the following conditions are met
+      // skip this hit if the following conditions are met
       if(layer >= _maxLayerToAnalyse || layer < 0 )	continue;
 
       
@@ -126,8 +117,8 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
       // (BP) keep wrong sign of zHit local as it was  
       // in case it  matters ( still some guys might want to determine arm using sign of z )
-       zl *= arm;
-       float locPos[3] = { xl, yl, zl };
+      zl *= arm;
+      float locPos[3] = { xl, yl, zl };
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
   	std::cout << "\t CellId, Pos(x,y,z), hit energy [MeV]: "
