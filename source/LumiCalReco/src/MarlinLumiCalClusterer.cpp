@@ -523,7 +523,7 @@ try
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[0]
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[1]
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[2] << std::endl
-			       << std::setw(20) << "CalusterInfo        " 
+			       << std::setw(20) << "ClusterInfo"
 			       << std::setw(13) << thisClusterInfo.getX()
 			       << std::setw(13) << thisClusterInfo.getY()
 			       << std::setw(13) << thisClusterInfo.getZ() << std::endl

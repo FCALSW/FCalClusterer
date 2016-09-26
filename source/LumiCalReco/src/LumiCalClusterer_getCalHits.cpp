@@ -63,28 +63,38 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       /// APS: Can be taken from the position of the calohit, when it is stored
 
       // get parameters from the input IMPL::CalorimeterHitImpl
-     if( not true ) {
-       arm     = (*_mydecoder)( calHitIn )["S-1"] ;          // from 0
-       rCell   = (*_mydecoder)( calHitIn )["I"] ;        // from 0
-       phiCell = (*_mydecoder)( calHitIn )["J"] ;        // from 0
-       layer   = (*_mydecoder)( calHitIn )["K"] ;            // counts from 1
-     } else {
-       arm =(*_mydecoder)( calHitIn )["barrel"] ;      // from 0
-       layer   = (*_mydecoder)( calHitIn )["layer"] ;  // counts from 1
-     }
-     //          
+     
 
+      //using Mokka simulated files
+      if( not true ) {
+	arm     = (*_mydecoder)( calHitIn )["S-1"]; // from 0
+	rCell   = (*_mydecoder)( calHitIn )["I"]; // from 0
+	phiCell = (*_mydecoder)( calHitIn )["J"]; // from 0
+	layer   = (*_mydecoder)( calHitIn )["K"]; // counts from 1
+	// detector layer  - count layers from zero and not from one
+	layer -= 1 ;
+	// determine the side (arm) of the hit -> (+,-)1
+	arm = (( arm == 0 ) ? -1 : 1);
 
-      ///APS Calculate the cellID with the function from here
-       const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
-//       const int cellId = calHitIn->getCellID0(); 
-       /*       if( cellId_test != cellId ) 
-	 std::cout<<" mydecoder says S,I,J,K "<< arm <<", "<< rCell <<", "<< phiCell <<", "<< layer <<std::endl;
-       */
-      // detector layer  - count layers from zero and not from one
-      layer -= 1 ;
-     // determine the side (arm) of the hit -> (+,-)1
-      arm = (( arm == 0 ) ? -1 : 1);
+      } else {
+	arm =(*_mydecoder)( calHitIn )["barrel"]; // from 1 and 2
+	phiCell = (*_mydecoder)( calHitIn )["phi"];
+	rCell = (*_mydecoder)( calHitIn )["r"];
+	if( arm == 2 ) arm = -1;
+	layer = (*_mydecoder)( calHitIn )["layer"]; // counts from 0
+      }
+
+      int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
+
+     ///APS Calculate the cellID with the function from here
+     // (BP) don't do this. Use original. // APS: WHY?????
+     // int layer(0), phiCell(0), rCell(0);
+     // const int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
+     //const int cellId = calHitIn->getCellID0();
+     /*       if( cellId_test != cellId ) 
+	      std::cout<<" mydecoder says S,I,J,K "<< arm <<", "<< rCell <<", "<< phiCell <<", "<< layer <<std::endl;
+     */
+
 
        // skip this hit if the following conditions are met
       if(layer >= _maxLayerToAnalyse || layer < 0 )	continue;
