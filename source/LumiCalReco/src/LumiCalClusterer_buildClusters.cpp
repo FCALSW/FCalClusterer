@@ -474,8 +474,10 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
       yLineFitCM[clusterNow] . Fill(layerNow , layerToPosY[layerNow]);
 
 #if _CLUSTER_BUILD_DEBUG == 1
-      std::cout     << "\tlayer , avPos(x,y) : " << layerNow << " \t (" << layerToPosX[layerNow]
-		    << " , " << layerToPosY[layerNow] << ")" <<std::endl;
+      std::cout     << "\tlayer , avPos(x,y) : "
+		    << std::setw(3) << layerNow
+		    << " ("  << std::setw(6) << layerToPosX[layerNow]
+		    << " , " << std::setw(6) << layerToPosY[layerNow] << ")" <<std::endl;
 #endif
     }
 
