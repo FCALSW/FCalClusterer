@@ -79,9 +79,7 @@ public:
   LumiCalClustererClass( std::string const& lumiNameNow ) ;
 
   // initialization routine - Called at the begining of the job.
-  void init( GlobalMethodsClass::ParametersString const& GlobalParamS,
-             GlobalMethodsClass::ParametersInt	  const& GlobalParamI,
-	     GlobalMethodsClass::ParametersDouble const& GlobalParamD );
+  void init( GlobalMethodsClass const& gmc );
 
 
   // main actions in each event -Called for every event - the working horse.
@@ -124,6 +122,8 @@ protected:
   //  VInt _armsToCluster;
 
   CellIDDecoder<SimCalorimeterHit> * _mydecoder;
+
+  bool _useDD4hep;
 
   // global to local rotations mtx elements
   std::map < int , std::map< std::string, double> > RotMat;

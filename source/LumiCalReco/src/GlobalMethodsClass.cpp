@@ -45,7 +45,7 @@ double GlobalMethodsClass::EnergyCalibrationFactor = 0.0105;
 
 GlobalMethodsClass :: GlobalMethodsClass() :
   _procName( "MarlinLumiCalClusterer" ),
-  _useDD4HEP(false),
+  _useDD4hep(false),
   GlobalParamI(),
   GlobalParamD(),
   GlobalParamS()
@@ -53,7 +53,7 @@ GlobalMethodsClass :: GlobalMethodsClass() :
 }
 GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
   _procName( name ),
-  _useDD4HEP(false),
+  _useDD4hep(false),
   GlobalParamI(),
   GlobalParamD(),
   GlobalParamS()
@@ -142,7 +142,7 @@ void GlobalMethodsClass::SetConstants() {
 
   //SetGeometryConstants
   if( SetGeometryDD4HEP() ) {
-    _useDD4HEP=true;
+    _useDD4hep=true;
   } else {
     SetGeometryGear();
   }
@@ -310,6 +310,9 @@ void GlobalMethodsClass::PrintAllParameters() const {
   for (ParametersString::const_iterator it = GlobalParamS.begin();it != GlobalParamS.end() ;++it) {
     streamlog_out(MESSAGE) << " - (string)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
   }
+
+  std::cout << "Using DD4hep based geometry and hit enconding? " << std::boolalpha << _useDD4hep  << std::endl;
+
   streamlog_out(MESSAGE) << "---------------------------------------------------------------" << std::endl;
 
 }

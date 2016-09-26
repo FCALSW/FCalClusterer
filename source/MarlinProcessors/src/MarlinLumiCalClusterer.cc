@@ -193,7 +193,7 @@ void MarlinLumiCalClusterer::init(){
 
   //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
   LumiCalClusterer.setLumiCollectionName(LumiInColName);
-  LumiCalClusterer.init(GlobalMethods.GlobalParamS,GlobalMethods.GlobalParamI, GlobalMethods.GlobalParamD);
+  LumiCalClusterer.init( GlobalMethods );
 
 
   //OutputManager = new OutputManagerClass();
