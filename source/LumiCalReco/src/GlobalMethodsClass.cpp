@@ -9,7 +9,6 @@
 #include <gear/GearMgr.h>
 
 
-
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
@@ -23,7 +22,18 @@ using streamlog::MESSAGE;
 #include <cassert>
 #include <iostream>
 #include <iomanip>
+
 #include <sstream>
+
+// optional DD4hep
+#ifdef FCAL_WITH_DD4HEP
+#include <DD4hep/LCDD.h>
+#include <DD4hep/Detector.h>
+#include <DD4hep/DD4hepUnits.h>
+#include <DDRec/DetectorData.h>
+#include <DDRec/API/IDDecoder.h>
+#include <XML/XMLChildValue.h>
+#endif
 
 // utility copied from marlin 
 template <class T>
@@ -111,9 +121,6 @@ int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t Z
 void GlobalMethodsClass::SetConstants() {
 
 
-  // BP. access gear file
-  gear::GearMgr* gearMgr =  marlin::Global::GEAR;
-  const gear::CalorimeterParameters& _lcalGearPars = gearMgr->getLcalParameters();
   
   // BP. access processor parameters
   marlin::StringParameters* _lcalRecoPars = NULL;
@@ -134,28 +141,58 @@ void GlobalMethodsClass::SetConstants() {
     exit( EXIT_FAILURE );
   }
 
-  // GEAR access
+  // BP. GEAR access
   // geometry parameters of LumiCal
   // inner and outer radii [mm]
-  GlobalParamD[RMin] = _lcalGearPars.getExtent()[0];
-  GlobalParamD[RMax] = _lcalGearPars.getExtent()[1];
+  // 
+#ifdef FCAL_WITH_DD4HEP
+
+  DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+  DD4hep::Geometry::DetElement mLCal = lcdd.detector("LumiCal");
+  const DD4hep::DDRec::LayeredCalorimeterData * theExtension = mLCal.extension<DD4hep::DDRec::LayeredCalorimeterData>();
+  const std::vector<DD4hep::DDRec::LayeredCalorimeterStruct::Layer>& mLayers = theExtension->layers;
+ 
+  GlobalParamD[RMin]   = theExtension->extent[0];
+  GlobalParamD[RMax]   = theExtension->extent[1];
+  GlobalParamD[ZStart] = theExtension->extent[2];
+  GlobalParamD[ZEnd]   = theExtension->extent[3];
+
+  // all layers LumiCal are identical, take first one
+  const DD4hep::DDRec::LayeredCalorimeterStruct::Layer & oneLayer = mLayers.at(0); 
+  GlobalParamD[RCellLength]   = oneLayer.cellSize0;
+  GlobalParamD[PhiCellLength] = oneLayer.cellSize1;
+  GlobalParamI[NumCellsR]     = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
+  GlobalParamI[NumCellsPhi]   = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
+  GlobalParamI[NumCellsZ]     = mLayers.size();
+  GlobalParamD[ZLayerThickness]   = oneLayer.inner_thickness + oneLayer.outer_thickness;
+  GlobalParamD[BeamCrossingAngle] = lcdd.constantAsDouble("crossingangle") / 1000.;
+
+#else
+  gear::GearMgr* gearMgr =  marlin::Global::GEAR;
+  const gear::CalorimeterParameters& _lcalPars = gearMgr->getLcalParameters();
+
+  GlobalParamD[RMin] = _lcalPars.getExtent()[0];
+  GlobalParamD[RMax] = _lcalPars.getExtent()[1];
 
   // starting/end position [mm]
-  GlobalParamD[ZStart] = _lcalGearPars.getExtent()[2];
-  GlobalParamD[ZEnd]   = _lcalGearPars.getExtent()[3];
+  GlobalParamD[ZStart] = _lcalPars.getExtent()[2];
+  GlobalParamD[ZEnd]   = _lcalPars.getExtent()[3];
 
   // cell division numbers
-  GlobalParamD[RCellLength]   = _lcalGearPars.getLayerLayout().getCellSize0(0);
-  GlobalParamD[PhiCellLength] = _lcalGearPars.getLayerLayout().getCellSize1(0);
+  GlobalParamD[RCellLength]   = _lcalPars.getLayerLayout().getCellSize0(0);
+  GlobalParamD[PhiCellLength] = _lcalPars.getLayerLayout().getCellSize1(0);
   GlobalParamI[NumCellsR]   = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
   GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
-  GlobalParamI[NumCellsZ] = _lcalGearPars.getLayerLayout().getNLayers();
+  GlobalParamI[NumCellsZ] = _lcalPars.getLayerLayout().getNLayers();
 
  // beam crossing angle ( convert to rad )
-  GlobalParamD[BeamCrossingAngle] = _lcalGearPars.getDoubleVal("beam_crossing_angle") / 1000.; 
+  GlobalParamD[BeamCrossingAngle] = _lcalPars.getDoubleVal("beam_crossing_angle") / 1000.; 
 
   // layer thickness
-  GlobalParamD[ZLayerThickness] = _lcalGearPars.getLayerLayout().getThickness(0);
+  GlobalParamD[ZLayerThickness] = _lcalPars.getLayerLayout().getThickness(0);
+
+  
+#endif
 
   //------------------------------------------------------------------------ 
   // Processor Parameters 
