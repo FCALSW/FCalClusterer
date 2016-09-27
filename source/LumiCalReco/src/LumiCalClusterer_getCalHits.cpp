@@ -78,7 +78,9 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
       } else {
 	arm =(*_mydecoder)( calHitIn )["barrel"]; // from 1 and 2
-	phiCell = (*_mydecoder)( calHitIn )["phi"];
+	//FIXME: add check for phi range?
+	phiCell = (*_mydecoder)( calHitIn )["phi"]; // goes from -phiMax/2 to +phiMax/2
+	if(phiCell < 0 ) phiCell += _cellPhiMax; // need to put into positive range only
 	rCell = (*_mydecoder)( calHitIn )["r"];
 	if( arm == 2 ) arm = -1;
 	layer = (*_mydecoder)( calHitIn )["layer"]; // counts from 0
