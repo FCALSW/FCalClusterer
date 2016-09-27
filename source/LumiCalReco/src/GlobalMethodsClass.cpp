@@ -349,7 +349,7 @@ void GlobalMethodsClass::SetGeometryGear() {
 
 bool GlobalMethodsClass::SetGeometryDD4HEP() {
 #ifdef FCAL_WITH_DD4HEP
-  std::cout << __PRETTY_FUNCTION__  << std::endl;
+
   DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
 
   DD4hep::Geometry::DetElement lumical(lcdd.detector("LumiCal"));
