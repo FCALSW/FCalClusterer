@@ -152,10 +152,9 @@ int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
    compute center of mass of each cluster
    (3). calculate the map clusterCM from scratch
    -------------------------------------------------------------------------- */
-void LumiCalClustererClass::calculateEngyPosCM(	std::vector <int> const& cellIdV,
-						std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-						LCCluster & cluster,
-						GlobalMethodsClass::WeightingMethod_t method) {
+LCCluster LumiCalClustererClass::calculateEngyPosCM( std::vector <int> const& cellIdV,
+						     std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
+						     GlobalMethodsClass::WeightingMethod_t method) {
 
   double totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
   totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
@@ -168,16 +167,17 @@ void LumiCalClustererClass::calculateEngyPosCM(	std::vector <int> const& cellIdV
       weightSum += weightHit;
 
       const float* position = calHit->getPosition();
+      const float sign = position[2]/fabs(position[2]);
+
       xHit      += position[0] * weightHit;
       yHit      += position[1] * weightHit;
       zHit      += position[2] * weightHit;
       totEngy   += calHit->getEnergy();
-      //      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
+
     }
     if(weightSum > 0.) {
       xHit     /= weightSum;   yHit   /= weightSum; zHit /= weightSum;
       thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
-      //      thetaHit /= weightSum;
       loopFlag = 0;
     } else {
       // initialize counters and recalculate with the Energy-weights method
@@ -185,9 +185,8 @@ void LumiCalClustererClass::calculateEngyPosCM(	std::vector <int> const& cellIdV
       totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
     }
   }
-  //  std::cout<<"CalculateEngyPosCM: pos(x,y,z): "<< xHit <<", "<< yHit <<", "<< zHit << std::endl;
-  cluster = LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0);
 
+  return LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0);
 
 }
 
@@ -201,25 +200,23 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
 							std::map < int , LCCluster > & clusterCM, int clusterId,
 							GlobalMethodsClass::WeightingMethod_t method) {
 
-  int	numElementsInCluster, cellIdHit;
   double	totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
   totEngy = xHit = yHit = zHit = 0., weightHit = weightSum = 0.;
 
   int loopFlag = 1;
   while(loopFlag == 1) {
-    numElementsInCluster = cellIdV.size();
-    for(int k=0; k<numElementsInCluster; k++) {
-      cellIdHit  = cellIdV[k];
-      const IMPL::CalorimeterHitImpl * thisHit = calHitsCellId.at(cellIdHit);
-      weightHit  = posWeightTrueCluster(thisHit,cellEngyV[k],method);
+    for (std::vector<int>::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
+      int cellIdHit  = *it;
+      int k = it - cellIdV.begin();
+      const IMPL::CalorimeterHitImpl * calHit = calHitsCellId.at(cellIdHit);
+      weightHit  = posWeightTrueCluster(calHit,cellEngyV[k],method);
       weightSum += weightHit;
+      const float* position = calHit->getPosition();
+      const float sign = position[2]/fabs(position[2]);
 
-      xHit      += thisHit->getPosition()[0] * weightHit;
-      yHit      += thisHit->getPosition()[1] * weightHit;
-      zHit      += thisHit->getPosition()[2] * weightHit;
-      //      thetaHit  += atan( sqrt( xHit*xHit + yHit*yHit ) / fabs ( zHit )) * weightHit; 
-      //      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
-
+      xHit      += position[0] * weightHit;
+      yHit      += position[1] * weightHit;
+      zHit      += position[2] * weightHit;
       totEngy   += cellEngyV[k];
     }
     if(weightSum > 0) {
@@ -309,29 +306,28 @@ LCCluster LumiCalClustererClass::getEngyPosCMValues(	std::vector <int> const& ce
 							std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
 							GlobalMethodsClass::WeightingMethod_t method) {
 
-  int	numElementsInCluster, cellIdHit;
-  double	totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
+  double totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
   totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
-
   int loopFlag = 1;
   while(loopFlag == 1) {
-    numElementsInCluster = cellIdV.size();
-    for(int k=0; k<numElementsInCluster; k++) {
-      cellIdHit  = cellIdV[k];
-      IMPL::CalorimeterHitImpl * thisHit = calHitsCellId.at(cellIdHit);
-      weightHit  = posWeight(thisHit,method);
+    for (std::vector<int>::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
+      int cellIdHit  = *it;
+      IMPL::CalorimeterHitImpl * calHit = calHitsCellId.at(cellIdHit);
+      weightHit  = posWeight(calHit,method);
       weightSum += weightHit;
 
-      xHit      += thisHit->getPosition()[0] * weightHit;
-      yHit      += thisHit->getPosition()[1] * weightHit;
-      zHit      += thisHit->getPosition()[2] * weightHit;
-      //      thetaHit  += thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta)  * weightHit;
-      // (BP) 
-      thetaHit = atan( sqrt( xHit*xHit + yHit*yHit)/fabs(zHit));
-      totEngy   += thisHit->getEnergy();
+      const float* position = calHit->getPosition();
+      const float sign = position[2]/fabs(position[2]);
+
+      xHit      += position[0] * weightHit;
+      yHit      += position[1] * weightHit;
+      zHit      += position[2] * weightHit;
+      totEngy   += calHit->getEnergy();
+
     }
     if(weightSum > 0) {
       xHit /= weightSum; yHit /= weightSum; zHit /= weightSum;
+      thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
       thetaHit /= weightSum;
       loopFlag = 0;
     } else {
@@ -341,8 +337,7 @@ LCCluster LumiCalClustererClass::getEngyPosCMValues(	std::vector <int> const& ce
     }
   }
 
-  return LCCluster(totEngy, xHit, yHit, zHit,
-		   weightSum, method, thetaHit, 0.0);
+  return LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0);
 
 }
 

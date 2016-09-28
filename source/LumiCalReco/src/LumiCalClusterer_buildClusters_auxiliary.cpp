@@ -299,7 +299,7 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
   
   for(std::map < int , std::vector<int> > :: iterator clusterIdToCellIdIterator = clusterIdToCellId.begin(); clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator){
     int clsID = clusterIdToCellIdIterator->first; 
-    calculateEngyPosCM(clusterIdToCellIdIterator->second, calHitsCellId, clusterCM[clsID], _methodCM);
+    clusterCM[clsID] = calculateEngyPosCM(clusterIdToCellIdIterator->second, calHitsCellId, _methodCM);
 
   }
   //printMapVector(__func__,__LINE__,clusterCM);
@@ -727,7 +727,9 @@ int LumiCalClustererClass::virtualCMClusterBuild( std::map < int , IMPL::Calorim
   for(  std::map < int , std::vector<int> > :: iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
 	clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator){
     // calculate the energy/position of the CM
-    calculateEngyPosCM(clusterIdToCellIdIterator->second, calHitsCellId, clusterCM[clusterIdToCellIdIterator->first], _methodCM);
+    clusterCM[clusterIdToCellIdIterator->first] = calculateEngyPosCM(clusterIdToCellIdIterator->second,
+								     calHitsCellId,
+								     _methodCM);
 
   }
 
@@ -952,7 +954,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix( std::map < int , IMPL::Calori
     const int clusterId = clusterIdToCellIdIterator->first;	// Id of cluster
     std::vector< int> const& cellIdV = clusterIdToCellIdIterator->second;	// cal-hit-Ids in cluster
     if( clusterIdToCellIdIterator->second.empty() ) continue;
-    calculateEngyPosCM(cellIdV, calHitsCellId, clusterCM[clusterId], _methodCM);
+    clusterCM[clusterId] = calculateEngyPosCM(cellIdV, calHitsCellId, _methodCM);
   }
 
   return 1;
@@ -1139,7 +1141,7 @@ int LumiCalClustererClass::buildSuperClusters ( std::map <int , IMPL::Calorimete
     std::vector<int> const& cellIdV = superClusterIdToCellIdIterator->second; // cal-hit-Ids in cluster
 
     // calculate/update the energy/position of the CM
-    calculateEngyPosCM(cellIdV, calHitsCellIdGlobal, superClusterCM[superClusterId], _methodCM);
+    superClusterCM[superClusterId] = calculateEngyPosCM(cellIdV, calHitsCellIdGlobal, _methodCM);
   }
 
 #if _CLUSTER_BUILD_DEBUG == 1
@@ -1593,8 +1595,9 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
     for( MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId_Tmp.begin();
 	 superClusterIdToCellIdIterator != superClusterIdToCellId_Tmp.end(); ++superClusterIdToCellIdIterator ) {
       // calculate/update the energy/position of the CM
-      calculateEngyPosCM( superClusterIdToCellIdIterator->second, calHitsCellIdGlobal, 
-			  superClusterCM_Tmp[superClusterIdToCellIdIterator->first], _methodCM);
+      superClusterCM_Tmp[superClusterIdToCellIdIterator->first] = calculateEngyPosCM( superClusterIdToCellIdIterator->second,
+										      calHitsCellIdGlobal,
+										      _methodCM);
     }
 
     /* --------------------------------------------------------------------------
@@ -1774,8 +1777,9 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
      -------------------------------------------------------------------------- */
   for( MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
        superClusterIdToCellIdIterator != superClusterIdToCellId.end(); ++superClusterIdToCellIdIterator){
-    calculateEngyPosCM(superClusterIdToCellIdIterator->second, 
-		       calHitsCellIdGlobal, superClusterCM[superClusterIdToCellIdIterator->first], _methodCM);
+    superClusterCM[superClusterIdToCellIdIterator->first] = calculateEngyPosCM(superClusterIdToCellIdIterator->second,
+									       calHitsCellIdGlobal,
+									       _methodCM);
   }
 
   return 1;

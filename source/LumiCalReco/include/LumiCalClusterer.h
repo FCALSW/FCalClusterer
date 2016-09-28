@@ -240,11 +240,9 @@ protected:
 				MapIntCalHit const& calHitsCellId,
 				GlobalMethodsClass::WeightingMethod_t method );
 
-  void	calculateEngyPosCM( VInt const& cellIdV,
-			    MapIntCalHit const& calHitsCellId,
-			    //MapIntLCCluster & clusterCM, int clusterId,
-			    LCCluster & cluster,
-			    GlobalMethodsClass::WeightingMethod_t method );
+  LCCluster calculateEngyPosCM( VInt const& cellIdV,
+				MapIntCalHit const& calHitsCellId,
+				GlobalMethodsClass::WeightingMethod_t method );
 
   void	calculateEngyPosCM_EngyV( VInt const& cellIdV,
 				  VDouble const& cellEngyV,
