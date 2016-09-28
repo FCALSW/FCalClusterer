@@ -236,10 +236,6 @@ protected:
   double	thetaPhiCell( int	cellId,
 			      GlobalMethodsClass::Coordinate_t	output );
 
-  LCCluster getEngyPosCMValues( VInt const& cellIdV,
-				MapIntCalHit const& calHitsCellId,
-				GlobalMethodsClass::WeightingMethod_t method );
-
   LCCluster calculateEngyPosCM( VInt const& cellIdV,
 				MapIntCalHit const& calHitsCellId,
 				GlobalMethodsClass::WeightingMethod_t method );
