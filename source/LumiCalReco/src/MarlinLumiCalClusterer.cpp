@@ -446,35 +446,46 @@ try
       for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
 	MCParticle * particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
 	// only primary particles wanted
-	if( particle->isCreatedInSimulation() ) continue;                           //<--- is primary ? 
-	  int pdg = particle->getPDG();
-	  // skip neutrinos
-	  if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue;                        //<--- detectable ?
-	  // energy above min 
-	  double engy = particle->getEnergy();
-	  if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;  //<--- Energy >  Emin ?
-	  double* pp = (double*)particle->getMomentum();
-	  int sign = int ( pp[2]/fabs( pp[2] ));
-          // check if within Lcal acceptance
-	  double *endPoint = (double*)particle->getEndpoint();
-         	// did it reach at least LCal face
-       	  if( fabs( endPoint[2] ) < LcalZstart && fabs( endPoint[2] )>0. ) continue;                 //<--- reached LCal ?
-       	  double pxloc = -_betagamma*engy + _gamma*pp[0];
-	  double *vx = (double*)particle->getVertex();
-        	// particle position at LCal face ( local )
-	  double begX = vx[0]+ LcalZstart*tan(pxloc/(pp[2]));
-	  double begY = vx[1]+double(sign)*LcalZstart*tan(pp[1] /(pp[2]));
-	  double rt = sqrt( sqr(begX) + sqr(begY) );
-       	  if( rt < Rmin || rt > Rmax ) continue;                                                    //<--- within geo  acceptance ?
-        	//  polar angle ( local )
-	  double theta = atan( sqrt( sqr(pxloc) + sqr(pp[1]) )/fabs(pp[2]));
-          if( fabs(theta) < thmin  || fabs(theta) > thmax ) continue;                  //<--- within theta range ? 
+	if( particle->isCreatedInSimulation() ) continue; //<--- is primary ?
 
- 
-	  myMCP p = { particle, engy, theta, begX, begY};
-	  //	  std::cout << " pdg, engy, theta "<< pdg << ", "<< engy <<", "<< theta << std::endl;
+	int pdg = particle->getPDG();
+	// skip neutrinos
+	if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue; //<--- detectable ?
+
+	// energy above min
+	const double engy = particle->getEnergy();
+	if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;  //<--- Energy >  Emin ?
+
+	// check if within Lcal acceptance
+	const double *endPoint = particle->getEndpoint();
+	// did it reach at least LCal face
+	if( fabs( endPoint[2] ) < LcalZstart && fabs( endPoint[2] )>0. ) continue; //<--- reached LCal ?
+
+	const double* pp = particle->getMomentum();
+	const int sign = int ( pp[2]/fabs( pp[2] ));
+
+	// boost to lumical system
+	const double pxloc = -_betagamma*engy + _gamma*pp[0];
+	const double *vx = particle->getVertex();
+
+	// particle position at LCal face ( local )
+	double begX = vx[0] + LcalZstart*tan(pxloc/(pp[2]));
+	double begY = vx[1] + LcalZstart*tan(pp[1]/(pp[2]));
+	double rt = sqrt( sqr(begX) + sqr(begY) );
+	if( rt < Rmin || Rmax < rt  ) continue; //<--- within geo acceptance ?
+
+	//  polar angle ( local )
+	double theta = atan( sqrt( sqr(pxloc) + sqr(pp[1]) )/fabs(pp[2]));
+	if( fabs(theta) < thmin  || thmax < fabs(theta)  ) continue; //<--- within theta range ?
+
+	myMCP p = { particle, engy, theta, begX, begY};
+	std::cout << " MCParticle pdg, engy, theta "<< pdg << ", "<< engy <<", "<< theta
+		  << "  sign " << std::setw(13) << sign
+		  << " pp[2] " << std::setw(13) << pp[2]
+		  << std::endl;
 	if ( sign > 0 ) mcParticlesVecPos.push_back( p );
         else mcParticlesVecNeg.push_back( p );
+
       }
     }
     int numOfClustersNeg =  clusterIdToCellId.at(-1).size();
@@ -517,8 +528,8 @@ try
 #if _CREATE_CLUSTERS_DEBUG == 1
        	LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
 	streamlog_out(MESSAGE) << "arm =   " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl
-			       << std::setw(20) << "X, Y, Z:            " << std::endl
-			       << std::setw(20) << "ClusterClass        "
+			       << std::setw(20) << "X, Y, Z:" << std::endl
+			       << std::setw(20) << "ClusterClass"
 			       << std::fixed << std::setprecision(3)
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[0]
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[1]
@@ -528,11 +539,11 @@ try
 			       << std::setw(13) << thisClusterInfo.getY()
 			       << std::setw(13) << thisClusterInfo.getZ() << std::endl
 			       << std::setw(20) << "Energy, Theta, Phi: " << std::endl
-			       << std::setw(20) << "ClusterClass        "
+			       << std::setw(20) << "ClusterClass"
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> Engy
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> Theta
 			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> Phi  << std::endl
-			       << std::setw(20) << "ClusterInfo         " 
+			       << std::setw(20) << "ClusterInfo"
 			       << std::setw(13) << thisClusterInfo.getEnergy()
 			       << std::setw(13) << thisClusterInfo.getTheta()
 			       << std::setw(13) << thisClusterInfo.getPhi()  << std::endl
@@ -577,8 +588,8 @@ try
 	    _sortAgainstThisTheta = clusterClassMap[armNow][clusterId] -> Theta;
 
 	    if( mcParticlesVec.size() ){
-	// try to match MC true particle with cluster by comparing positions at Lumical entry
-	  //	  sort( mcParticlesVec.begin(), mcParticlesVec.end(), ThetaCompAsc );
+	      // try to match MC true particle with cluster by comparing positions at Lumical entry
+	      //	  sort( mcParticlesVec.begin(), mcParticlesVec.end(), ThetaCompAsc );
 	      sort( mcParticlesVec.begin(), mcParticlesVec.end(), PositionCompAsc );
 
 	      double dTheta  = fabs( _sortAgainstThisTheta - mcParticlesVec[0].theta );
@@ -607,9 +618,9 @@ try
 	    }
 
 #if _CREATE_CLUSTERS_DEBUG == 1
-	    if( clusterClassMap[armNow][clusterId] -> Pdg != 0) {   
+	    if( clusterClassMap[armNow][clusterId] -> Pdg != 0) {
 	      double Ereco = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy);
-	streamlog_out( MESSAGE4 ) << "\tParticle Out ("
+	      streamlog_out( MESSAGE4 ) << "\tParticle Out ("
 		  << clusterClassMap[armNow][clusterId] -> OutsideReason << "):   " << clusterId << std::endl
 		  << "\t\t side(arm), pdg, parentId , NumMCDaughters = "
 		  << "\t" << clusterClassMap[armNow][clusterId] -> SignMC<<"("<<armNow<<")"
