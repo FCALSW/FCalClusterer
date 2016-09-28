@@ -161,7 +161,7 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( std::vector <int> const& ce
   int loopFlag = 1;
   while(loopFlag == 1) {
     for (std::vector<int>::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
-      int cellIdHit  = *it;
+      const int cellIdHit  = *it;
       const IMPL::CalorimeterHitImpl* calHit = calHitsCellId.at(cellIdHit);
       weightHit  = posWeight(calHit,method);
       weightSum += weightHit;
@@ -199,15 +199,14 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
 							std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
 							std::map < int , LCCluster > & clusterCM, int clusterId,
 							GlobalMethodsClass::WeightingMethod_t method) {
-
-  double	totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
+  double totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
   totEngy = xHit = yHit = zHit = 0., weightHit = weightSum = 0.;
 
   int loopFlag = 1;
   while(loopFlag == 1) {
     for (std::vector<int>::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
-      int cellIdHit  = *it;
-      int k = it - cellIdV.begin();
+      const int cellIdHit  = *it;
+      const int k = it - cellIdV.begin();
       const IMPL::CalorimeterHitImpl * calHit = calHitsCellId.at(cellIdHit);
       weightHit  = posWeightTrueCluster(calHit,cellEngyV[k],method);
       weightSum += weightHit;
@@ -299,50 +298,6 @@ void LumiCalClustererClass::updateEngyPosCM(IMPL::CalorimeterHitImpl* calHit, LC
 }
 
 /* --------------------------------------------------------------------------
-   compute center of mass of each cluster
-   (3). compute the values without updating clusterCM
-   -------------------------------------------------------------------------- */
-LCCluster LumiCalClustererClass::getEngyPosCMValues(	std::vector <int> const& cellIdV,
-							std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-							GlobalMethodsClass::WeightingMethod_t method) {
-
-  double totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
-  totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
-  int loopFlag = 1;
-  while(loopFlag == 1) {
-    for (std::vector<int>::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
-      int cellIdHit  = *it;
-      IMPL::CalorimeterHitImpl * calHit = calHitsCellId.at(cellIdHit);
-      weightHit  = posWeight(calHit,method);
-      weightSum += weightHit;
-
-      const float* position = calHit->getPosition();
-      const float sign = position[2]/fabs(position[2]);
-
-      xHit      += position[0] * weightHit;
-      yHit      += position[1] * weightHit;
-      zHit      += position[2] * weightHit;
-      totEngy   += calHit->getEnergy();
-
-    }
-    if(weightSum > 0) {
-      xHit /= weightSum; yHit /= weightSum; zHit /= weightSum;
-      thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
-      thetaHit /= weightSum;
-      loopFlag = 0;
-    } else {
-      // initialize counters and recalculate with the Energy-weights method
-      method = GlobalMethodsClass::EnergyMethod;
-      totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
-    }
-  }
-
-  return LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0);
-
-}
-
-
-/* --------------------------------------------------------------------------
    make sure that the CM of two merged clusters is where most of the merged
    cluster's energy is deposited
    -------------------------------------------------------------------------- */
@@ -371,7 +326,7 @@ int LumiCalClustererClass::checkClusterMergeCM(  int clusterId1, int clusterId2,
     cellIdV.push_back(cellIdHit);
   }
 
-  LCCluster engyPosCM( getEngyPosCMValues(cellIdV, calHitsCellId, method) );
+  LCCluster engyPosCM( calculateEngyPosCM(cellIdV, calHitsCellId, method) );
   CM1[0] = engyPosCM.getX();
   CM1[1] = engyPosCM.getY();
   engyCM = engyPosCM.getE();
