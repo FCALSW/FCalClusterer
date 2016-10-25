@@ -413,8 +413,8 @@ std::map < int , double > snbx;
 	const double *vx = particle->getVertex();
 
 	// particle position at LCal face ( local )
-	double begX = vx[0] + LcalZstart*tan(pxloc/(pp[2]));
-	double begY = vx[1] + LcalZstart*tan(pp[1]/(pp[2]));
+	double begX = vx[0] + double(sign)*LcalZstart*tan(pxloc/(pp[2]));
+	double begY = vx[1] + double(sign)*LcalZstart*tan(pp[1]/(pp[2]));
 	double rt = sqrt( sqr(begX) + sqr(begY) );
 	if( rt < Rmin || Rmax < rt  ) continue; //<--- within geo acceptance ?
 

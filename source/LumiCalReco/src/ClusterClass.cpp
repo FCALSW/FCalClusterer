@@ -66,7 +66,7 @@ void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
   double gama = sqrt( 1.+ betgam*betgam);
   double localPX =-betgam*EngyMC + gama*MCmomX;
   // position at face of Lcal
-  mcpPosition[0] = VtxX + gmc.GlobalParamD[GlobalMethodsClass::ZStart]*tan(localPX /MCmomZ);
+  mcpPosition[0] = VtxX + double(SignMC)*gmc.GlobalParamD[GlobalMethodsClass::ZStart]*tan(localPX /MCmomZ);
   mcpPosition[1] = VtxY + double(SignMC)*gmc.GlobalParamD[GlobalMethodsClass::ZStart]*tan(MCmomY/MCmomZ);
   mcpPosition[2] = gmc.GlobalParamD[GlobalMethodsClass::ZStart]*double(SignMC);
 
