@@ -28,7 +28,6 @@ ClusterClass::ClusterClass(int idNow, GlobalMethodsClass& _gmc):
   Hit(),
   gmc(_gmc)
 {
-  // inherited method from GlobalMethods class, to set all global constants
   clusterPosition[0] = 0.0;
   clusterPosition[1] = 0.0;
   clusterPosition[2] = 0.0;

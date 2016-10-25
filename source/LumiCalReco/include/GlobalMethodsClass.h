@@ -19,6 +19,8 @@
 #include <map>
 #include <string>
 
+class TGeoHMatrix;
+
 
 class GlobalMethodsClass {
 
@@ -99,10 +101,17 @@ class GlobalMethodsClass {
 
   inline bool isUsingDD4hep() const { return _useDD4hep; }
 
+  void rotateToLocal(const double* global, double* local) const;
+  void rotateToWorld(const double* local, double* global) const;
+  void rotateToLocal(const float* global, float* local) const;
+  void rotateToWorld(const float* local, float* global) const;
+
 private:
   void SetGeometryGear();
   bool SetGeometryDD4HEP();
 
+  const TGeoHMatrix *_forwardCalo;
+  const TGeoHMatrix *_backwardCalo;
 
 };
 

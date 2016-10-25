@@ -96,6 +96,8 @@ namespace EVENT{
     double _betagamma; // = _beta;
     double _gamma;     // = sqrt( 1. + _beta*_beta );
 
+    void storeMCParticleInfo( LCEvent *evt, int clusterInFlag  );
+
   };
 
 #endif
