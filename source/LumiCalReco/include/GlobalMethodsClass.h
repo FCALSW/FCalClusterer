@@ -58,7 +58,9 @@ class GlobalMethodsClass {
     GeV_to_Signal,
     Signal_to_GeV,
     BeamCrossingAngle,
-    LumiInColName
+    LumiInColName,
+    BetaGamma,
+    Gamma
 };
   //
   

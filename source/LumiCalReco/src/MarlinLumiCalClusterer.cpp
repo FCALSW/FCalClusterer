@@ -2,6 +2,7 @@
 #include "MarlinLumiCalClusterer.h"
 
 #include "ClusterClass.h"
+#include "MCInfo.h"
 
 #include <IMPL/ReconstructedParticleImpl.h>
 #include <IMPL/ClusterImpl.h>
@@ -27,19 +28,12 @@ double _sortAgainstThisTheta;
 double _sortAgainstThisX;
 double _sortAgainstThisY;
 
-struct myMCP{
-  MCParticle * mcp;
-  double engy;
-  double theta;
-  double x;
-  double y;
-};
 // variable _sortAgainstThisTheta must be set before sorting 
-bool ThetaCompAsc( myMCP a, myMCP b ){
+bool ThetaCompAsc( MCInfo a, MCInfo b ){
   return fabs( _sortAgainstThisTheta - a.theta) < fabs( _sortAgainstThisTheta -b.theta) ;
 }
 
-bool PositionCompAsc( myMCP a, myMCP b ){
+bool PositionCompAsc( MCInfo a, MCInfo b ){
   double dxa = ( _sortAgainstThisX - a.x);
   double dya = ( _sortAgainstThisY - a.y);
   double dxb = ( _sortAgainstThisX - b.x);
@@ -145,7 +139,8 @@ std::map < int , double > snbx;
 	    double py = clusterEnergy * sin ( clusterTheta ) * sin ( clusterPhi );
 	    double pz = clusterEnergy * cos ( clusterTheta ) * float(armNow);
 	    // (BP) do boost
-	    double pxlab = _betagamma * clusterEnergy + _gamma*px;
+	    double pxlab = gmc.GlobalParamD[GlobalMethodsClass::BetaGamma] * clusterEnergy +
+	      gmc.GlobalParamD[GlobalMethodsClass::Gamma]*px;
 	    float clusterMomentum[3] = { float( pxlab ), float( py ), float( pz )  };
 	    particle->setMomentum ( clusterMomentum) ;
 
@@ -364,15 +359,8 @@ std::map < int , double > snbx;
     std::map < int , ClusterClass * > :: iterator		clusterClassMapIterator;
     std::map < int , std::vector<int> >  ::const_iterator	clusterIdToCellIdIterator;
 
-    std::vector < myMCP > mcParticlesVecPos;
-    std::vector < myMCP > mcParticlesVecNeg;
-
-
-    const double LcalZstart = gmc.GlobalParamD[GlobalMethodsClass::ZStart];
-    const double Rmin = gmc.GlobalParamD[GlobalMethodsClass::RMin];
-    const double Rmax = gmc.GlobalParamD[GlobalMethodsClass::RMax];
-    const double thmin = gmc.GlobalParamD[GlobalMethodsClass::ThetaMin];
-    const double thmax = gmc.GlobalParamD[GlobalMethodsClass::ThetaMax];
+    std::vector < MCInfo > mcParticlesVecPos;
+    std::vector < MCInfo > mcParticlesVecNeg;
 
 #if _CREATE_CLUSTERS_DEBUG == 1
 	streamlog_out(MESSAGE4) << "CreateClusters: event = " << evt-> getEventNumber() << std::endl;
@@ -389,45 +377,13 @@ std::map < int , double > snbx;
 #endif
       for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
 	MCParticle * particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
-	// only primary particles wanted
-	if( particle->isCreatedInSimulation() ) continue; //<--- is primary ?
-
-	int pdg = particle->getPDG();
-	// skip neutrinos
-	if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue; //<--- detectable ?
-
-	// energy above min
-	const double engy = particle->getEnergy();
-	if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;  //<--- Energy >  Emin ?
-
-	// check if within Lcal acceptance
-	const double *endPoint = particle->getEndpoint();
-	// did it reach at least LCal face
-	if( fabs( endPoint[2] ) < LcalZstart && fabs( endPoint[2] )>0. ) continue; //<--- reached LCal ?
-
-	const double* pp = particle->getMomentum();
-	const int sign = int ( pp[2]/fabs( pp[2] ));
-
-	// boost to lumical system
-	const double pxloc = -_betagamma*engy + _gamma*pp[0];
-	const double *vx = particle->getVertex();
-
-	// particle position at LCal face ( local )
-	double begX = vx[0] + double(sign)*LcalZstart*tan(pxloc/(pp[2]));
-	double begY = vx[1] + double(sign)*LcalZstart*tan(pp[1]/(pp[2]));
-	double rt = sqrt( sqr(begX) + sqr(begY) );
-	if( rt < Rmin || Rmax < rt  ) continue; //<--- within geo acceptance ?
-
-	//  polar angle ( local )
-	double theta = atan( sqrt( sqr(pxloc) + sqr(pp[1]) )/fabs(pp[2]));
-	if( fabs(theta) < thmin  || thmax < fabs(theta)  ) continue; //<--- within theta range ?
-
-	myMCP p = { particle, engy, theta, begX, begY};
-	streamlog_out(DEBUG2) << " MCParticle pdg, engy, theta "<< pdg << ", "<< engy <<", "<< theta
-                              << "  sign " << std::setw(13) << sign
-                              << " pp[2] " << std::setw(13) << pp[2]
+	MCInfo p = MCInfo::getMCParticleInfo( particle, gmc );
+	if( p.mcp == NULL ) continue;
+	streamlog_out(DEBUG2) << " MCParticle pdg, engy, theta "<< p.pdg << ", "<< p.engy <<", "<< p.theta
+                              << "  sign " << std::setw(13) << p.sign
+                              << " pp[2] " << std::setw(13) << p.pp[2]
                               << std::endl;
-	if ( sign > 0 ) mcParticlesVecPos.push_back( p );
+	if ( p.sign > 0 ) mcParticlesVecPos.push_back( p );
         else mcParticlesVecNeg.push_back( p );
 
       }
@@ -512,7 +468,7 @@ std::map < int , double > snbx;
       if( mcParticlesVecNeg.size() || mcParticlesVecPos.size() ) {
 	for(int armNow = -1; armNow < 2; armNow += 2) {
 
-	  std::vector < myMCP > mcParticlesVec;
+	  std::vector < MCInfo > mcParticlesVec;
 	  if ( armNow == -1 ) mcParticlesVec = mcParticlesVecNeg ;
 	  else                mcParticlesVec = mcParticlesVecPos ;
 
@@ -625,51 +581,26 @@ void MarlinLumiCalClusterer::storeMCParticleInfo( LCEvent *evt, int clusterInFla
       return;
     }
 
-    const double thmin = gmc.GlobalParamD[GlobalMethodsClass::ThetaMin];
-    const double thmax = gmc.GlobalParamD[GlobalMethodsClass::ThetaMax];
     const double LcalZstart = gmc.GlobalParamD[GlobalMethodsClass::ZStart];
-    const double rmin = LcalZstart*tan(thmin);
-    const double rmax = LcalZstart*tan(thmax);
-    const double r0   = LcalZstart*tan(_BeamCrossingAngle);
 
     const int numMCParticles = particles->getNumberOfElements();
     for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
       MCParticle *particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
-      // only primary particles wanted
-      if( particle->isCreatedInSimulation() ) continue; //<---- is primary ?
-      const int pdg = particle->getPDG();
-      // skip neutrinos
-      if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue; //<---- detectable ?
-      // energy above min
-      const double engy = particle->getEnergy();
-      if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;
-      const double* p = particle->getMomentum();
-      const int sign = int ( p[2]/fabs( p[2] ));
-      // check if within Lcal acceptance
+      MCInfo p = MCInfo::getMCParticleInfo( particle, gmc );
+      if( p.mcp == NULL ) continue;
       const double *endPoint = particle->getEndpoint();
-      // did it reach at least LCal face ?
-      if( fabs( endPoint[2] ) < LcalZstart && fabs( endPoint[2] ) > 0. ) continue; //<---- endPoint set and particle did not make to Lcal
       const double *vx = particle->getVertex();
-      const double begX = vx[0]+double(sign)*LcalZstart*tan(p[0]/(p[2]));
-      const double begY = vx[1]+double(sign)*LcalZstart*tan(p[1]/(p[2]));
-      const double rt = sqrt( sqr(begX-r0) + sqr(begY) );
-      if( rt < rmin || rt > rmax ) continue; //<---- within geo acceptance ?
-      const double pxlocal = -_betagamma*engy + _gamma*p[0];
-      const double pTheta = atan( sqrt( sqr(pxlocal) + sqr(p[1]) )/fabs(p[2]));
-      if( fabs(pTheta) < thmin  || fabs(pTheta) > thmax ) continue; //<--- within theta range ?
-      mcparticleInFlag++;
-      const double phi = atan2( p[1], pxlocal );
 
       OutputManager.TreeIntV["nEvt"]	= NumEvt;
-      OutputManager.TreeIntV["sign"]	= sign;
-      OutputManager.TreeIntV["pdg"]	= pdg;
-      OutputManager.TreeDoubleV["engy"]	= engy;
-      OutputManager.TreeDoubleV["theta"]= pTheta;
-      OutputManager.TreeDoubleV["phi"]	= phi;
+      OutputManager.TreeIntV["sign"]	= p.sign;
+      OutputManager.TreeIntV["pdg"]	= p.pdg;
+      OutputManager.TreeDoubleV["engy"]	= p.engy;
+      OutputManager.TreeDoubleV["theta"]= p.theta;
+      OutputManager.TreeDoubleV["phi"]	= p.phi;
       // position at the face of LCal (global coordinates)
-      OutputManager.TreeDoubleV["begX"]	= begX;
-      OutputManager.TreeDoubleV["begY"]	= begY;
-      OutputManager.TreeDoubleV["begZ"]	= double(sign)*LcalZstart;
+      OutputManager.TreeDoubleV["begX"]	= p.x;
+      OutputManager.TreeDoubleV["begY"]	= p.y;
+      OutputManager.TreeDoubleV["begZ"]	= double(p.sign)*LcalZstart;
       OutputManager.TreeDoubleV["vtxX"]	= vx[0];
       OutputManager.TreeDoubleV["vtxY"]	= vx[1];
       OutputManager.TreeDoubleV["vtxZ"]	= vx[2];

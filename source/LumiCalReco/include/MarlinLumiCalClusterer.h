@@ -90,12 +90,6 @@ namespace EVENT{
     inline float sqr( float a){ return a*a;};
     inline int sqr( int a){ return a*a;};
 
-// lorentz boost params
-//(BP)  as in Mokka PrimaryGeneratorAction
-
-    double _betagamma; // = _beta;
-    double _gamma;     // = sqrt( 1. + _beta*_beta );
-
     void storeMCParticleInfo( LCEvent *evt, int clusterInFlag  );
 
   };

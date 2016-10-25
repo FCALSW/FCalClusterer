@@ -1,5 +1,6 @@
 SET( LumiCalReco_SOURCES 
   src/ClusterClass.cpp
+  src/MCInfo.cpp
   src/GlobalMethodsClass.cpp
   src/LCCluster.cpp
   src/ProjectionInfo.cpp

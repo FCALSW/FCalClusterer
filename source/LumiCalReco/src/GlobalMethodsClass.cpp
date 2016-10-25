@@ -203,6 +203,13 @@ void GlobalMethodsClass::SetConstants() {
   // IO
   GlobalParamS[LumiInColName] = _lcalRecoPars->getStringVal(  "LumiInColName" );
 
+
+  // Lorentz boost params
+  const double beta = tan( GlobalParamD[BeamCrossingAngle]/2.0 );
+  GlobalParamD[BetaGamma] = beta;
+  GlobalParamD[Gamma] = sqrt( 1. + beta*beta );
+
+
 }
 
 
@@ -288,6 +295,8 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
   case Signal_to_GeV:                    return "Signal_to_GeV";
   case BeamCrossingAngle:                return "BeamCrossingAngle";
   case LumiInColName:                    return "LumiInColName";
+  case BetaGamma:                        return "BetaGamma";
+  case Gamma:                            return "Gamma";
   default: return "Unknown Parameter";
   }
 
