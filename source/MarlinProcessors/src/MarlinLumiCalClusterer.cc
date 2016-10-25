@@ -52,9 +52,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 						   MemoryResidentTree(0),
 						   OutputManager(),
 						   gmc(),
-                                                   LumiCalClusterer(LumiInColName),
-                                                   _betagamma(0),
-                                                   _gamma(1.) 
+                                                   LumiCalClusterer(LumiInColName)
 						   
 {
   _description = "whatever..." ;
@@ -176,12 +174,6 @@ void MarlinLumiCalClusterer::init(){
 
   gmc.SetConstants();
   _BeamCrossingAngle = gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.;
-
-  // Lorentz boost params
-  double beta = tan( _BeamCrossingAngle );
-  _betagamma = beta;
-  _gamma = sqrt( 1. + sqr(beta) );
-
 
   printParameters();
   /* --------------------------------------------------------------------------
