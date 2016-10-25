@@ -14,6 +14,11 @@ using LCHelper::distance2D;
 #include <iomanip>
 
 
+#ifdef FCAL_WITH_DD4HEP
+#include <DD4hep/DD4hepUnits.h>
+#endif
+
+
 
 /* --------------------------------------------------------------------------
    calculate weight for cluster CM according to different methods
@@ -179,6 +184,17 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( std::vector <int> const& ce
       xHit     /= weightSum;   yHit   /= weightSum; zHit /= weightSum;
       thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
       loopFlag = 0;
+
+      if( _useDD4hep ) {
+	const double sign = fabs(zHit)/zHit;
+	const double localPos[3] = { xHit*dd4hep::mm, yHit*dd4hep::mm, sign*dd4hep::mm };
+	double globalPos[3] = {0.0, 0.0, 0.0};
+	_gmc.rotateToWorld( localPos, globalPos );
+	xHit = globalPos[0]/dd4hep::mm;
+	yHit = globalPos[1]/dd4hep::mm;
+	zHit = globalPos[2]/dd4hep::mm;
+      }
+
     } else {
       // initialize counters and recalculate with the Energy-weights method
       method = GlobalMethodsClass::EnergyMethod;
@@ -223,6 +239,17 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
       thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
       //      thetaHit /= weightSum;
       loopFlag = 0;
+
+      if( _useDD4hep ) {
+	const double sign = fabs(zHit)/zHit*1e-3;//very small, we just need +/-epsilon to know which way to turn
+	const double localPos[3] = { xHit*dd4hep::mm, yHit*dd4hep::mm, sign*dd4hep::mm };
+	double globalPos[3] = {0.0, 0.0, 0.0};
+	_gmc.rotateToWorld( localPos, globalPos );
+	xHit = globalPos[0]/dd4hep::mm;
+	yHit = globalPos[1]/dd4hep::mm;
+	zHit = globalPos[2]/dd4hep::mm;
+      }
+
     } else {
       // initialize counters and recalculate with the Energy-weights method
       method = GlobalMethodsClass::EnergyMethod;

@@ -311,7 +311,7 @@ void GlobalMethodsClass::PrintAllParameters() const {
     streamlog_out(MESSAGE) << " - (string)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
   }
 
-  std::cout << "Using DD4hep based geometry and hit enconding? " << std::boolalpha << _useDD4hep  << std::endl;
+  streamlog_out(MESSAGE) << "Using DD4hep based geometry and hit enconding? " << std::boolalpha << _useDD4hep  << std::endl;
 
   streamlog_out(MESSAGE) << "---------------------------------------------------------------" << std::endl;
 
@@ -395,7 +395,13 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
     DD4hep::Geometry::Position glob(0.0, 0.0, 0.0);
     it->second.localToWorld( loc, glob );
     GlobalParamD[BeamCrossingAngle] = 2.0*fabs( atan( glob.x() / glob.z() ) / dd4hep::rad );
-    break;
+    if( glob.z() > 0.0 ) {
+      std::cout << " Forward "  << std::endl;
+      _forwardCalo = &it->second.worldTransformation();
+    } else {
+      std::cout << " Backward "  << std::endl;
+      _backwardCalo = &it->second.worldTransformation();
+    }
   }
 
   // layer thickness
@@ -406,4 +412,43 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
 #endif
   //no dd4hep geometry
   return false;
+}
+
+void GlobalMethodsClass::rotateToLocal(const double* global, double* local) const {
+  if( global[2] < 0 ) {
+    _backwardCalo->MasterToLocal( global, local );
+  } else {
+    _forwardCalo->MasterToLocal( global, local );
+  }
+  return;
+}
+
+void GlobalMethodsClass::rotateToWorld(const double *local, double* global) const {
+  if( local[2] < 0 ) {
+    _backwardCalo->LocalToMaster( local, global );
+  } else {
+    _forwardCalo->LocalToMaster( local, global );
+  }
+  return;
+}
+
+
+void GlobalMethodsClass::rotateToLocal(const float* global, float* local) const {
+  const double globPos[3] = { global[0], global[1], global[2] };
+  double locPos[3] = { 0.0, 0.0, 0.0 };
+  rotateToLocal( globPos, locPos );
+  local[0] = locPos[0];
+  local[1] = locPos[1];
+  local[2] = locPos[2];
+  return;
+}
+
+void GlobalMethodsClass::rotateToWorld(const float *local, float* global) const {
+  const double locPos[3] = { local[0], local[1], local[2] };
+  double globPos[3] = { 0.0, 0.0, 0.0 };
+  rotateToWorld( locPos,  globPos );
+  global[0] = globPos[0];
+  global[1] = globPos[1];
+  global[2] = globPos[2];
+  return;
 }

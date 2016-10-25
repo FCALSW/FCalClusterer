@@ -54,7 +54,7 @@ std::map < int , double > snbx;
 
     try{
 
-      std::string hisName, optionName;
+      std::string optionName;
       int         numMCParticles, particleId;
       double	  engyNow, thetaNow, phiNow, rzstartNow;
 
@@ -86,7 +86,7 @@ std::map < int , double > snbx;
       std::map < int , std::vector<int> > ::const_iterator  clusterIdToCellIdIterator;
 
 #if _CREATE_CLUSTERS_DEBUG == 1
-      std::cout << " Transfering reco results to LCalClusterCollection....."<<std::endl;
+      streamlog_out(DEBUG2) << " Transfering reco results to LCalClusterCollection....."<<std::endl;
 #endif 
   
       for(int armNow = -1; armNow < 2; armNow += 2) {
@@ -97,7 +97,7 @@ std::map < int , double > snbx;
 	//	clusterClassMapIterator = clusterClassMap[armNow].begin();
 	//	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
 #if _CREATE_CLUSTERS_DEBUG == 1
-       	std::cout<<" Arm  "<< std::setw(4)<< armNow << "\t Number of clusters: "<< numClusters <<std::endl;
+        streamlog_out(DEBUG2)<<" Arm  "<< std::setw(4)<< armNow << "\t Number of clusters: "<< numClusters <<std::endl;
 #endif
 	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterIdToCellIdIterator++) {
 	  clusterId = (int)(*clusterIdToCellIdIterator).first;
@@ -116,40 +116,55 @@ std::map < int , double > snbx;
           const float  yloc =  float(thisClusterInfo.getY());
           const float  zloc =  fabs(float(thisClusterInfo.getZ())); // take abs , since we kept wrong local minus z in getHts
 #if _CREATE_CLUSTERS_DEBUG == 1
-	  std::cout<<std::setw(8) << std::fixed << std::setprecision(3)
+	  streamlog_out(DEBUG2)<<std::setw(8) << std::fixed << std::setprecision(3)
 		   << " Cluster "<< clusterId << ": Position X,Y,Z [mm] ( "<< xloc <<", "<< yloc <<", "<< zloc 
 		   <<")\t E( "<< clusterEnergy <<" GeV)" 
 		   <<std::endl;
 #endif
-	  //(BP) local -> global rot.
-	  float xglob = csbx[ armNow ]*xloc + snbx[ armNow ]*zloc;
-          float zglob = snbx[ armNow ]*xloc + csbx[ armNow ]*zloc;
-	  const float clusterPosition[3] = { xglob, yloc, zglob };
-	  
+
 	  ClusterImpl* cluster = new ClusterImpl;
 	  cluster->setEnergy( clusterEnergy );
- 	  cluster->setPosition( clusterPosition );
-#pragma message ("FIXME: Link Calohits to the Cluster")
-	  //Get the cellID from the container Hit of the cluster and find the
-	  //matching LumiCal SimCalorimeterHit in the event collection, probably
-	  //have to loop over all of them until it is found
 
 	  ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
 	  const float mass = 0.0;
 	  const float charge = 1e+19;
-	  // (BP) take care about components sign
-          double px = clusterEnergy * sin ( clusterTheta ) * cos ( clusterPhi ) * float(armNow);
-          double py = clusterEnergy * sin ( clusterTheta ) * sin ( clusterPhi );
-	  double pz = clusterEnergy * cos ( clusterTheta ) * float(armNow);
-	  // (BP) do boost 
-	  double pxlab = _betagamma * clusterEnergy + _gamma*px; 
-	  float clusterMomentum[3] = { float( pxlab ), float( py ), float( pz )  };
-
 	  particle->setMass( mass ) ;
 	  particle->setCharge( charge ) ;
-	  particle->setMomentum ( clusterMomentum) ;
 	  particle->setEnergy ( clusterEnergy ) ;
 	  particle->addCluster( cluster ) ;
+
+	  if ( not gmc.isUsingDD4hep() ) {
+	    //(BP) local -> global rot.
+	    float xglob = csbx[ armNow ]*xloc + snbx[ armNow ]*zloc;
+	    float zglob = snbx[ armNow ]*xloc + csbx[ armNow ]*zloc;
+	    const float clusterPosition[3] = { xglob, yloc, zglob };
+	    cluster->setPosition( clusterPosition );
+
+	    // (BP) take care about components sign
+	    double px = clusterEnergy * sin ( clusterTheta ) * cos ( clusterPhi ) * float(armNow);
+	    double py = clusterEnergy * sin ( clusterTheta ) * sin ( clusterPhi );
+	    double pz = clusterEnergy * cos ( clusterTheta ) * float(armNow);
+	    // (BP) do boost
+	    double pxlab = _betagamma * clusterEnergy + _gamma*px;
+	    float clusterMomentum[3] = { float( pxlab ), float( py ), float( pz )  };
+	    particle->setMomentum ( clusterMomentum) ;
+
+	  } else {
+	    //already rotated cluster position
+	    const float clusterPosition[3] = { xloc, yloc, zloc };
+	    cluster->setPosition( clusterPosition );
+
+	    const float norm = sqrt( xloc*xloc + yloc*yloc + zloc*zloc );
+	    const float clusterMomentum[3] =  { float(xloc/norm * clusterEnergy),
+						float(yloc/norm * clusterEnergy),
+						float(zloc/norm * clusterEnergy) };
+	    particle->setMomentum ( clusterMomentum) ;
+
+	  }
+#pragma message ("FIXME: Link Calohits to the Cluster")
+	  //Get the cellID from the container Hit of the cluster and find the
+	  //matching LumiCal SimCalorimeterHit in the event collection, probably
+	  //have to loop over all of them until it is found
 
 	  LCalClusterCol->addElement(cluster);
 	  LCalRPCol->addElement(particle);
@@ -199,8 +214,8 @@ std::map < int , double > snbx;
 	  thetaNow = clusterClassMap[armNow][particleId] -> Theta;
 	  // highest energy RecoParticle
 	  if(clusterClassMap[armNow][particleId]->HighestEnergyFlag == 1){
-	    hisName = "higestEngyParticle_Engy";	OutputManager.HisMap1D[hisName] -> Fill (engyNow);
-	    hisName = "higestEngyParticle_Theta";	OutputManager.HisMap1D[hisName] -> Fill (thetaNow);
+	    OutputManager.HisMap1D["higestEngyParticle_Engy"] -> Fill (engyNow);
+	    OutputManager.HisMap1D["higestEngyParticle_Theta"] -> Fill (thetaNow);
 	  }
 	  if(clusterClassMap[armNow][particleId]->OutsideFlag == 1){
 	    // beyond acceptance ( energy and/or fid. vol.
@@ -208,8 +223,7 @@ std::map < int , double > snbx;
 	         reason = ( reason || ( clusterClassMap[armNow][particleId]->OutsideReason == "Cluster energy below minimum" ) );
 
 	    if( reason ) {
-	      hisName = "thetaEnergyOut_DepositedEngy";
-	      OutputManager.HisMap2D[hisName] -> Fill (engyNow , thetaNow);
+	      OutputManager.HisMap2D["thetaEnergyOut_DepositedEngy"] -> Fill (engyNow , thetaNow);
 	      //	    } else {
 	      // EngyMC/ThetaMC is nowhere set (?) (BP)
 	      // engyNow  = clusterClassMap[armNow][particleId] -> EngyMC;
@@ -223,10 +237,10 @@ std::map < int , double > snbx;
 	}
 	// total energy inside LumiCal
 	 if(totEngyIn > 0) {
-	  hisName = "totEnergyIn";	OutputManager.HisMap1D[hisName] -> Fill (totEngyIn);
+	   OutputManager.HisMap1D["totEnergyIn"] -> Fill (totEngyIn);
 	 }
 	 if(totEngyOut > 0) {
-	  hisName = "totEnergyOut";	OutputManager.HisMap1D[hisName] -> Fill (totEngyOut);
+	   OutputManager.HisMap1D["totEnergyOut"] -> Fill (totEngyOut);
 	 }
       }
 
@@ -287,78 +301,8 @@ std::map < int , double > snbx;
 	  OutputManager.FillRootTree("LumiRecoParticleTree");
 	}
       }
-   //
-   // generated MC particles ( within fiducial volume of LumiCal
 
-    int mcparticleInFlag = 0;
-try
-  {
-   
-
-    const double thmin = gmc.GlobalParamD[GlobalMethodsClass::ThetaMin];
-    const double thmax = gmc.GlobalParamD[GlobalMethodsClass::ThetaMax];
-    const double LcalZstart = gmc.GlobalParamD[GlobalMethodsClass::ZStart];
-    const double rmin = LcalZstart*tan(thmin);
-    const double rmax = LcalZstart*tan(thmax);
-    const double r0   = LcalZstart*tan(_BeamCrossingAngle);
-    LCCollection * particles = evt->getCollection( "MCParticle" );
-
-    if ( particles ){
-      numMCParticles = particles->getNumberOfElements();
-      for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
-	MCParticle *particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
-	// only primary particles wanted
-       	if( particle->isCreatedInSimulation() ) continue;                           //<---- is primary ? 
-	  int pdg = particle->getPDG();
-	  // skip neutrinos
-	  if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue;                //<---- detectable ?
-	  // energy above min 
-	  double engy = particle->getEnergy();
-	  if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;
-	  double* p = (double*)particle->getMomentum();
-	  int sign = int ( p[2]/fabs( p[2] ));
-	  // check if within Lcal acceptance
-	  double *endPoint = (double*)particle->getEndpoint();
-	  // did it reach at least LCal face ?
-	  if( fabs( endPoint[2] ) < LcalZstart && fabs( endPoint[2] ) > 0. ) continue;       //<---- endPoint set and particle did not make to Lcal 
-	  double *vx = (double*)particle->getVertex();
-	  double begX = vx[0]+double(sign)*LcalZstart*tan(p[0]/(p[2]));
-	  double begY = vx[1]+double(sign)*LcalZstart*tan(p[1]/(p[2]));
-	  double rt = sqrt( sqr(begX-r0) + sqr(begY) );
-	  if( rt < rmin || rt > rmax ) continue;                                           //<---- within geo  acceptance ?
-       	  double pxlocal = -_betagamma*engy + _gamma*p[0];
-	  double pTheta = atan( sqrt( sqr(pxlocal) + sqr(p[1]) )/fabs(p[2]));
-          if( fabs(pTheta) < thmin  || fabs(pTheta) > thmax ) continue;         //<--- within theta range ? 
-		mcparticleInFlag++;
-		double phi = atan2( p[1], pxlocal);
-
-		OutputManager.TreeIntV["nEvt"]	= NumEvt;
-		OutputManager.TreeIntV["sign"]	= sign;
-		OutputManager.TreeIntV["pdg"]	= pdg;
-		OutputManager.TreeDoubleV["engy"]	= engy;
-		OutputManager.TreeDoubleV["theta"]	= pTheta;
-		OutputManager.TreeDoubleV["phi"]	= phi; 
-		// position at the face of LCal (global coordinates)
-		OutputManager.TreeDoubleV["begX"]	= begX;
-		OutputManager.TreeDoubleV["begY"]	= begY;
-		OutputManager.TreeDoubleV["begZ"]	= double(sign)*LcalZstart;
-		OutputManager.TreeDoubleV["vtxX"]	= vx[0];
-		OutputManager.TreeDoubleV["vtxY"]	= vx[1];
-		OutputManager.TreeDoubleV["vtxZ"]	= vx[2];
-		OutputManager.TreeDoubleV["endX"]    = endPoint[0];
-		OutputManager.TreeDoubleV["endY"]    = endPoint[1];
-		OutputManager.TreeDoubleV["endZ"]    = endPoint[2];
-		// fill tree
-		OutputManager.FillRootTree("LumiMCParticleTree" );
-	  
-      }// for jparticle
-    }//if particles
-  }// try
- catch ( DataNotAvailableException &e ){
-   streamlog_out(WARNING)<< "MCParticle data not available for event "<< NumEvt << std::endl;
- }
-   hisName = "NumClustersIn_numMCParticlesIn";
-   OutputManager.HisMap2D[hisName] -> Fill ( mcparticleInFlag, clusterInFlag );
+      storeMCParticleInfo( evt, clusterInFlag );
 
 #if _GLOBAL_COUNTERS_UPDATE_DEBUG == 1
       // write out the counter map
@@ -479,10 +423,10 @@ try
 	if( fabs(theta) < thmin  || thmax < fabs(theta)  ) continue; //<--- within theta range ?
 
 	myMCP p = { particle, engy, theta, begX, begY};
-	std::cout << " MCParticle pdg, engy, theta "<< pdg << ", "<< engy <<", "<< theta
-		  << "  sign " << std::setw(13) << sign
-		  << " pp[2] " << std::setw(13) << pp[2]
-		  << std::endl;
+	streamlog_out(DEBUG2) << " MCParticle pdg, engy, theta "<< pdg << ", "<< engy <<", "<< theta
+                              << "  sign " << std::setw(13) << sign
+                              << " pp[2] " << std::setw(13) << pp[2]
+                              << std::endl;
 	if ( sign > 0 ) mcParticlesVecPos.push_back( p );
         else mcParticlesVecNeg.push_back( p );
 
@@ -591,10 +535,24 @@ try
 	      // try to match MC true particle with cluster by comparing positions at Lumical entry
 	      //	  sort( mcParticlesVec.begin(), mcParticlesVec.end(), ThetaCompAsc );
 	      sort( mcParticlesVec.begin(), mcParticlesVec.end(), PositionCompAsc );
-
+	      streamlog_out(DEBUG2) << "Trying to match particle: " << mcParticlesVec[0].engy << std::endl;
 	      double dTheta  = fabs( _sortAgainstThisTheta - mcParticlesVec[0].theta );
 	      double dPos0    = sqrt( ( sqr(xs - mcParticlesVec[0].x) + sqr( ys - mcParticlesVec[0].y)));
+	      streamlog_out(DEBUG4) << "RZStart " << RZStart  << std::endl;
+	      streamlog_out(DEBUG4) << "  xs, ys "
+				    << std::setw(13) << xs
+				    << std::setw(13) << ys  << std::endl
+				    << "MCP x, y "
+				    << std::setw(13) << mcParticlesVec[0].x
+				    << std::setw(13) << mcParticlesVec[0].y
+				    << std::endl;
+
 	      double dEne0    = fabs( mcParticlesVec[0].engy - eneCL);
+	      streamlog_out(DEBUG4) << " dTheta " << std::setw(13) << dTheta
+				    << " dPos0 "  << std::setw(13) << dPos0
+				    << " dEne0 "  << std::setw(13) << dEne0
+				    << std::endl;
+
 	      clusterClassMap[armNow][clusterId] -> DiffTheta = dTheta;
 	      if( mcParticlesVec.size() > 1 ) {
 		double dPos1    = sqrt( ( sqr(xs - mcParticlesVec[1].x) + sqr( ys - mcParticlesVec[1].y)));
@@ -657,3 +615,71 @@ try
 
   }
 
+void MarlinLumiCalClusterer::storeMCParticleInfo( LCEvent *evt, int clusterInFlag ) {
+    int mcparticleInFlag = 0;
+    LCCollection * particles(NULL);
+    try {
+      particles = evt->getCollection( "MCParticle" );
+    } catch ( DataNotAvailableException &e ){
+      streamlog_out(WARNING)<< "MCParticle data not available for event "<< NumEvt << std::endl;
+      return;
+    }
+
+    const double thmin = gmc.GlobalParamD[GlobalMethodsClass::ThetaMin];
+    const double thmax = gmc.GlobalParamD[GlobalMethodsClass::ThetaMax];
+    const double LcalZstart = gmc.GlobalParamD[GlobalMethodsClass::ZStart];
+    const double rmin = LcalZstart*tan(thmin);
+    const double rmax = LcalZstart*tan(thmax);
+    const double r0   = LcalZstart*tan(_BeamCrossingAngle);
+
+    const int numMCParticles = particles->getNumberOfElements();
+    for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
+      MCParticle *particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
+      // only primary particles wanted
+      if( particle->isCreatedInSimulation() ) continue; //<---- is primary ?
+      const int pdg = particle->getPDG();
+      // skip neutrinos
+      if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) continue; //<---- detectable ?
+      // energy above min
+      const double engy = particle->getEnergy();
+      if( engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV] ) continue;
+      const double* p = particle->getMomentum();
+      const int sign = int ( p[2]/fabs( p[2] ));
+      // check if within Lcal acceptance
+      const double *endPoint = particle->getEndpoint();
+      // did it reach at least LCal face ?
+      if( fabs( endPoint[2] ) < LcalZstart && fabs( endPoint[2] ) > 0. ) continue; //<---- endPoint set and particle did not make to Lcal
+      const double *vx = particle->getVertex();
+      const double begX = vx[0]+double(sign)*LcalZstart*tan(p[0]/(p[2]));
+      const double begY = vx[1]+double(sign)*LcalZstart*tan(p[1]/(p[2]));
+      const double rt = sqrt( sqr(begX-r0) + sqr(begY) );
+      if( rt < rmin || rt > rmax ) continue; //<---- within geo acceptance ?
+      const double pxlocal = -_betagamma*engy + _gamma*p[0];
+      const double pTheta = atan( sqrt( sqr(pxlocal) + sqr(p[1]) )/fabs(p[2]));
+      if( fabs(pTheta) < thmin  || fabs(pTheta) > thmax ) continue; //<--- within theta range ?
+      mcparticleInFlag++;
+      const double phi = atan2( p[1], pxlocal );
+
+      OutputManager.TreeIntV["nEvt"]	= NumEvt;
+      OutputManager.TreeIntV["sign"]	= sign;
+      OutputManager.TreeIntV["pdg"]	= pdg;
+      OutputManager.TreeDoubleV["engy"]	= engy;
+      OutputManager.TreeDoubleV["theta"]= pTheta;
+      OutputManager.TreeDoubleV["phi"]	= phi;
+      // position at the face of LCal (global coordinates)
+      OutputManager.TreeDoubleV["begX"]	= begX;
+      OutputManager.TreeDoubleV["begY"]	= begY;
+      OutputManager.TreeDoubleV["begZ"]	= double(sign)*LcalZstart;
+      OutputManager.TreeDoubleV["vtxX"]	= vx[0];
+      OutputManager.TreeDoubleV["vtxY"]	= vx[1];
+      OutputManager.TreeDoubleV["vtxZ"]	= vx[2];
+      OutputManager.TreeDoubleV["endX"] = endPoint[0];
+      OutputManager.TreeDoubleV["endY"] = endPoint[1];
+      OutputManager.TreeDoubleV["endZ"] = endPoint[2];
+      // fill tree
+      OutputManager.FillRootTree("LumiMCParticleTree" );
+
+    }// for jparticle
+    OutputManager.HisMap2D["NumClustersIn_numMCParticlesIn"] -> Fill ( mcparticleInFlag, clusterInFlag );
+
+}

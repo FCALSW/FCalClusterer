@@ -52,6 +52,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _totEngyArm(),
   _numHitsInArm(),
   _mydecoder(NULL),
+  _gmc(),
   _useDD4hep(false),
   RotMat()
 {
@@ -65,7 +66,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
    ========================================================================= */
 void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
 
-
+  _gmc = gmc;
   /* --------------------------------------------------------------------------
      constants specific to this class
   _armsToCluster.clear();
@@ -194,14 +195,13 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     streamlog_out( DEBUG ) << std::endl
 	      << "ARM = " << armNow << " : " << std::endl << std::endl;
 #endif
-
     /* --------------------------------------------------------------------------
        Construct clusters for each arm
        -------------------------------------------------------------------------- */
 #if _CLUSTER_BUILD_DEBUG == 1
-    std::cout << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
-    std::cout  << "\tEnergy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
-	       << "\tNumber of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << "\n\n";
+    streamlog_out(DEBUG2) << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
+    streamlog_out(DEBUG2) << "\tEnergy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
+			  << "\tNumber of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << "\n\n";
 #endif
 
     buildClusters( calHits[armNow],

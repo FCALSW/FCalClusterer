@@ -78,11 +78,13 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
       } else {
 	arm =(*_mydecoder)( calHitIn )["barrel"]; // from 1 and 2
+	if( arm == 2 ) arm = -1;
 	//FIXME: add check for phi range?
 	phiCell = (*_mydecoder)( calHitIn )["phi"]; // goes from -phiMax/2 to +phiMax/2
+	//LumiCall is (or not, if we fix it) rotated by pi around Z for negative side, which is very bad
+	// if( arm < 0 ) phiCell = (-1)*phiCell;
 	if(phiCell < 0 ) phiCell += _cellPhiMax; // need to put into positive range only
 	rCell = (*_mydecoder)( calHitIn )["r"];
-	if( arm == 2 ) arm = -1;
 	layer = (*_mydecoder)( calHitIn )["layer"]; // counts from 0
       }
 
@@ -110,28 +112,35 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       // write x,y,z to an array
       float hitPosV[3] = {xHit, yHit, zHit};
       */
-         
-      // rotate to local Lcal reference system 
-      const float* Pos = calHitIn->getPosition();     
-      float xl =  Pos[0]*RotMat[arm]["cos"] - Pos[2]*RotMat[arm]["sin"];
-      float yl =  Pos[1];
-      float zl =  Pos[0]*RotMat[arm]["sin"] + Pos[2]*RotMat[arm]["cos"];
+      const float* Pos = calHitIn->getPosition();
+      float locPos[3] = {0.0, 0.0, 0.0};
+      if( not _useDD4hep ) {
+	// rotate to local Lcal reference system
+	locPos[0] =  Pos[0]*RotMat[arm]["cos"] - Pos[2]*RotMat[arm]["sin"];
+	locPos[1] =  Pos[1];
+	locPos[2] =  Pos[0]*RotMat[arm]["sin"] + Pos[2]*RotMat[arm]["cos"];
+
+      } else {
+	_gmc.rotateToLocal( Pos, locPos );
+      }
 
       // (BP) keep wrong sign of zHit local as it was  
       // in case it  matters ( still some guys might want to determine arm using sign of z )
-      zl *= arm;
-      float locPos[3] = { xl, yl, zl };
+      locPos[2] *= arm;
+
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
-  	std::cout << "\t CellId, Pos(x,y,z), hit energy [MeV]: "
-		  << std::setw(8)
-		  << cellId << "\t ("
-		  << locPos[0] << ", " 
-		  << locPos[1] << ", " 
-		  << locPos[2] << "), " 
-		  << std::scientific << std::setprecision(3)
-		  << 1000.*engyHit
-		  <<std::endl;
+        streamlog_out(DEBUG2) << std::scientific << std::setprecision(3);
+
+        streamlog_out(DEBUG2) << "\t Arm, CellId, Pos(x,y,z), hit energy [MeV]: "
+                              << std::setw(5) << arm
+                              << std::setw(13)
+                              << cellId << "\t ("
+                              << std::setw(13) << locPos[0] << ", "
+                              << std::setw(13) << locPos[1] << ", "
+                              << std::setw(13) << locPos[2] << "), "
+                              << 1000.*engyHit
+                              <<std::endl;
 #endif    
      // 
       // create a new IMPL::CalorimeterHitImpl

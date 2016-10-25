@@ -123,6 +123,7 @@ protected:
 
   CellIDDecoder<SimCalorimeterHit> * _mydecoder;
 
+  GlobalMethodsClass _gmc;
   bool _useDD4hep;
 
   // global to local rotations mtx elements
