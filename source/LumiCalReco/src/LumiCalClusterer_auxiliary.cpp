@@ -529,13 +529,13 @@ double LumiCalClustererClass::getMoliereRadius( MapIntCalHit const& calHitsCellI
   // sort the std::vector of the cal hits according to distance from CM in ascending order (shortest distance is first)
   std::sort (clusterHitsEngyPos.begin(), clusterHitsEngyPos.end(), HitDistanceCMCmpAsc<1> );
   double distanceCM(0.0), engyAroundCM(0.0);
-  for( VVDouble::iterator clusterIt = clusterHitsEngyPos.begin();
-       clusterIt != clusterHitsEngyPos.end();
-       ++clusterIt) {
+  for( VVDouble::iterator energyIt = clusterHitsEngyPos.begin();
+       energyIt != clusterHitsEngyPos.end();
+       ++energyIt) {
 
     if (engyAroundCM < (engyPercentage * clusterCM.getE())) {
-      engyAroundCM += (*clusterIt)[0];
-      distanceCM    = (*clusterIt)[1];
+      engyAroundCM += (*energyIt)[0];
+      distanceCM    = (*energyIt)[1];
     } else {
       break;
     }
@@ -559,12 +559,12 @@ double LumiCalClustererClass::getDistanceAroundCMWithEnergyPercent( LCCluster co
   VVDouble clusterHitsEngyPos (clusterIdToCellId.size(), VDouble(2, 0.0));
 
   // fill a std::vector with energy, position and distance from CM of every cal hit
-  for( VInt::const_iterator clusterIt = clusterIdToCellId.begin();
-       clusterIt != clusterIdToCellId.end();
-       ++clusterIt) {
+  for( VInt::const_iterator cellIt = clusterIdToCellId.begin();
+       cellIt != clusterIdToCellId.end();
+       ++cellIt) {
 
-    const int clusterId = clusterIt - clusterIdToCellId.begin();
-    IMPL::CalorimeterHitImpl *thisHit = calHitsCellId.at(*clusterIt);
+    const int clusterId = cellIt - clusterIdToCellId.begin();
+    IMPL::CalorimeterHitImpl *thisHit = calHitsCellId.at(*cellIt);
 
     clusterHitsEngyPos[clusterId][0] = thisHit->getEnergy();
     clusterHitsEngyPos[clusterId][1] = distance2D(clusterCM.getPosition(),thisHit->getPosition());
