@@ -96,11 +96,11 @@ std::map < int , double > snbx;
           const float  yloc =  float(thisClusterInfo.getY());
           const float  zloc =  fabs(float(thisClusterInfo.getZ())); // take abs , since we kept wrong local minus z in getHts
 
-	  streamlog_out(DEBUG2) << std::setw(8) << std::fixed << std::setprecision(3)
-				<< " Cluster " << clusterId << ": Position X,Y,Z [mm] ( "
-				<< xloc <<", "<< yloc <<", "<< zloc
-				<< ")\t E( " << clusterEnergy <<" GeV)"
-				<< std::endl;
+          streamlog_out(DEBUG2) << std::setw(8) << std::setprecision(3)
+                                << " Cluster " << clusterId << ": Position X,Y,Z [mm] ( "
+                                << xloc <<", "<< yloc <<", "<< zloc
+                                << ")\t E( " << clusterEnergy <<" GeV)"
+                                << std::endl;
 
 	  ClusterImpl* cluster = new ClusterImpl;
 	  cluster->setEnergy( clusterEnergy );
@@ -339,12 +339,9 @@ std::map < int , double > snbx;
 
   void MarlinLumiCalClusterer::CreateClusters(	std::map < int , std::map < int , std::vector<int> > > const& clusterIdToCellId,
 						std::map < int , std::map < int , std::vector<double> > > const& cellIdToCellEngy,
-						std::map < int , std::map < int , ClusterClass * > > & clusterClassMap,
+						std::map < int, MapIntPClusterClass > & clusterClassMap,
 						EVENT::LCEvent * evt ) {
 
-
-    std::map < int , ClusterClass * > :: iterator		clusterClassMapIterator;
-    std::map < int , std::vector<int> >  ::const_iterator	clusterIdToCellIdIterator;
 
     std::vector < MCInfo > mcParticlesVecPos;
     std::vector < MCInfo > mcParticlesVecNeg;
@@ -387,22 +384,25 @@ std::map < int , double > snbx;
 #endif
     if( numOfClustersNeg || numOfClustersPos ){ 
       for(int armNow = -1; armNow < 2; armNow += 2) {
-	clusterIdToCellIdIterator = clusterIdToCellId.at(armNow).begin();
-	int numClusters               = clusterIdToCellId.at(armNow).size();
 	double EngyMax =  0.;
 	int  EngyMaxID = -1 ;
-	for(int superClusterNow = 0; superClusterNow < numClusters; superClusterNow++, clusterIdToCellIdIterator++){
-	  int clusterId = (int)(*clusterIdToCellIdIterator).first;
-	// create a new cluster and put it on map
+	for( MapIntVInt::const_iterator clusterIdToCellIdIterator = clusterIdToCellId.at(armNow).begin();
+	     clusterIdToCellIdIterator != clusterIdToCellId.at(armNow).end();
+	       clusterIdToCellIdIterator++){
+	  const int clusterId = clusterIdToCellIdIterator->first;
+	  // create a new cluster and put it on map
 	  clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId, gmc);
-	  clusterClassMap[armNow][clusterId] -> SignMC = armNow;
+	  ClusterClass* thisCluster = clusterClassMap[armNow][clusterId];
+	  thisCluster->SignMC = armNow;
 
-	  int numElementsInCluster = clusterIdToCellId.at(armNow).at(clusterId).size();
 	  double engySum = 0.;
-	  for(int cellNow = 0; cellNow < numElementsInCluster; cellNow++) {
-	    int cellId     = clusterIdToCellId.at(armNow).at(clusterId).at(cellNow);
+	  int cellNow=0;
+	  for(std::vector<int>::const_iterator cellIt = clusterIdToCellIdIterator->second.begin();
+	      cellIt != clusterIdToCellIdIterator->second.end();
+	      ++cellIt, ++cellNow) {
+	    const int cellId = *cellIt;
 	    double engyHit = cellIdToCellEngy.at(armNow).at(clusterId).at(cellNow);
-	    clusterClassMap[armNow][clusterId] -> FillHit(cellId , engyHit);
+	    thisCluster->FillHit(cellId , engyHit);
 	    engySum += engyHit;
 	  }
 	  if( engySum > EngyMax ) {
@@ -410,32 +410,31 @@ std::map < int , double > snbx;
 	    EngyMaxID = clusterId;
 	  }
 	
-	  clusterClassMap[armNow][clusterId] -> ResetStats(); // calculate energy, position for the cluster
+	  thisCluster->ResetStats(); // calculate energy, position for the cluster
 	
-#if _CREATE_CLUSTERS_DEBUG == 1
-       	LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
-	streamlog_out(MESSAGE) << "arm =   " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl
-			       << std::setw(20) << "X, Y, Z:" << std::endl
-			       << std::setw(20) << "ClusterClass"
-			       << std::fixed << std::setprecision(3)
-			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[0]
-			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[1]
-			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> clusterPosition[2] << std::endl
-			       << std::setw(20) << "ClusterInfo"
-			       << std::setw(13) << thisClusterInfo.getX()
-			       << std::setw(13) << thisClusterInfo.getY()
-			       << std::setw(13) << thisClusterInfo.getZ() << std::endl
-			       << std::setw(20) << "Energy, Theta, Phi: " << std::endl
-			       << std::setw(20) << "ClusterClass"
-			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> Engy
-			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> Theta
-			       << std::setw(13) << clusterClassMap[armNow][clusterId]-> Phi  << std::endl
-			       << std::setw(20) << "ClusterInfo"
-			       << std::setw(13) << thisClusterInfo.getEnergy()
-			       << std::setw(13) << thisClusterInfo.getTheta()
-			       << std::setw(13) << thisClusterInfo.getPhi()  << std::endl
-			       << std::endl;
-#endif
+	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
+	  streamlog_out(DEBUG3) << "arm =   " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl
+				<< std::setw(20) << "X, Y, Z:" << std::endl
+				<< std::setw(20) << "ClusterClass"
+				<< std::fixed << std::setprecision(3)
+				<< std::setw(13) << thisCluster-> clusterPosition[0]
+				<< std::setw(13) << thisCluster-> clusterPosition[1]
+				<< std::setw(13) << thisCluster-> clusterPosition[2] << std::endl
+				<< std::setw(20) << "ClusterInfo"
+				<< std::setw(13) << thisClusterInfo.getX()
+				<< std::setw(13) << thisClusterInfo.getY()
+				<< std::setw(13) << thisClusterInfo.getZ() << std::endl
+				<< std::setw(20) << "Energy, Theta, Phi: " << std::endl
+				<< std::setw(20) << "ClusterClass"
+				<< std::setw(13) << thisCluster-> Engy
+				<< std::setw(13) << thisCluster-> Theta
+				<< std::setw(13) << thisCluster-> Phi  << std::endl
+				<< std::setw(20) << "ClusterInfo"
+				<< std::setw(13) << thisClusterInfo.getEnergy()
+				<< std::setw(13) << thisClusterInfo.getTheta()
+				<< std::setw(13) << thisClusterInfo.getPhi()  << std::endl
+				<< std::endl;
+
 	}
 	// set flag for highest energy cluster found in this event
 	if ( EngyMax > 0.0 ) clusterClassMap[armNow][EngyMaxID]->HighestEnergyFlag = 1;
@@ -459,20 +458,20 @@ std::map < int , double > snbx;
 	  if ( armNow == -1 ) mcParticlesVec = mcParticlesVecNeg ;
 	  else                mcParticlesVec = mcParticlesVecPos ;
 
-	  clusterClassMapIterator = clusterClassMap[armNow].begin();
-	  int numClusters             = clusterClassMap[armNow].size();
-	  for (int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
-	    int clusterId = (int)(*clusterClassMapIterator).first;
+	  for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
+	       mapIntClusterClassIt != clusterClassMap[armNow].end();
+	       ++mapIntClusterClassIt) {
+	    const int clusterId = mapIntClusterClassIt->first;
+	    ClusterClass* thisCluster = mapIntClusterClassIt->second;
 
-
-	    double eneCL = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy);
-	    double phiCL = clusterClassMap[armNow][clusterId] -> Phi;
-	    double RZStart = clusterClassMap[armNow][clusterId] -> RZStart;
+	    double eneCL = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,thisCluster -> Engy);
+	    double phiCL = thisCluster -> Phi;
+	    double RZStart = thisCluster -> RZStart;
 	    double xs = RZStart*cos(phiCL);
 	    double ys = RZStart*sin(phiCL);
 	    _sortAgainstThisX = xs;
 	    _sortAgainstThisY = ys;
-	    _sortAgainstThisTheta = clusterClassMap[armNow][clusterId] -> Theta;
+	    _sortAgainstThisTheta = thisCluster -> Theta;
 
 	    if( mcParticlesVec.size() ){
 	      // try to match MC true particle with cluster by comparing positions at Lumical entry
@@ -496,64 +495,63 @@ std::map < int , double > snbx;
 				    << " dEne0 "  << std::setw(13) << dEne0
 				    << std::endl;
 
-	      clusterClassMap[armNow][clusterId] -> DiffTheta = dTheta;
+	      thisCluster -> DiffTheta = dTheta;
 	      if( mcParticlesVec.size() > 1 ) {
 		double dPos1    = sqrt( ( sqr(xs - mcParticlesVec[1].x) + sqr( ys - mcParticlesVec[1].y)));
                 double dEne1    = fabs( mcParticlesVec[1].engy - eneCL);
 		if( dPos1 <  gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0 ) {
-		  clusterClassMap[armNow][clusterId]->SetStatsMC( mcParticlesVec[1].mcp );
-		  clusterClassMap[armNow][clusterId] -> DiffPosXY = dPos1;
+		  thisCluster->SetStatsMC( mcParticlesVec[1].mcp );
+		  thisCluster -> DiffPosXY = dPos1;
 		  mcParticlesVec.erase( mcParticlesVec.begin()+1 ); 
 		}else{
-		  clusterClassMap[armNow][clusterId]->SetStatsMC( mcParticlesVec[0].mcp );
-		  clusterClassMap[armNow][clusterId] -> DiffPosXY = dPos0;
+		  thisCluster->SetStatsMC( mcParticlesVec[0].mcp );
+		  thisCluster -> DiffPosXY = dPos0;
 		  mcParticlesVec.erase( mcParticlesVec.begin() ); 
 		}
 	      }else{
-		clusterClassMap[armNow][clusterId] -> DiffPosXY = dPos0;
+		thisCluster -> DiffPosXY = dPos0;
 		if( dPos0 <  gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] ){
-		  clusterClassMap[armNow][clusterId]->SetStatsMC( mcParticlesVec[0].mcp );
+		  thisCluster->SetStatsMC( mcParticlesVec[0].mcp );
 		  mcParticlesVec.erase( mcParticlesVec.begin() ); 
 		}
 	      }
 	    }
 
-#if _CREATE_CLUSTERS_DEBUG == 1
-	    if( clusterClassMap[armNow][clusterId] -> Pdg != 0) {
-	      double Ereco = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,clusterClassMap[armNow][clusterId] -> Engy);
+	    if( thisCluster -> Pdg != 0) {
+	      double Ereco = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,thisCluster -> Engy);
 	      streamlog_out( MESSAGE4 ) << "\tParticle Out ("
-		  << clusterClassMap[armNow][clusterId] -> OutsideReason << "):   " << clusterId << std::endl
+		  << thisCluster -> OutsideReason << "):   " << clusterId << std::endl
 		  << "\t\t side(arm), pdg, parentId , NumMCDaughters = "
-		  << "\t" << clusterClassMap[armNow][clusterId] -> SignMC<<"("<<armNow<<")"
-		  << "\t" << clusterClassMap[armNow][clusterId] -> Pdg
-		  << "\t" << clusterClassMap[armNow][clusterId] -> ParentId
-		  << "\t" << clusterClassMap[armNow][clusterId] -> NumMCDaughters << std::endl
+		  << "\t" << thisCluster -> SignMC<<"("<<armNow<<")"
+		  << "\t" << thisCluster -> Pdg
+		  << "\t" << thisCluster -> ParentId
+		  << "\t" << thisCluster -> NumMCDaughters << std::endl
 		  << "\t\t MCPos    X, Y, Z: "
-		  << "\t" << std::setw(13) << clusterClassMap[armNow][clusterId] -> mcpPosition[0]
-		  << "\t" << std::setw(13) << clusterClassMap[armNow][clusterId] -> mcpPosition[1]
-		  << "\t" << std::setw(13) << clusterClassMap[armNow][clusterId] -> mcpPosition[2]<< std::endl
+		  << "\t" << std::setw(13) << thisCluster -> mcpPosition[0]
+		  << "\t" << std::setw(13) << thisCluster -> mcpPosition[1]
+		  << "\t" << std::setw(13) << thisCluster -> mcpPosition[2]<< std::endl
 		  << "\t\t Cluster  X, Y, Z: "
-		  << "\t" << std::setw(13) << clusterClassMap[armNow][clusterId] -> clusterPosition[0]
-		  << "\t" << std::setw(13) << clusterClassMap[armNow][clusterId] -> clusterPosition[1]
-		  << "\t" << std::setw(13) << clusterClassMap[armNow][clusterId] -> clusterPosition[2] << std::endl
+		  << "\t" << std::setw(13) << thisCluster -> clusterPosition[0]
+		  << "\t" << std::setw(13) << thisCluster -> clusterPosition[1]
+		  << "\t" << std::setw(13) << thisCluster -> clusterPosition[2] << std::endl
 		  << "\t\t engy, theta, phi (mc): "
-		  <<  std::setw(13)<< clusterClassMap[armNow][clusterId] -> EngyMC  
-		  << "\t"<< std::setw(13)<<clusterClassMap[armNow][clusterId] -> ThetaMC 
-		  << "\t"<< std::setw(13)<<clusterClassMap[armNow][clusterId] -> PhiMC << std::endl
+		  <<  std::setw(13)<< thisCluster -> EngyMC
+		  << "\t"<< std::setw(13)<<thisCluster -> ThetaMC
+		  << "\t"<< std::setw(13)<<thisCluster -> PhiMC << std::endl
 		  << "\t\t engy, theta, phi (rec):"
 		  << std::setw(13)<<Ereco
-		  << "\t"<< std::setw(13)<<clusterClassMap[armNow][clusterId] -> Theta 
-		  << "\t"<< std::setw(13)<<clusterClassMap[armNow][clusterId] -> Phi
+		  << "\t"<< std::setw(13)<<thisCluster -> Theta
+		  << "\t"<< std::setw(13)<<thisCluster -> Phi
 		  << std::endl << std::endl;
 	    }else{
 	      streamlog_out( MESSAGE4 ) << "Arm: "<< armNow << "\t Cluster: " << clusterId << " does not match MC particle !\n";
-	      clusterClassMap[armNow][clusterId]->PrintInfo();
+	      thisCluster->PrintInfo();
 	    }
-#endif
-	  }
-	}
-      }
-    }
+
+	  } // loop over clusters
+	} // loop over arms
+      } // if there are mcparticles
+    } // if there are clusters
     return;
 
   }
