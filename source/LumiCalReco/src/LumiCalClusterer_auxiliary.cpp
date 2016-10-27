@@ -405,34 +405,25 @@ void LumiCalClustererClass::getThetaPhiZCluster( std::map < int , IMPL::Calorime
 						 std::vector <int> const& clusterIdToCellId,
 						 double totEngy, double * output   ) {
 
-  int	numElementsInCluster, cellIdHit;
-  double	zCell, zCluster = 0.; // (BP) thetaCell, thetaCluster = 0., phiCell, phiCluster = 0.;
-  double        xCell, xCluster = 0., yCell, yCluster = 0.;
-  double	weightHit, weightSum = -1., logWeightConstFactor = 0.;
+  double zCluster = 0., xCluster = 0., yCluster = 0.;
+  double weightSum = -1., logWeightConstFactor = 0.;
+
   // (BP) hardwired method ?!
   GlobalMethodsClass::WeightingMethod_t method = GlobalMethodsClass::LogMethod;
 
   while(weightSum < 0){
-    numElementsInCluster = clusterIdToCellId.size();
-    for(int hitNow = 0; hitNow < numElementsInCluster; hitNow++) {
-      cellIdHit  = clusterIdToCellId[hitNow];
-      //      thetaCell  = thetaPhiCell(cellIdHit, GlobalMethodsClass::COTheta);
-      //      phiCell    = thetaPhiCell(cellIdHit, GlobalMethodsClass::COPhi);
-      xCell      = calHitsCellId.at(cellIdHit)->getPosition()[0];
-      yCell      = calHitsCellId.at(cellIdHit)->getPosition()[1];
-      zCell      = calHitsCellId.at(cellIdHit)->getPosition()[2];
+    for( VInt::const_iterator cellIt = clusterIdToCellId.begin();
+	 cellIt != clusterIdToCellId.end();
+	 ++cellIt ) {
+      const IMPL::CalorimeterHitImpl* hit = calHitsCellId.at(*cellIt);
       //(BP) posWeight returns always weight >= 0.
-      weightHit  = posWeight(calHitsCellId.at(cellIdHit),totEngy,method,(_logWeightConst + logWeightConstFactor));
-
+      const double weightHit = posWeight(hit, totEngy, method, (_logWeightConst + logWeightConstFactor) );
       if(weightHit > 0){
 	if(weightSum < 0) weightSum = 0.;
-	weightSum    += weightHit;
-	//(BP) bug again
-	//	thetaCluster += weightHit * thetaCell;
-	//	phiCluster   += weightHit * phiCell;
-	xCluster += xCell * weightHit;
-	yCluster += yCell * weightHit;
-	zCluster += zCell * weightHit;
+	weightSum += weightHit;
+	xCluster += double(hit->getPosition()[0]) * weightHit;
+	yCluster += double(hit->getPosition()[1]) * weightHit;
+	zCluster += double(hit->getPosition()[2]) * weightHit;
       }
     }
     // (BP) even one hit with positive weight make this false, is it what we want ?
@@ -440,11 +431,9 @@ void LumiCalClustererClass::getThetaPhiZCluster( std::map < int , IMPL::Calorime
     // and reducing logWeightConstFactor does not help in case weightSum < 0 (?!).....
     if(weightSum < 0) logWeightConstFactor -= .5;
   }
-  //  thetaCluster /= weightSum;  phiCluster /= weightSum;  zCluster /= weightSum;
+
   xCluster /= weightSum; yCluster /= weightSum; zCluster /= weightSum;
 
-  //(BP)  output[0] = thetaCluster;
-  //(BP)  output[1] = phiCluster;
   output[0] = atan( sqrt( xCluster*xCluster + yCluster*yCluster )/fabs( zCluster ));
   output[1] = atan2( yCluster, xCluster );
   output[2] = zCluster;
