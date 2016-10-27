@@ -82,6 +82,9 @@ class GlobalMethodsClass {
 
   GlobalMethodsClass();
   GlobalMethodsClass( const std::string &procType );
+  GlobalMethodsClass( const GlobalMethodsClass &rhs );
+  GlobalMethodsClass& operator=( const GlobalMethodsClass &rhs );
+
   virtual ~GlobalMethodsClass();
  
   void SetConstants();
