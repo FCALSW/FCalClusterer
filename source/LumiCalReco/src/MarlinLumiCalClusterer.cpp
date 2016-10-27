@@ -50,8 +50,6 @@ std::map < int , double > snbx;
 
       std::map< int , MapIntPClusterClass > clusterClassMap;
 
-      int	numClusters, clusterId;
-
       double ThetaMid = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMin] + gmc.GlobalParamD[GlobalMethodsClass::ThetaMax])/2.;
       double ThetaTol = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMax] - gmc.GlobalParamD[GlobalMethodsClass::ThetaMin])/2.;
 
@@ -66,30 +64,23 @@ std::map < int , double > snbx;
 
       if ( !LumiCalClusterer.processEvent(evt) ) return;
 
-
-
-
-      
       LCCollectionVec* LCalClusterCol = new LCCollectionVec(LCIO::CLUSTER);
       LCCollectionVec* LCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
-      std::map < int , std::vector<int> > ::const_iterator  clusterIdToCellIdIterator;
 
 #if _CREATE_CLUSTERS_DEBUG == 1
       streamlog_out(DEBUG2) << " Transfering reco results to LCalClusterCollection....."<<std::endl;
 #endif 
   
       for(int armNow = -1; armNow < 2; armNow += 2) {
-	clusterIdToCellIdIterator = LumiCalClusterer._superClusterIdToCellId[armNow].begin();
-	numClusters               = LumiCalClusterer._superClusterIdToCellId[armNow].size();
 
-	//	numClusters             = clusterClassMap[armNow].size();
-	//	clusterClassMapIterator = clusterClassMap[armNow].begin();
-	//	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterClassMapIterator++) {
-#if _CREATE_CLUSTERS_DEBUG == 1
-        streamlog_out(DEBUG2)<<" Arm  "<< std::setw(4)<< armNow << "\t Number of clusters: "<< numClusters <<std::endl;
-#endif
-	for(int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterIdToCellIdIterator++) {
-	  clusterId = (int)(*clusterIdToCellIdIterator).first;
+        streamlog_out(DEBUG2)<<" Arm  "<< std::setw(4)<< armNow
+			     << "\t Number of clusters: "<< LumiCalClusterer._superClusterIdToCellId[armNow].size()
+			     <<std::endl;
+
+	for( MapIntVInt::const_iterator clusterIdToCellIdIterator = LumiCalClusterer._superClusterIdToCellId[armNow].begin();
+	     clusterIdToCellIdIterator != LumiCalClusterer._superClusterIdToCellId[armNow].end();
+	     clusterIdToCellIdIterator++) {
+	  const int clusterId = clusterIdToCellIdIterator->first;
 
 	  //	  ClusterClass const* thisCluster = clusterClassMap[armNow][clusterId];
 	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
@@ -104,12 +95,12 @@ std::map < int , double > snbx;
 	  const float  xloc =  float(thisClusterInfo.getX());
           const float  yloc =  float(thisClusterInfo.getY());
           const float  zloc =  fabs(float(thisClusterInfo.getZ())); // take abs , since we kept wrong local minus z in getHts
-#if _CREATE_CLUSTERS_DEBUG == 1
-	  streamlog_out(DEBUG2)<<std::setw(8) << std::fixed << std::setprecision(3)
-		   << " Cluster "<< clusterId << ": Position X,Y,Z [mm] ( "<< xloc <<", "<< yloc <<", "<< zloc 
-		   <<")\t E( "<< clusterEnergy <<" GeV)" 
-		   <<std::endl;
-#endif
+
+	  streamlog_out(DEBUG2) << std::setw(8) << std::fixed << std::setprecision(3)
+				<< " Cluster " << clusterId << ": Position X,Y,Z [mm] ( "
+				<< xloc <<", "<< yloc <<", "<< zloc
+				<< ")\t E( " << clusterEnergy <<" GeV)"
+				<< std::endl;
 
 	  ClusterImpl* cluster = new ClusterImpl;
 	  cluster->setEnergy( clusterEnergy );

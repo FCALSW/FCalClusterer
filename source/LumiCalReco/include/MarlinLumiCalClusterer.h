@@ -17,6 +17,7 @@ namespace EVENT{
 }
 
 typedef std::map < int , ClusterClass * > MapIntPClusterClass;
+typedef std::map < int , std::vector<int> >  MapIntVInt;
 
 // // cout color definitios
 // #define coutDefault          "\033[0m"
