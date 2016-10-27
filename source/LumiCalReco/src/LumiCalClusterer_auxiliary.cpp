@@ -472,23 +472,15 @@ double LumiCalClustererClass::thetaPhiCell(int cellId, GlobalMethodsClass::Coord
 
 
 /* --------------------------------------------------------------------------
-   get the energy around a cluster CM within a disranceToScan raduis
+   get the energy around a cluster CM within a distanceToScan raduis
    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::getMoliereRadius(	std::map < int , IMPL::CalorimeterHitImpl* >  const& calHitsCellId,
-						std::vector <int> const& clusterIdToCellId,
-						LCCluster const& clusterCM    ){
+double LumiCalClustererClass::getMoliereRadius( MapIntCalHit const& calHitsCellId,
+                                                VInt const& clusterIdToCellId,
+                                                LCCluster const& clusterCM ) {
 
-  std::vector < double > oneHitEngyPos(2);
+  const double engyPercentage = .9;
 
-  const int numElementsInCluster = clusterIdToCellId.size();
-  std::vector < std::vector<double> > clusterHitsEngyPos(numElementsInCluster, oneHitEngyPos);
-
-  double   distanceCM(0.0);
-  double	engyPercentage = .9;
-
-  //	double	disranceToScan = _moliereRadius * moliereFraction;
-  double	engyAroundCM = 0.;
-
+  VVDouble clusterHitsEngyPos(clusterIdToCellId.size(), VDouble(2, 0.0));
 
 #if _IMPROVE_PROFILE_LAYER_POS == 1
   double thetaZClusterV[3];
@@ -499,8 +491,11 @@ double LumiCalClustererClass::getMoliereRadius(	std::map < int , IMPL::Calorimet
   int	layerMiddle  = int( ( zCluster - Abs(_zFirstLayer) ) / _zLayerThickness ) + 1;
 #endif
 
-  for(int hitNow = 0; hitNow < numElementsInCluster; hitNow++) {
-    const int cellIdHit = clusterIdToCellId[hitNow];
+  for( VInt::const_iterator cellIt = clusterIdToCellId.begin();
+       cellIt != clusterIdToCellId.end();
+       ++cellIt ){
+    const int cellIdHit = *cellIt;
+    const int hitNow = cellIt - clusterIdToCellId.begin();
     const IMPL::CalorimeterHitImpl * thisHit = calHitsCellId.at(cellIdHit);
     double CM2[2] = {thisHit->getPosition()[0], thisHit->getPosition()[1]};
 
@@ -510,7 +505,7 @@ double LumiCalClustererClass::getMoliereRadius(	std::map < int , IMPL::Calorimet
     // projection hits have an incoded layer number of (_maxLayerToAnalyse + 1)
     // the original hit's layer number is stored in (the previously unused) CellID1
     if(layerHit == (_maxLayerToAnalyse + 1))
-      layerHit = (int)calHitsCellId[cellIdHit]->getCellID1();
+      layerHit = thisHit->getCellID1();
 
     if(layerHit != layerMiddle) {
       double	tngPhiHit = CM2[1] / CM2[0];
@@ -533,13 +528,18 @@ double LumiCalClustererClass::getMoliereRadius(	std::map < int , IMPL::Calorimet
 
   // sort the std::vector of the cal hits according to distance from CM in ascending order (shortest distance is first)
   std::sort (clusterHitsEngyPos.begin(), clusterHitsEngyPos.end(), HitDistanceCMCmpAsc<1> );
+  double distanceCM(0.0), engyAroundCM(0.0);
+  for( VVDouble::iterator clusterIt = clusterHitsEngyPos.begin();
+       clusterIt != clusterHitsEngyPos.end();
+       ++clusterIt) {
 
-  for(int i=0; i<numElementsInCluster; i++) {
     if (engyAroundCM < (engyPercentage * clusterCM.getE())) {
-      engyAroundCM += clusterHitsEngyPos[i][0];
-      distanceCM    = clusterHitsEngyPos[i][1];
-    } else
+      engyAroundCM += (*clusterIt)[0];
+      distanceCM    = (*clusterIt)[1];
+    } else {
       break;
+    }
+
   }
 
   return distanceCM;

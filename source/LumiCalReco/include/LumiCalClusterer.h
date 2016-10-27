@@ -72,6 +72,7 @@ class LumiCalClustererClass {
   typedef std::vector < MapIntVInt >           VMapIntVInt;
   typedef std::vector < MapIntVirtualCluster > VMapIntVirtualCluster;
 
+  typedef std::vector < VDouble >              VVDouble;
 
 public:
 
