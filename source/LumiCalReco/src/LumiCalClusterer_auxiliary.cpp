@@ -348,20 +348,17 @@ int LumiCalClustererClass::checkClusterMergeCM(  int clusterId1, int clusterId2,
 /* --------------------------------------------------------------------------
    get the energy around a cluster CM within a distanceToScan raduis
    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::getEngyInMoliereFraction(	std::map < int , IMPL::CalorimeterHitImpl* >  const& calHitsCellId,
-							std::vector <int> const&, //clusterIdToCellId,
+double LumiCalClustererClass::getEngyInMoliereFraction(	MapIntCalHit  const& calHitsCellId,
+							VInt const&, //clusterIdToCellId,
 							LCCluster const& clusterCM,
 							double moliereFraction   ){
 
-  std::map < int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator, calEnd;
-
   const double distanceToScan = _moliereRadius * moliereFraction;
-  double	engyAroundCM = 0.0;
+  double engyAroundCM = 0.0;
 
-  calHitsCellIdIterator = calHitsCellId.begin();
-  calEnd    = calHitsCellId.end();
-
-  for(; calHitsCellIdIterator != calEnd; ++calHitsCellIdIterator) {
+  for(MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
+      calHitsCellIdIterator != calHitsCellId.end();
+      ++calHitsCellIdIterator) {
     const IMPL::CalorimeterHitImpl * calHit = calHitsCellIdIterator->second;
     const double distanceCM = distance2D(clusterCM.getPosition(),calHit->getPosition());
     if(distanceCM < distanceToScan)
@@ -374,20 +371,18 @@ double LumiCalClustererClass::getEngyInMoliereFraction(	std::map < int , IMPL::C
 
 
 // overloaded with different variables and functionality...
-double LumiCalClustererClass::getEngyInMoliereFraction( std::map < int , IMPL::CalorimeterHitImpl* >  const& calHitsCellId,
-							std::vector <int> const&,//clusterIdToCellId,
+double LumiCalClustererClass::getEngyInMoliereFraction( MapIntCalHit  const& calHitsCellId,
+							VInt const&,//clusterIdToCellId,
 							LCCluster const& clusterCM,
 							double moliereFraction,
-							std::map < int , int >  & flag  ){
+							MapIntInt & flag  ){
 
-  std::map < int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator, calEnd;
+  const double distanceToScan = _moliereRadius * moliereFraction;
+  double engyAroundCM = 0.;
 
-  double	distanceToScan = _moliereRadius * moliereFraction;
-  double	engyAroundCM = 0.;
-
-  calHitsCellIdIterator = calHitsCellId.begin();
-  calEnd    = calHitsCellId.end();
-  for(; calHitsCellIdIterator != calEnd; ++calHitsCellIdIterator) {
+  for(MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
+      calHitsCellIdIterator != calHitsCellId.end();
+      ++calHitsCellIdIterator) {
     const IMPL::CalorimeterHitImpl * calHit = calHitsCellIdIterator->second;
     const double distanceCM = distance2D(clusterCM.getPosition(),calHit->getPosition());
 
