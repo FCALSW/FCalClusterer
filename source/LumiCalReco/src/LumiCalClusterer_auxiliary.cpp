@@ -172,7 +172,6 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( std::vector <int> const& ce
       weightSum += weightHit;
 
       const float* position = calHit->getPosition();
-      const float sign = position[2]/fabs(position[2]);
 
       xHit      += position[0] * weightHit;
       yHit      += position[1] * weightHit;
@@ -227,7 +226,6 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
       weightHit  = posWeightTrueCluster(calHit,cellEngyV[k],method);
       weightSum += weightHit;
       const float* position = calHit->getPosition();
-      const float sign = position[2]/fabs(position[2]);
 
       xHit      += position[0] * weightHit;
       yHit      += position[1] * weightHit;
