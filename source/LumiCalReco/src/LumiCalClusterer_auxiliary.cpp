@@ -300,45 +300,40 @@ void LumiCalClustererClass::updateEngyPosCM(IMPL::CalorimeterHitImpl* calHit, LC
    cluster's energy is deposited
    -------------------------------------------------------------------------- */
 int LumiCalClustererClass::checkClusterMergeCM(  int clusterId1, int clusterId2,
-						 std::map < int , std::vector<int> > const& clusterIdToCellId,
-						 std::map <int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
+						 MapIntVInt const& clusterIdToCellId,
+						 MapIntCalHit const& calHitsCellId,
 						 double distanceAroundCM, double percentOfEngyAroungCM,
 						 GlobalMethodsClass::WeightingMethod_t method ){
 
   // std::vector for holding the Ids of clusters
-  std::vector <int> cellIdV;
-  int	numElementsInCluster, cellIdHit;
-  double	CM1[3], CM2[3], distanceCM, engyCM;
-  double	totEngyAroundCM = 0.;
+  VInt cellIdV;
+  double totEngyAroundCM = 0.;
 
   // add to cellIdV hits from both clusters, and sum up each cluster's energy
-  numElementsInCluster = clusterIdToCellId.at(clusterId1).size();
-  for(int i=0; i<numElementsInCluster; i++) {
-    cellIdHit = clusterIdToCellId.at(clusterId1).at(i);
-    cellIdV.push_back(cellIdHit);
+  for(VInt::const_iterator cellIt = clusterIdToCellId.at(clusterId1).begin();
+      cellIt != clusterIdToCellId.at(clusterId1).end();
+      ++cellIt) {
+    cellIdV.push_back(*cellIt);
   }
 
-  numElementsInCluster = clusterIdToCellId.at(clusterId2).size();
-  for(int i=0; i<numElementsInCluster; i++) {
-    cellIdHit = clusterIdToCellId.at(clusterId2).at(i);
-    cellIdV.push_back(cellIdHit);
+  for(VInt::const_iterator cellIt = clusterIdToCellId.at(clusterId2).begin();
+      cellIt != clusterIdToCellId.at(clusterId2).end();
+      ++cellIt) {
+    cellIdV.push_back(*cellIt);
   }
 
   LCCluster engyPosCM( calculateEngyPosCM(cellIdV, calHitsCellId, method) );
-  CM1[0] = engyPosCM.getX();
-  CM1[1] = engyPosCM.getY();
-  engyCM = engyPosCM.getE();
+  double CM1[3] = { engyPosCM.getX(), engyPosCM.getY(), 0.0 };
+  const double engyCM = engyPosCM.getE();
 
   // check that the CM position has a significant amount of the energy around it
-  numElementsInCluster = cellIdV.size();
-  for(int i=0; i<numElementsInCluster; i++) {
-    cellIdHit  = cellIdV[i];
-    CM2[0] = calHitsCellId.at(cellIdHit)->getPosition()[0];
-    CM2[1] = calHitsCellId.at(cellIdHit)->getPosition()[1];
-
-    distanceCM = distance2D(CM1,CM2);
+  for( VInt::iterator cellIt = cellIdV.begin();
+       cellIt != cellIdV.end();
+       ++cellIt ) {
+    const IMPL::CalorimeterHitImpl *hit = calHitsCellId.at(*cellIt);
+    const double distanceCM = distance2D(CM1,hit->getPosition());
     if(distanceCM < distanceAroundCM) {
-      double engyHit = calHitsCellId.at(cellIdHit)->getEnergy();
+      double engyHit = hit->getEnergy();
       totEngyAroundCM += engyHit;
     }
   }
