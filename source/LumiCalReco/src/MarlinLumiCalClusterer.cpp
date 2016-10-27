@@ -48,10 +48,6 @@ std::map < int , double > snbx;
 
     try{
 
-      std::string optionName;
-      int         numMCParticles, particleId;
-      double	  engyNow, thetaNow, phiNow, rzstartNow;
-
       std::map < int , std::map < int , ClusterClass * > >	clusterClassMap;
       std::map < int , ClusterClass * > :: iterator	clusterClassMapIterator;
 
@@ -200,13 +196,13 @@ std::map < int , double > snbx;
 	double totEngyOut= 0.;
 
 	clusterClassMapIterator = clusterClassMap[armNow].begin();
-	numMCParticles          = clusterClassMap[armNow].size();
-	for (int MCParticleNow = 0; MCParticleNow < numMCParticles; MCParticleNow++, clusterClassMapIterator++) {
-	  particleId = (int)(*clusterClassMapIterator).first;
+	for (int MCParticleNow = 0; MCParticleNow < clusterClassMap[armNow].size();
+	     MCParticleNow++, clusterClassMapIterator++) {
+	  const int particleId = (int)(*clusterClassMapIterator).first;
 
-	  engyNow  = clusterClassMap[armNow][particleId] -> Engy;
-	  engyNow  = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , engyNow);
-	  thetaNow = clusterClassMap[armNow][particleId] -> Theta;
+	  const double engyNow  = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV,
+							  clusterClassMap[armNow][particleId] -> Engy);
+	  const double thetaNow = clusterClassMap[armNow][particleId] -> Theta;
 	  // highest energy RecoParticle
 	  if(clusterClassMap[armNow][particleId]->HighestEnergyFlag == 1){
 	    OutputManager.HisMap1D["higestEngyParticle_Engy"] -> Fill (engyNow);
@@ -246,9 +242,9 @@ std::map < int , double > snbx;
       int	clusterInFlag = 0;
       for(int armNow = -1; armNow < 2; armNow += 2) {
 	clusterClassMapIterator = clusterClassMap[armNow].begin();
-	numMCParticles          = clusterClassMap[armNow].size();
-	for (int MCParticleNow = 0; MCParticleNow < numMCParticles; MCParticleNow++, clusterClassMapIterator++) {
-	  particleId = (int)(*clusterClassMapIterator).first;
+	for (int MCParticleNow = 0; MCParticleNow < clusterClassMap[armNow].size();
+	     MCParticleNow++, clusterClassMapIterator++) {
+	  const int particleId = (int)(*clusterClassMapIterator).first;
 
        	  if(clusterClassMap[armNow][particleId]->OutsideFlag == 1)	continue;
 	  // only take into account the highest-energy particle in the arm
@@ -256,11 +252,11 @@ std::map < int , double > snbx;
 	  //	  if(clusterClassMap[armNow][particleId]->HighestEnergyFlag == 0)	continue;
 	  clusterInFlag++;
 
-	  engyNow  = clusterClassMap[armNow][particleId] -> Engy;
-	  engyNow  = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , engyNow);
-	  thetaNow = clusterClassMap[armNow][particleId] -> Theta;
-	  phiNow   = clusterClassMap[armNow][particleId] -> Phi;
-	  rzstartNow = clusterClassMap[armNow][particleId] -> RZStart;
+	  const double engyNow = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV,
+							 clusterClassMap[armNow][particleId] -> Engy);
+	  const double thetaNow = clusterClassMap[armNow][particleId] -> Theta;
+	  const double phiNow   = clusterClassMap[armNow][particleId] -> Phi;
+	  const double rzstartNow = clusterClassMap[armNow][particleId] -> RZStart;
 
 	  //(BP) compute x,y,z in global reference system
 	  double xloc = rzstartNow * cos(phiNow);
@@ -325,7 +321,7 @@ std::map < int , double > snbx;
 	clusterClassMapIterator = clusterClassMap[armNow].begin();
 	numClusters          = clusterClassMap[armNow].size();
 	for (int numC = 0; numC < numClusters; numC++, clusterClassMapIterator++) {
-	  particleId = (int)(*clusterClassMapIterator).first;
+	  const int particleId = (int)(*clusterClassMapIterator).first;
 
 	  delete clusterClassMap[armNow][particleId];
 	}
