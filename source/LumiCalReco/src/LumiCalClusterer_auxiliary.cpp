@@ -157,18 +157,16 @@ int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
    compute center of mass of each cluster
    (3). calculate the map clusterCM from scratch
    -------------------------------------------------------------------------- */
-LCCluster LumiCalClustererClass::calculateEngyPosCM( std::vector <int> const& cellIdV,
-						     std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-						     GlobalMethodsClass::WeightingMethod_t method) {
+LCCluster LumiCalClustererClass::calculateEngyPosCM( VInt const& cellIdV,
+                                                     MapIntCalHit const& calHitsCellId,
+                                                     GlobalMethodsClass::WeightingMethod_t method) {
 
-  double totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
-  totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
+  double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);
   int loopFlag = 1;
   while(loopFlag == 1) {
-    for (std::vector<int>::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
-      const int cellIdHit  = *it;
-      const IMPL::CalorimeterHitImpl* calHit = calHitsCellId.at(cellIdHit);
-      weightHit  = posWeight(calHit,method);
+    for (VInt::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
+      const IMPL::CalorimeterHitImpl* calHit = calHitsCellId.at(*it);
+      const double weightHit = posWeight(calHit,method);
       weightSum += weightHit;
 
       const float* position = calHit->getPosition();
@@ -197,7 +195,7 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( std::vector <int> const& ce
     } else {
       // initialize counters and recalculate with the Energy-weights method
       method = GlobalMethodsClass::EnergyMethod;
-      totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
+      totEngy = xHit = yHit = zHit = thetaHit = weightSum = 0.;
     }
   }
 
@@ -210,20 +208,19 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( std::vector <int> const& ce
    compute center of mass of each cluster
    (3). calculate the map clusterCM from scratch
    -------------------------------------------------------------------------- */
-void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& cellIdV, std::vector <double> const& cellEngyV,
-							std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-							std::map < int , LCCluster > & clusterCM, int clusterId,
-							GlobalMethodsClass::WeightingMethod_t method) {
-  double totEngy, xHit, yHit, zHit, thetaHit, weightHit, weightSum;
-  totEngy = xHit = yHit = zHit = 0., weightHit = weightSum = 0.;
+void LumiCalClustererClass::calculateEngyPosCM_EngyV( VInt const& cellIdV,
+                                                      VDouble const& cellEngyV,
+                                                      MapIntCalHit const& calHitsCellId,
+                                                      MapIntLCCluster & clusterCM, int clusterId,
+                                                      GlobalMethodsClass::WeightingMethod_t method) {
 
+  double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);
   int loopFlag = 1;
   while(loopFlag == 1) {
-    for (std::vector<int>::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
-      const int cellIdHit  = *it;
+    for (VInt::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
       const int k = it - cellIdV.begin();
-      const IMPL::CalorimeterHitImpl * calHit = calHitsCellId.at(cellIdHit);
-      weightHit  = posWeightTrueCluster(calHit,cellEngyV[k],method);
+      const IMPL::CalorimeterHitImpl * calHit = calHitsCellId.at(*it);
+      const double weightHit = posWeightTrueCluster(calHit,cellEngyV[k],method);
       weightSum += weightHit;
       const float* position = calHit->getPosition();
 
@@ -251,7 +248,7 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
     } else {
       // initialize counters and recalculate with the Energy-weights method
       method = GlobalMethodsClass::EnergyMethod;
-      totEngy = xHit = yHit = zHit = thetaHit = weightHit = weightSum = 0.;
+      totEngy = xHit = yHit = zHit = thetaHit = weightSum = 0.;
     }
   }
 
@@ -401,9 +398,9 @@ double LumiCalClustererClass::getEngyInMoliereFraction( MapIntCalHit  const& cal
    compute the weighed generated-theta / weighed zPosition of a cluster
 
    -------------------------------------------------------------------------- */
-void LumiCalClustererClass::getThetaPhiZCluster( std::map < int , IMPL::CalorimeterHitImpl* >  const& calHitsCellId,
-						 std::vector <int> const& clusterIdToCellId,
-						 double totEngy, double * output   ) {
+void LumiCalClustererClass::getThetaPhiZCluster( MapIntCalHit  const& calHitsCellId,
+                                                 VInt const& clusterIdToCellId,
+                                                 double totEngy, double * output   ) {
 
   double zCluster = 0., xCluster = 0., yCluster = 0.;
   double weightSum = -1., logWeightConstFactor = 0.;
