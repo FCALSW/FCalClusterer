@@ -183,7 +183,7 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( VInt const& cellIdV,
       loopFlag = 0;
 
       if( _useDD4hep ) {
-	const double sign = fabs(zHit)/zHit;
+	const double sign = fabs(zHit)/zHit*1e-3;//very small, we just need +/-epsilon to know which way to turn
 	const double localPos[3] = { xHit*dd4hep::mm, yHit*dd4hep::mm, sign*dd4hep::mm };
 	double globalPos[3] = {0.0, 0.0, 0.0};
 	_gmc.rotateToWorld( localPos, globalPos );
