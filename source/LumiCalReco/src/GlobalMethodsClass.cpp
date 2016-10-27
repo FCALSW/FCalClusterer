@@ -48,7 +48,9 @@ GlobalMethodsClass :: GlobalMethodsClass() :
   _useDD4hep(false),
   GlobalParamI(),
   GlobalParamD(),
-  GlobalParamS()
+  GlobalParamS(),
+  _forwardCalo(NULL),
+  _backwardCalo(NULL)
 {
 }
 GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
@@ -56,9 +58,36 @@ GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
   _useDD4hep(false),
   GlobalParamI(),
   GlobalParamD(),
-  GlobalParamS()
+  GlobalParamS(),
+  _forwardCalo(NULL),
+  _backwardCalo(NULL)
 {
 }
+
+
+GlobalMethodsClass::GlobalMethodsClass( const GlobalMethodsClass &rhs ):
+  _procName( rhs._procName ),
+  _useDD4hep(rhs._useDD4hep),
+  GlobalParamI( rhs.GlobalParamI ),
+  GlobalParamD( rhs.GlobalParamD ),
+  GlobalParamS( rhs.GlobalParamS ),
+  _forwardCalo( rhs._forwardCalo ),
+  _backwardCalo( rhs._backwardCalo )
+{
+}
+
+GlobalMethodsClass& GlobalMethodsClass::operator=( const GlobalMethodsClass &rhs ){
+  _procName = rhs._procName;
+  _useDD4hep = rhs._useDD4hep;
+  GlobalParamI = rhs.GlobalParamI;
+  GlobalParamD = rhs.GlobalParamD;
+  GlobalParamS = rhs.GlobalParamS;
+  _forwardCalo = rhs._forwardCalo;
+  _backwardCalo = rhs._backwardCalo;
+
+  return *this;
+}
+
 
 GlobalMethodsClass :: ~GlobalMethodsClass(){
 }
