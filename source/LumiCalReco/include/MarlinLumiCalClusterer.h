@@ -16,6 +16,7 @@ namespace EVENT{
   class LCEvent;
 }
 
+typedef std::map < int , ClusterClass * > MapIntPClusterClass;
 
 // // cout color definitios
 // #define coutDefault          "\033[0m"
@@ -83,7 +84,7 @@ namespace EVENT{
     void CreateClusters( std::map < int , std::map < int , std::vector<int> > > const& clusterIdToCellId,
 			 std::map < int , std::map < int , std::vector<double> > > const& cellIdToCellEngy,
 			 //			 std::map < int , std::map < int , LCCluster > > const& superClusterIdClusterInfo,
-			 std::map < int , std::map < int , ClusterClass * > > & clusterClassMapP,
+			 std::map < int , MapIntPClusterClass > & clusterClassMapP,
 			 EVENT::LCEvent * evt);
 
     inline double sqr( double a){ return a*a;};
