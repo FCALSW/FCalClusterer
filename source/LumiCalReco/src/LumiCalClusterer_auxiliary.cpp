@@ -553,38 +553,36 @@ double LumiCalClustererClass::getMoliereRadius( MapIntCalHit const& calHitsCellI
    cluster's energy is deposited
    -------------------------------------------------------------------------- */
 double LumiCalClustererClass::getDistanceAroundCMWithEnergyPercent( LCCluster const& clusterCM,
-								    std::vector <int> const& clusterIdToCellId,
-								    std::map <int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-								    double engyPercentage   ){
-  engyPercentage *= clusterCM.getE();
-  double engyAroundCM = 0., distanceCM(0.0);
-
-  const int numElementsInCluster(clusterIdToCellId.size());
-
-  std::vector < double > oneHitEngyPos(2);
-  std::vector < std::vector<double> > clusterHitsEngyPos (numElementsInCluster, oneHitEngyPos);
+								    VInt const& clusterIdToCellId,
+								    MapIntCalHit const& calHitsCellId,
+								    double engyPercentage ) {
+  VVDouble clusterHitsEngyPos (clusterIdToCellId.size(), VDouble(2, 0.0));
 
   // fill a std::vector with energy, position and distance from CM of every cal hit
-  for(int i=0; i<numElementsInCluster; i++) {
-    int cellIdHit  = clusterIdToCellId[i];
+  for( VInt::const_iterator clusterIt = clusterIdToCellId.begin();
+       clusterIt != clusterIdToCellId.end();
+       ++clusterIt) {
 
-    IMPL::CalorimeterHitImpl *thisHit = calHitsCellId.at(cellIdHit);
+    const int clusterId = clusterIt - clusterIdToCellId.begin();
+    IMPL::CalorimeterHitImpl *thisHit = calHitsCellId.at(*clusterIt);
 
-    clusterHitsEngyPos[i][0] = thisHit->getEnergy();
-
-    clusterHitsEngyPos[i][1] = distance2D(clusterCM.getPosition(),thisHit->getPosition());
+    clusterHitsEngyPos[clusterId][0] = thisHit->getEnergy();
+    clusterHitsEngyPos[clusterId][1] = distance2D(clusterCM.getPosition(),thisHit->getPosition());
 
   }
 
   // sort the std::vector of the cal hits according to distance from CM in ascending order (shortest distance is first)
   sort (clusterHitsEngyPos.begin(), clusterHitsEngyPos.end(), HitDistanceCMCmpAsc<1> );
 
-  for(int i=0; i<numElementsInCluster; i++)
-    if (engyAroundCM < engyPercentage) {
-      engyAroundCM += clusterHitsEngyPos[i][0];
-      distanceCM    = clusterHitsEngyPos[i][1];
+  double engyAroundCM(0.0), distanceCM(0.0);
+  for( VVDouble::iterator energyIt = clusterHitsEngyPos.begin();
+       energyIt != clusterHitsEngyPos.end();
+       ++energyIt ) {
+    if (engyAroundCM < engyPercentage * clusterCM.getE()) {
+      engyAroundCM += (*energyIt)[0];
+      distanceCM    = (*energyIt)[1];
     }
-
+  }
 
   return distanceCM;
 
