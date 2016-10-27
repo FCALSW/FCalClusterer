@@ -266,7 +266,6 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(	std::vector <int> const& c
    -------------------------------------------------------------------------- */
 void LumiCalClustererClass::updateEngyPosCM(IMPL::CalorimeterHitImpl* calHit, LCCluster & clusterCM) {
 
-
   double	engyHit = (double)calHit->getEnergy();
   GlobalMethodsClass::WeightingMethod_t method =  clusterCM.getMethod();
 
@@ -275,49 +274,23 @@ void LumiCalClustererClass::updateEngyPosCM(IMPL::CalorimeterHitImpl* calHit, LC
   double weightHit = posWeight(calHit,method);
 
   if(weightHit > 0){
-    double xCM      = clusterCM.getX();
-    double yCM      = clusterCM.getY();
-    double zCM      = clusterCM.getZ();
-    //    double thetaCM  = clusterCM.getTheta();
-    //    double phiCM    = clusterCM.getPhi();
     double weightCM = clusterCM.getWeight();
 
-    xCM *= weightCM; yCM *= weightCM; zCM *= weightCM;
-    // thetaCM *= weightCM;
-    //(BP) this is bug - must not calculate average phi this way !
-    //     use cos or sin  
-    //  phiCM *= weightCM;
-    
-    //(BP) not used
-    //    int	cellIdHit = (int)  calHit->getCellID0();
-    double xHit      = (double)calHit->getPosition()[0];
-    double yHit      = (double)calHit->getPosition()[1];
-    double zHit      = (double)calHit->getPosition()[2];
-    //    double thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit )/fabs(zHit));
-    //double phiHit    = atan2( yHit, xHit);
+    double xCM = clusterCM.getX() * weightCM;
+    double yCM = clusterCM.getY() * weightCM;
+    double zCM = clusterCM.getZ() * weightCM;
 
-    xHit *= weightHit; yHit *= weightHit; zHit *= weightHit;
-    // thetaHit *= weightHit;
-    //(BP) same bug as above
-    //phiHit *= weightHit;
+    double xHit = double(calHit->getPosition()[0]) * weightHit;
+    double yHit = double(calHit->getPosition()[1]) * weightHit;
+    double zHit = double(calHit->getPosition()[2]) * weightHit;
 
     weightCM += weightHit;
     xCM      += xHit;	xCM	/= weightCM;
     yCM      += yHit;	yCM	/= weightCM;
     zCM      += zHit;	zCM	/= weightCM;
-    //((BP)    phiCM    += phiHit;	phiCM	/= weightCM;
-    //   thetaCM  += thetaHit;	thetaCM	/= weightCM;
-    //   double phiCM = atan2( yCM, xCM );
-    /*
-    clusterCM.setX(xCM);
-    clusterCM.setY(yCM);
-    clusterCM.setZ(zCM);
-    */
     clusterCM.setPosition( xCM, yCM, zCM );
     clusterCM.setWeight(weightCM);
-    // SetX/Y/Z 
-    //    clusterCM.setTheta(thetaCM);
-    //    clusterCM.setPhi(phiCM);
+
   }
 
 }
