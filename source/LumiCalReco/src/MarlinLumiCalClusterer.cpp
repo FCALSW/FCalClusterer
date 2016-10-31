@@ -121,7 +121,7 @@ std::map < int , double > snbx;
 	    cluster->setPosition( clusterPosition );
 
 	    // (BP) take care about components sign
-	    double px = clusterEnergy * sin ( clusterTheta ) * cos ( clusterPhi ) * float(armNow);
+	    double px = clusterEnergy * sin ( clusterTheta ) * cos ( clusterPhi );
 	    double py = clusterEnergy * sin ( clusterTheta ) * sin ( clusterPhi );
 	    double pz = clusterEnergy * cos ( clusterTheta ) * float(armNow);
 	    // (BP) do boost
