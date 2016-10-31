@@ -91,16 +91,9 @@ std::map < int , double > snbx;
 	  const double clusterTheta = thisClusterInfo.getTheta();
 	  if( fabs ( clusterTheta - ThetaMid ) >  ThetaTol ) continue;
  
-	  const double clusterPhi = thisClusterInfo.getPhi();
 	  const float  xloc =  float(thisClusterInfo.getX());
           const float  yloc =  float(thisClusterInfo.getY());
           const float  zloc =  float(thisClusterInfo.getZ());
-
-          streamlog_out(DEBUG2) << std::setw(8) << std::setprecision(3)
-                                << " Cluster " << clusterId << ": Position X,Y,Z [mm] ( "
-                                << xloc <<", "<< yloc <<", "<< zloc
-                                << ")\t E( " << clusterEnergy <<" GeV)"
-                                << std::endl;
 
 	  ClusterImpl* cluster = new ClusterImpl;
 	  cluster->setEnergy( clusterEnergy );
@@ -426,7 +419,8 @@ std::map < int , double > snbx;
 	streamlog_out(MESSAGE4) << "Transfering MC information into ClusterClass objects ......  "  << std::endl;
 	streamlog_out(MESSAGE4) << "MC particles arm z-: "<< mcParticlesVecNeg.size() << "\t arm z+: "<< mcParticlesVecPos.size() << std::endl;
       }else{
-	streamlog_out(MESSAGE4) << "Transfering MC information into ClusterClass objects: No primary MCParticles enetring LumiCal found!"  << std::endl;
+	streamlog_out(MESSAGE4) << "Transfering MC information into ClusterClass objects: No primary MCParticles"
+				<< " entering LumiCal found!"  << std::endl;
       }
 #endif
     
