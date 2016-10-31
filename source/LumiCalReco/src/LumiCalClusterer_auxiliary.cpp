@@ -182,16 +182,6 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( VInt const& cellIdV,
       thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
       loopFlag = 0;
 
-      if( _useDD4hep ) {
-	const double sign = fabs(zHit)/zHit*1e-6;//very small, we just need +/-epsilon to know which way to turn
-	const double localPos[3] = { xHit*dd4hep::mm, yHit*dd4hep::mm, sign*dd4hep::mm };
-	double globalPos[3] = {0.0, 0.0, 0.0};
-	_gmc.rotateToWorld( localPos, globalPos );
-	xHit = globalPos[0]/dd4hep::mm;
-	yHit = globalPos[1]/dd4hep::mm;
-	zHit = globalPos[2]/dd4hep::mm;
-      }
-
     } else {
       // initialize counters and recalculate with the Energy-weights method
       method = GlobalMethodsClass::EnergyMethod;
@@ -234,16 +224,6 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV( VInt const& cellIdV,
       thetaHit  = atan( sqrt( xHit*xHit + yHit*yHit)/fabs( zHit ));
       //      thetaHit /= weightSum;
       loopFlag = 0;
-
-      if( _useDD4hep ) {
-	const double sign = fabs(zHit)/zHit*1e-6;//very small, we just need +/-epsilon to know which way to turn
-	const double localPos[3] = { xHit*dd4hep::mm, yHit*dd4hep::mm, sign*dd4hep::mm };
-	double globalPos[3] = {0.0, 0.0, 0.0};
-	_gmc.rotateToWorld( localPos, globalPos );
-	xHit = globalPos[0]/dd4hep::mm;
-	yHit = globalPos[1]/dd4hep::mm;
-	zHit = globalPos[2]/dd4hep::mm;
-      }
 
     } else {
       // initialize counters and recalculate with the Energy-weights method

@@ -54,9 +54,9 @@ std::map < int , double > snbx;
       double ThetaTol = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMax] - gmc.GlobalParamD[GlobalMethodsClass::ThetaMin])/2.;
 
 
-      csbx[-1] = cos( M_PI - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+      csbx[-1] = cos( - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
       csbx[ 1] = cos( gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-      snbx[-1] = sin( M_PI - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
+      snbx[-1] = sin( - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
       snbx[ 1] = sin( gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
       /* --------------------------------------------------------------------------
 	 create clusters using: LumiCalClustererClass
@@ -94,7 +94,7 @@ std::map < int , double > snbx;
 	  const double clusterPhi = thisClusterInfo.getPhi();
 	  const float  xloc =  float(thisClusterInfo.getX());
           const float  yloc =  float(thisClusterInfo.getY());
-          const float  zloc =  fabs(float(thisClusterInfo.getZ())); // take abs , since we kept wrong local minus z in getHts
+          const float  zloc =  float(thisClusterInfo.getZ());
 
           streamlog_out(DEBUG2) << std::setw(8) << std::setprecision(3)
                                 << " Cluster " << clusterId << ": Position X,Y,Z [mm] ( "
