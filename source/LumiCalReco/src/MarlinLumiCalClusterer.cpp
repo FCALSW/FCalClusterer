@@ -113,37 +113,17 @@ std::map < int , double > snbx;
 	  particle->setEnergy ( clusterEnergy ) ;
 	  particle->addCluster( cluster ) ;
 
-	  if ( not gmc.isUsingDD4hep() ) {
-	    //(BP) local -> global rot.
-	    float xglob =  csbx[ armNow ]*xloc + snbx[ armNow ]*zloc;
-	    float zglob = -snbx[ armNow ]*xloc + csbx[ armNow ]*zloc;
-	    const float clusterPosition[3] = { xglob, yloc, zglob };
-	    cluster->setPosition( clusterPosition );
+	  const float gP[] = { float(  csbx[ armNow ]*xloc + snbx[ armNow ]*zloc ),
+			       float(  yloc ),
+			       float( -snbx[ armNow ]*xloc + csbx[ armNow ]*zloc )};
+	  cluster->setPosition( gP );
 
-	    // (BP) take care about components sign
-	    double px = clusterEnergy * sin ( clusterTheta ) * cos ( clusterPhi );
-	    double py = clusterEnergy * sin ( clusterTheta ) * sin ( clusterPhi );
-	    double pz = clusterEnergy * cos ( clusterTheta ) * float(armNow);
-	    // (BP) do boost
-	    double pxlab = gmc.GlobalParamD[GlobalMethodsClass::BetaGamma] * clusterEnergy +
-	      gmc.GlobalParamD[GlobalMethodsClass::Gamma]*px;
-	    float clusterMomentum[3] = { float( pxlab ), float( py ), float( pz )  };
-	    particle->setMomentum ( clusterMomentum) ;
+	  const float norm = sqrt( gP[0]*gP[0] + gP[1]*gP[1] + gP[2]*gP[2] );
+	  const float clusterMomentum[3] =  { float(gP[0]/norm * clusterEnergy),
+					      float(gP[1]/norm * clusterEnergy),
+					      float(gP[2]/norm * clusterEnergy) };
+	  particle->setMomentum ( clusterMomentum) ;
 
-	  } else {
-
-	    const float gP[] = { float(  csbx[ armNow ]*xloc + snbx[ armNow ]*zloc ),
-				 float(  yloc ),
-				 float( -snbx[ armNow ]*xloc + csbx[ armNow ]*zloc )};
-	    cluster->setPosition( gP );
-
-	    const float norm = sqrt( gP[0]*gP[0] + gP[1]*gP[1] + gP[2]*gP[2] );
-	    const float clusterMomentum[3] =  { float(gP[0]/norm * clusterEnergy),
-						float(gP[1]/norm * clusterEnergy),
-						float(gP[2]/norm * clusterEnergy) };
-	    particle->setMomentum ( clusterMomentum) ;
-
-	  }
 #pragma message ("FIXME: Link Calohits to the Cluster")
 	  //Get the cellID from the container Hit of the cluster and find the
 	  //matching LumiCal SimCalorimeterHit in the event collection, probably
