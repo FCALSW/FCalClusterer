@@ -76,6 +76,13 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 	// determine the side (arm) of the hit -> (+,-)1
 	arm = (( arm == 0 ) ? -1 : 1);
 
+	if( arm < 0 ) {
+	  //for rotation around the X-axis, so that the phiCell increases counter-clockwise for z<0
+	  phiCell = _cellPhiMax - phiCell;
+	  phiCell += _cellPhiMax/2;
+	  if(phiCell >= _cellPhiMax) phiCell -= _cellPhiMax;
+	}
+
       } else {
 	arm =(*_mydecoder)( calHitIn )["barrel"]; // from 1 and 2
 	if( arm == 2 ) arm = -1;
