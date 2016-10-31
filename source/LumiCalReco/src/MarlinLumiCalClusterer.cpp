@@ -115,8 +115,8 @@ std::map < int , double > snbx;
 
 	  if ( not gmc.isUsingDD4hep() ) {
 	    //(BP) local -> global rot.
-	    float xglob = csbx[ armNow ]*xloc + snbx[ armNow ]*zloc;
-	    float zglob = snbx[ armNow ]*xloc + csbx[ armNow ]*zloc;
+	    float xglob =  csbx[ armNow ]*xloc + snbx[ armNow ]*zloc;
+	    float zglob = -snbx[ armNow ]*xloc + csbx[ armNow ]*zloc;
 	    const float clusterPosition[3] = { xglob, yloc, zglob };
 	    cluster->setPosition( clusterPosition );
 
