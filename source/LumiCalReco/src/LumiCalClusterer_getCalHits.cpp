@@ -114,20 +114,9 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       */
       const float* Pos = calHitIn->getPosition();
       float locPos[3] = {0.0, 0.0, 0.0};
-      if( not _useDD4hep ) {
-	// rotate to local Lcal reference system
-	locPos[0] =  Pos[0]*RotMat[arm]["cos"] - Pos[2]*RotMat[arm]["sin"];
-	locPos[1] =  Pos[1];
-	locPos[2] =  Pos[0]*RotMat[arm]["sin"] + Pos[2]*RotMat[arm]["cos"];
-
-      } else {
-	_gmc.rotateToLocal( Pos, locPos );
-      }
-
-      // (BP) keep wrong sign of zHit local as it was  
-      // in case it  matters ( still some guys might want to determine arm using sign of z )
-      locPos[2] *= arm;
-
+      locPos[0] =  Pos[0]*RotMat[arm]["cos"] - Pos[2]*RotMat[arm]["sin"];
+      locPos[1] =  Pos[1];
+      locPos[2] =  Pos[0]*RotMat[arm]["sin"] + Pos[2]*RotMat[arm]["cos"];
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
         streamlog_out(DEBUG2) << std::scientific << std::setprecision(3);

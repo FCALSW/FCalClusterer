@@ -81,8 +81,8 @@ void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
   _elementsPercentInShowerPeakLayer	= gmc.GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
   _nNearNeighbor			= gmc.GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor); // = 6; // number of near neighbors to consider
   _beamCrossingAngle                    = gmc.GlobalParamD.at(GlobalMethodsClass::BeamCrossingAngle)/2.;
-  RotMat[-1]["cos"]                     = cos( M_PI - _beamCrossingAngle );
-  RotMat[-1]["sin"]                     = sin( M_PI - _beamCrossingAngle );
+  RotMat[-1]["cos"]                     = cos( - _beamCrossingAngle );
+  RotMat[-1]["sin"]                     = sin( - _beamCrossingAngle );
   RotMat[ 1]["cos"]                     = cos( _beamCrossingAngle );
   RotMat[ 1]["sin"]                     = sin( _beamCrossingAngle );
 
