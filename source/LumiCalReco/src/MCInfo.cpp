@@ -32,7 +32,7 @@ MCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle *particle, GlobalMethodsClass
   if( fabs( endPoint[2] ) < LcalZstart && fabs( endPoint[2] )>0. ) return mcp; //<--- reached LCal ?
 
   const double* pp = particle->getMomentum();
-  const int sign = int ( pp[2]/fabs( pp[2] ));
+  const int sign = int ( pp[2] > 0 ? 1 : -1 );
 
   // boost to lumical system
   const double pxloc = - gmc.GlobalParamD[GlobalMethodsClass::BetaGamma]*engy + 
@@ -49,8 +49,7 @@ MCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle *particle, GlobalMethodsClass
   double theta = atan( sqrt( pxloc*pxloc + pp[1]*pp[1] ) / fabs(pp[2]));
   if( fabs(theta) < thmin  || thmax < fabs(theta)  ) return mcp; //<--- within theta range ?
 
-  const double phi = atan2( pp[1], pxloc );
-
+  const double phi = atan2( begY, begX );
 
   mcp = MCInfo( particle, engy, theta, phi, begX, begY, pdg, sign );
   mcp.pp[0] = pp[0];
