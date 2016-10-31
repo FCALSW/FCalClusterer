@@ -63,14 +63,14 @@ MCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle *particle, GlobalMethodsClass
 
 std::ostream& operator<<(std::ostream & o, const MCInfo& rhs) {
   o  << "MCInfo: "
-     << "  Energy "              << std::setw(10) << rhs.engy
+     << "Energy " << std::setw(10) << rhs.engy
      << " PDG " << std::setw(5) << rhs.pdg
-     << "  pos(theta,phi) =  ( " << std::setw(10) << rhs.theta << " , " << std::setw(10) << rhs.phi << " )"
-     << " Start (X, Y) = ( "
-     << std::setw(10) << rhs.x
-     << std::setw(10) << rhs.y
+     << "  Local Pos(theta,phi) =  (" << std::setw(10) << rhs.theta << " , " << std::setw(10) << rhs.phi << " )"
+     << "  Start (X, Y) = ( "
+     << std::setw(13) << rhs.x << ", "
+     << std::setw(13) << rhs.y
      << " ) "
-     << "  Momentum (X,Y,Z) =  ( "
+     << " Global Momentum (X,Y,Z) =  ( "
      << std::setw(10) << rhs.pp[0] << " , "
      << std::setw(10) << rhs.pp[1] << " , "
      << std::setw(10) << rhs.pp[2] << " )";
