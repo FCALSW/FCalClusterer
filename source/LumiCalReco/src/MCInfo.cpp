@@ -16,7 +16,7 @@ MCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle *particle, GlobalMethodsClass
 
   MCInfo mcp;
   // only primary particles wanted
-  if( particle->isCreatedInSimulation() ) return mcp; //<--- is primary ?
+  if( particle->isCreatedInSimulation() and not particle->getParents().empty() ) return mcp; //<--- is primary ?
 
   int pdg = particle->getPDG();
   // skip neutrinos

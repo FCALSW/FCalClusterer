@@ -87,7 +87,7 @@ void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
   EVENT::MCParticle *mcParticleParent = mcParticle;
   ParentId = Id;
   while(1) {
-    if( !(mcParticleParent -> isCreatedInSimulation()) )
+    if( !(mcParticleParent -> isCreatedInSimulation()) or mcParticleParent -> getParents().empty() )
       break;
 
     mcParticleParent = mcParticleParent -> getParents()[0];
