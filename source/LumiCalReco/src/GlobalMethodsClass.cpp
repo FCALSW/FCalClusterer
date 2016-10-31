@@ -394,6 +394,8 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
 
   DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
 
+  if( lcdd.detectors().count("LumiCal") == 0 ) return false;
+
   DD4hep::Geometry::DetElement lumical(lcdd.detector("LumiCal"));
   DD4hep::Geometry::Segmentation readout(lcdd.readout("LumiCalCollection").segmentation());
 
