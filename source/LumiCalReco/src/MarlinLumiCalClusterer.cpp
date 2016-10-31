@@ -131,14 +131,16 @@ std::map < int , double > snbx;
 	    particle->setMomentum ( clusterMomentum) ;
 
 	  } else {
-	    //already rotated cluster position
-	    const float clusterPosition[3] = { xloc, yloc, zloc };
-	    cluster->setPosition( clusterPosition );
 
-	    const float norm = sqrt( xloc*xloc + yloc*yloc + zloc*zloc );
-	    const float clusterMomentum[3] =  { float(xloc/norm * clusterEnergy),
-						float(yloc/norm * clusterEnergy),
-						float(zloc/norm * clusterEnergy) };
+	    const float gP[] = { float(  csbx[ armNow ]*xloc + snbx[ armNow ]*zloc ),
+				 float(  yloc ),
+				 float( -snbx[ armNow ]*xloc + csbx[ armNow ]*zloc )};
+	    cluster->setPosition( gP );
+
+	    const float norm = sqrt( gP[0]*gP[0] + gP[1]*gP[1] + gP[2]*gP[2] );
+	    const float clusterMomentum[3] =  { float(gP[0]/norm * clusterEnergy),
+						float(gP[1]/norm * clusterEnergy),
+						float(gP[2]/norm * clusterEnergy) };
 	    particle->setMomentum ( clusterMomentum) ;
 
 	  }
@@ -363,10 +365,7 @@ std::map < int , double > snbx;
 	MCParticle * particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
 	MCInfo p = MCInfo::getMCParticleInfo( particle, gmc );
 	if( p.mcp == NULL ) continue;
-	streamlog_out(DEBUG2) << " MCParticle pdg, engy, theta "<< p.pdg << ", "<< p.engy <<", "<< p.theta
-                              << "  sign " << std::setw(13) << p.sign
-                              << " pp[2] " << std::setw(13) << p.pp[2]
-                              << std::endl;
+	streamlog_out(DEBUG2) << p << std::endl;
 	if ( p.sign > 0 ) mcParticlesVecPos.push_back( p );
         else mcParticlesVecNeg.push_back( p );
 

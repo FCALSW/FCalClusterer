@@ -79,10 +79,17 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       } else {
 	arm =(*_mydecoder)( calHitIn )["barrel"]; // from 1 and 2
 	if( arm == 2 ) arm = -1;
-	//FIXME: add check for phi range?
 	phiCell = (*_mydecoder)( calHitIn )["phi"]; // goes from -phiMax/2 to +phiMax/2
-	//LumiCall is (or not, if we fix it) rotated by pi around Z for negative side, which is very bad
-	// if( arm < 0 ) phiCell = (-1)*phiCell;
+
+	if( arm < 0 ) {
+	  //for rotation around the X-axis, so that the phiCell increases counter-clockwise for z<0
+	  if( phiCell > 0) phiCell =  int(_cellPhiMax/2) - phiCell;
+	  if( phiCell < 0) phiCell = -int(_cellPhiMax/2) - phiCell;
+	  //LumiCall is (or not, if we fix it) rotated by pi around Z for negative side
+	  phiCell += int(_gmc._backwardRotationPhi/(2.0*M_PI)*_cellPhiMax+0.5);
+	}
+
+	if(phiCell >= _cellPhiMax) phiCell -= _cellPhiMax;
 	if(phiCell < 0 ) phiCell += _cellPhiMax; // need to put into positive range only
 	rCell = (*_mydecoder)( calHitIn )["r"];
 	layer = (*_mydecoder)( calHitIn )["layer"]; // counts from 0

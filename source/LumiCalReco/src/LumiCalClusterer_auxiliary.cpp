@@ -564,3 +564,20 @@ double LumiCalClustererClass::getDistanceAroundCMWithEnergyPercent( LCCluster co
   return distanceCM;
 
 }
+
+
+void LumiCalClustererClass::dumpClusters( MapIntLCCluster const& clusterCM ) {
+  for( MapIntLCCluster::const_iterator clusterCMIterator = clusterCM.begin();
+       clusterCMIterator != clusterCM.end();
+       ++clusterCMIterator ) {
+    int clusterId = clusterCMIterator->first;
+    streamlog_out(DEBUG5) << "\t\t cluster Id, pos(x,y,z), engy(weight): "
+			  << clusterId << "\t ("
+			  << clusterCMIterator->second.getX() << " , "
+			  << clusterCMIterator->second.getY() << " , "
+			  << clusterCMIterator->second.getZ() << ") \t "
+			  << clusterCMIterator->second.getE() <<" ( "
+			  << clusterCMIterator->second.getWeight() <<" ) " <<std::endl;
+  }
+
+}

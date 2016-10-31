@@ -2,6 +2,7 @@
 #define MCInfo_h 1
 
 #include <cstddef>
+#include <ostream>
 
 class GlobalMethodsClass;
 namespace EVENT{
@@ -36,6 +37,9 @@ public:
   }
 
   static MCInfo getMCParticleInfo( EVENT::MCParticle *particle, GlobalMethodsClass& gmc);
+
+  friend std::ostream& operator<<(std::ostream & o, const MCInfo& rhs);
+
 
 };
 

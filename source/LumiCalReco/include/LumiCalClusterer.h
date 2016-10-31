@@ -280,6 +280,8 @@ protected:
 					  double moliereFraction,
 					  MapIntInt & flag );
 
+  void dumpClusters( MapIntLCCluster const& clusterCM );
+
 };
 
 #endif // LumiCalClusterer_h
