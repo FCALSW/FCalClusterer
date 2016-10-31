@@ -14,7 +14,7 @@
 using namespace streamlog;
 
 /* --------------------------------------------------------------------------
-   class ....
+   This class holds information about the clusters
    -------------------------------------------------------------------------- */
 ClusterClass::ClusterClass(int idNow, GlobalMethodsClass& _gmc):
   Id(idNow), Pdg(0), SignMC(0), ParentId(-1), NumMCDaughters(0),

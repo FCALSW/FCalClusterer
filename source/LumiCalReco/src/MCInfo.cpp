@@ -3,6 +3,8 @@
 
 #include <EVENT/MCParticle.h>
 
+#include <iomanip>
+
 
 MCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle *particle, GlobalMethodsClass& gmc) {
 
@@ -56,5 +58,24 @@ MCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle *particle, GlobalMethodsClass
   mcp.pp[2] = pp[2];
 
   return mcp;
+
+}
+
+
+std::ostream& operator<<(std::ostream & o, const MCInfo& rhs) {
+  o  << "MCInfo: "
+     << "  Energy "              << std::setw(10) << rhs.engy
+     << " PDG " << std::setw(5) << rhs.pdg
+     << "  pos(theta,phi) =  ( " << std::setw(10) << rhs.theta << " , " << std::setw(10) << rhs.phi << " )"
+     << " Start (X, Y) = ( "
+     << std::setw(10) << rhs.x
+     << std::setw(10) << rhs.y
+     << " ) "
+     << "  Momentum (X,Y,Z) =  ( "
+     << std::setw(10) << rhs.pp[0] << " , "
+     << std::setw(10) << rhs.pp[1] << " , "
+     << std::setw(10) << rhs.pp[2] << " )";
+  return o;
+
 
 }

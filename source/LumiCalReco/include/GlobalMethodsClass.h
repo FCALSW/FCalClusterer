@@ -91,6 +91,8 @@ class GlobalMethodsClass {
   static WeightingMethod_t LogMethod;
   static WeightingMethod_t EnergyMethod;
   static double EnergyCalibrationFactor;
+
+  double _backwardRotationPhi;
   ParametersInt    GlobalParamI;
   ParametersDouble GlobalParamD;
   ParametersString GlobalParamS;

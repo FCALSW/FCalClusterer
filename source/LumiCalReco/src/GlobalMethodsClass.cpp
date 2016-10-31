@@ -46,6 +46,7 @@ double GlobalMethodsClass::EnergyCalibrationFactor = 0.0105;
 GlobalMethodsClass :: GlobalMethodsClass() :
   _procName( "MarlinLumiCalClusterer" ),
   _useDD4hep(false),
+  _backwardRotationPhi(0.0),
   GlobalParamI(),
   GlobalParamD(),
   GlobalParamS(),
@@ -56,6 +57,7 @@ GlobalMethodsClass :: GlobalMethodsClass() :
 GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
   _procName( name ),
   _useDD4hep(false),
+  _backwardRotationPhi(0.0),
   GlobalParamI(),
   GlobalParamD(),
   GlobalParamS(),
@@ -68,6 +70,7 @@ GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
 GlobalMethodsClass::GlobalMethodsClass( const GlobalMethodsClass &rhs ):
   _procName( rhs._procName ),
   _useDD4hep(rhs._useDD4hep),
+  _backwardRotationPhi(rhs._backwardRotationPhi),
   GlobalParamI( rhs.GlobalParamI ),
   GlobalParamD( rhs.GlobalParamD ),
   GlobalParamS( rhs.GlobalParamS ),
@@ -79,6 +82,7 @@ GlobalMethodsClass::GlobalMethodsClass( const GlobalMethodsClass &rhs ):
 GlobalMethodsClass& GlobalMethodsClass::operator=( const GlobalMethodsClass &rhs ){
   _procName = rhs._procName;
   _useDD4hep = rhs._useDD4hep;
+  _backwardRotationPhi = rhs._backwardRotationPhi,
   GlobalParamI = rhs.GlobalParamI;
   GlobalParamD = rhs.GlobalParamD;
   GlobalParamS = rhs.GlobalParamS;
@@ -439,6 +443,25 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
     } else {
       std::cout << " Backward "  << std::endl;
       _backwardCalo = &it->second.worldTransformation();
+
+      //get phi rotation from global to local transformation
+      TGeoHMatrix *tempMat = (TGeoHMatrix*) _backwardCalo->Clone();
+      double nulltr[] = { 0.0, 0.0, 0.0 };
+      // undo backward and crossing angle rotation
+      tempMat->SetTranslation( nulltr );
+      // root matrices need degrees as argument
+      tempMat->RotateY( GlobalParamD[BeamCrossingAngle]/2.0 * 180/M_PI );
+      tempMat->RotateY( -180.0 );
+      double local[] =  { 0.0, 1.0, 0.0 };
+      double global[] = { 0.0, 0.0, 0.0 };
+
+      tempMat->LocalToMaster( local, global );
+
+      _backwardRotationPhi = atan2( local[1], local[0] ) - atan2( global[1], global[0] ) ;
+      if(_backwardRotationPhi < M_PI) _backwardRotationPhi += 2*M_PI;
+
+      delete tempMat;
+
     }
   }
 

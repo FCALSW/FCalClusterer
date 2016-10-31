@@ -223,20 +223,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
       // store max number of hits in ShowerPeakLayer
  
 #if _CLUSTER_BUILD_DEBUG == 1
-      streamlog_out(DEBUG3) << "\t layer " << layerNow <<std::endl;
-      int numClusters = clusterCM[layerNow].size();
-      clusterCMIterator = clusterCM[layerNow].begin();
-      for(int clusterNow1 = 0; clusterNow1 < numClusters; clusterNow1++, clusterCMIterator++){
-	int clusterId = (int)(*clusterCMIterator).first;
-	streamlog_out(DEBUG3) << "\t\t cluster Id, pos(x,y,z), engy(weight): "
-			      << clusterId << "\t ("
-			      << clusterCM[layerNow][clusterId].getX() << " , "
-			      << clusterCM[layerNow][clusterId].getY() << " , "
-			      << clusterCM[layerNow][clusterId].getZ() << ") \t "
-			      << clusterCM[layerNow][clusterId].getE() <<" ( "
-			      << clusterCM[layerNow][clusterId].getWeight() <<" ) " <<std::endl;
-      }
-      streamlog_out(DEBUG3) <<std::endl;
+      dumpClusters( clusterCM[layerNow] );
 #endif
     }
 
