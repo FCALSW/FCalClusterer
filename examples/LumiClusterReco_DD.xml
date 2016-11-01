@@ -76,7 +76,7 @@
     <!-- Choose cluster hit position weights LogMthod=-1 or simple EnergyMethod=1 -->
     <parameter name="WeightingMethod" type="string">LogMethod </parameter>
     <!-- Layers relative phi offset (default for model ILD_o1_05,must go to gear sometimes)  [deg]-->
-    <parameter name="ZLayerPhiOffset" type="double">3.75 </parameter>
+    <parameter name="ZLayerPhiOffset" type="double"> 0.0 </parameter>
   </processor>
 
   <processor name="LCIOoutput" type="LCIOOutputProcessor">
