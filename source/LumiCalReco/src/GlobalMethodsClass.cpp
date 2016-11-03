@@ -468,7 +468,7 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   }
 
   // layer thickness
-  GlobalParamD[ZLayerThickness] = layers[0].thickness;
+  GlobalParamD[ZLayerThickness] = layers[0].inner_thickness + layers[0].outer_thickness;
   
   //successfully created geometry from DD4hep
   return true;
