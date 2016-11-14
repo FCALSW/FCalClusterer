@@ -125,6 +125,7 @@ double LumiCalClustererClass::distance2DPolar(double *pos1, double *pos2) {
 /* --------------------------------------------------------------------------
    compute the nearest neigbour cellId
    - in case of the next neighbor being outside the detector, return 0
+   - get neighbors in Phi +/- 1 (neighborIndex < 2), and neighbors in R +/- n ( n = neighborIndex/2 )
    -------------------------------------------------------------------------- */
 int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
 
@@ -133,8 +134,10 @@ int LumiCalClustererClass::getNeighborId(int cellId, int neighborIndex) {
   GlobalMethodsClass::CellIdZPR( cellId, cellZ, cellPhi, cellR, arm);
 
   // change iRho cell index  according to the neighborIndex
-  if ( neighborIndex%2 ) cellR -= neighborIndex+1;
-  else cellR += neighborIndex+1;
+  if( neighborIndex >= 2 ){
+    if ( neighborIndex%2 ) cellR -= neighborIndex/2;
+    else cellR += neighborIndex/2;
+  }
 
   // change iPhi cell index
   if ( neighborIndex == 0 )     { cellPhi += 1; }
