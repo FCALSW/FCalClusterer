@@ -87,7 +87,7 @@ class GlobalMethodsClass {
 
   virtual ~GlobalMethodsClass();
  
-  void SetConstants();
+  void SetConstants( marlin::Processor* procPTR );
   static WeightingMethod_t LogMethod;
   static WeightingMethod_t EnergyMethod;
   static double EnergyCalibrationFactor;
