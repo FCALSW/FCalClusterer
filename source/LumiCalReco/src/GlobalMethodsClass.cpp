@@ -150,28 +150,11 @@ int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t Z
 }
 
 
-void GlobalMethodsClass::SetConstants() {
+void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
 
   
-  // BP. access processor parameters
   marlin::StringParameters* _lcalRecoPars = NULL;
-  marlin::ProcessorMgr* procMgr= marlin::ProcessorMgr::instance();
-  marlin::Processor* procPTR = procMgr->getActiveProcessor( _procName );
-  //procMgr->dumpRegisteredProcessorsXML();
-
-  if ( procPTR ) {
-    _lcalRecoPars = procPTR->parameters();
-  } else{                                                // try with My+_procName
-    _procName = "My" + _procName;
-    procPTR = procMgr->getActiveProcessor( _procName );
-    if( procPTR) {
-      _lcalRecoPars = procPTR -> parameters();
-    }
-  }
-  if( !_lcalRecoPars ) {
-    streamlog_out( MESSAGE ) << " GlobalMethodsClass::SetConstants : Non of processor names ("<<_procName<< ", My"<<_procName<< ") found !" << std::endl;
-    exit( EXIT_FAILURE );
-  }
+  _lcalRecoPars = procPTR->parameters();
 
   //SetGeometryConstants
   if( SetGeometryDD4HEP() ) {
@@ -189,8 +172,7 @@ void GlobalMethodsClass::SetConstants() {
     if ( _lcalRecoPars->isParameterSet(parname) ){ 
       val = _lcalRecoPars->getFloatVal( parname );
     }else {
-      marlin::ProcessorParameter* par = marlin::CMProcessor::instance()->getParam( _procName, parname );
-      //      val = (double)std::stof( par->defaultValue() );
+      marlin::ProcessorParameter* par = marlin::CMProcessor::instance()->getParam( procPTR->type(), parname );
       if ( convert( par->defaultValue(), val ) ){
 	streamlog_out(WARNING)<<"\tParameter <"<< parname <<"> not set default value : "<< val << "\t is used"<<"\n";
       }else{ 
@@ -234,7 +216,7 @@ void GlobalMethodsClass::SetConstants() {
   GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal("ElementsPercentInShowerPeakLayer");
   GlobalParamI[NumOfNearNeighbor] = _lcalRecoPars->getIntVal("NumOfNearNeighbor");
   // IO
-  GlobalParamS[LumiInColName] = _lcalRecoPars->getStringVal(  "LumiInColName" );
+  GlobalParamS[LumiInColName] = _lcalRecoPars->getStringVal(  "LumiCal_Collection" );
 
 
   // Lorentz boost params

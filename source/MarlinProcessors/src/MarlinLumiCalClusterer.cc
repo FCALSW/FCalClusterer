@@ -172,7 +172,8 @@ void MarlinLumiCalClusterer::init(){
   NumEvt = SkipNEvents;
   //  LumiInColName = "LumiCalSimHits";
 
-  gmc.SetConstants();
+  gmc.SetConstants( this );
+
   _BeamCrossingAngle = gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.;
 
   printParameters();
