@@ -6,6 +6,8 @@
 class TFile;
 class BeamCalGeo;
 
+#include <TError.h>
+
 #include <string>
 #include <vector>
 
@@ -18,6 +20,19 @@ namespace BCUtil{
 		     std::string energyField="sEdep",
 		     bool isFromMokka = false
 		     );
+
+
+  class IgnoreRootError {
+  public:
+    IgnoreRootError(bool enable=true): orgErrorLevel(gErrorIgnoreLevel) {
+      if( enable ) { gErrorIgnoreLevel=kError+1; }
+    }
+    ~IgnoreRootError(){
+      gErrorIgnoreLevel=orgErrorLevel;
+    }
+  private:
+    int orgErrorLevel;
+  };
 
 }//end namespace
 
