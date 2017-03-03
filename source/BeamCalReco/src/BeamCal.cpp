@@ -215,8 +215,10 @@ Double_t BeamCal::GetPadArea(Int_t cylinder, Int_t sector) const {
   //std::map<int, TCrown>  crownIt = ((m_MapCrowns.find(cylinder)))->second;
   //Changed this from m_MapCrowns[cylinder][sector], maybe it should be find(sector) first?
   //const TCrown& crown = ((m_MapCrowns[cylinder][sector]));
-  const TCrown& crown = ((m_MapCrowns.find(cylinder)))->second.find(sector)->second;
-  if(&crown) {
+  auto const& cylinderMap = m_MapCrowns.find(cylinder);
+  auto crownIt = cylinderMap->second.find(sector);
+  if(crownIt != cylinderMap->second.end()) {
+    auto & crown = crownIt->second;
     //Area is Rout*rout - rin*rin *DeltaPhi[rad]/2 in cm2
     Double_t rin = crown.GetR1()/10;
     Double_t rout = crown.GetR2()/10;
