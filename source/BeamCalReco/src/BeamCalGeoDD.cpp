@@ -245,7 +245,7 @@ void BeamCalGeoDD::setCrossingAngle() {
 	++it ) {
     DD4hep::Geometry::Position loc(0.0, 0.0, 0.0);
     DD4hep::Geometry::Position glob(0.0, 0.0, 0.0);
-    it->second.localToWorld( loc, glob );
+    it->second.nominal().localToWorld( loc, glob );
     m_crossingAngle = 2.0*fabs( atan( glob.x() / glob.z() ) / dd4hep::mrad );
     if( m_crossingAngle > 0 ){
       return;

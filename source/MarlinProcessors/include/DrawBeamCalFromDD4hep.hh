@@ -68,8 +68,8 @@ class DrawBeamCalFromDD4hep : public marlin::Processor {
   int m_nEvt ;
 
   BeamCalGeo* m_bcg;
-  DD4hep::Geometry::DetElement m_BeamCal;
-  DD4hep::Geometry::Segmentation m_seg;
+  DD4hep::Geometry::DetElement m_BeamCal{};
+  DD4hep::Geometry::Segmentation m_seg{};
   TFile * m_file;
   TTree * m_tree;
   double m_x, m_y, m_z, m_energy;
@@ -77,7 +77,7 @@ private://to shut the warnings up
   DrawBeamCalFromDD4hep(const DrawBeamCalFromDD4hep&);
   DrawBeamCalFromDD4hep& operator=(const DrawBeamCalFromDD4hep&);
 
-  MapIdVal hitEnergies;
+  MapIdVal hitEnergies{};
 
 } ;
 

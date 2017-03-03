@@ -419,14 +419,14 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   for( DD4hep::Geometry::DetElement::Children::const_iterator it = children.begin(); it != children.end(); ++it ) {
     DD4hep::Geometry::Position loc(0.0, 0.0, 0.0);
     DD4hep::Geometry::Position glob(0.0, 0.0, 0.0);
-    it->second.localToWorld( loc, glob );
+    it->second.nominal().localToWorld( loc, glob );
     GlobalParamD[BeamCrossingAngle] = 2.0*fabs( atan( glob.x() / glob.z() ) / dd4hep::rad );
     if( glob.z() > 0.0 ) {
       std::cout << " Forward "  << std::endl;
-      _forwardCalo = &it->second.worldTransformation();
+      _forwardCalo = &it->second.nominal().worldTransformation();
     } else {
       std::cout << " Backward "  << std::endl;
-      _backwardCalo = &it->second.worldTransformation();
+      _backwardCalo = &it->second.nominal().worldTransformation();
 
       //get phi rotation from global to local transformation
       TGeoHMatrix *tempMat = (TGeoHMatrix*) _backwardCalo->Clone();

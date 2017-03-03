@@ -132,10 +132,10 @@ void DrawBeamCalFromDD4hep::init() {
   
   m_BeamCal = lcdd.detector("BeamCal");
 
-  DD4hep::Geometry::PlacedVolume place = m_BeamCal.placement();
+  //  DD4hep::Geometry::PlacedVolume place = m_BeamCal.placement();
   DD4hep::Geometry::Position local(4.0, 0.0, 0.0);
   DD4hep::Geometry::Position global(0.0, 0.0, 0.0);
-  m_BeamCal.child("BeamCal01").localToWorld(local, global);
+  m_BeamCal.child("BeamCal01").nominal().localToWorld(local, global);
   std::cout << global  << std::endl;
   std::cout << local  << std::endl;
   DD4hep::Geometry::DetElement::Children children = m_BeamCal.children();
@@ -145,7 +145,7 @@ void DrawBeamCalFromDD4hep::init() {
     std::cout << it->first  << std::endl;
   }
  
-  m_BeamCal.child("BeamCal01").worldTransformation().Print();
+  m_BeamCal.child("BeamCal01").nominal().worldTransformation().Print();
 
   DD4hep::Geometry::LCDD::HandleMap readouts = lcdd.readouts();
   for (DD4hep::Geometry::LCDD::HandleMap::iterator it = readouts.begin(); it != readouts.end(); ++it) {
@@ -193,7 +193,8 @@ void DrawBeamCalFromDD4hep::processEvent( LCEvent * evt ) {
   int nHits = colBCal->getNumberOfElements();
   for(int i=0; i < nHits; i++) {
     SimCalorimeterHit *bcalhit = static_cast<SimCalorimeterHit*>(colBCal->getElementAt(i));
-    int side, layer, cylinder, sector;
+    int // side,
+      layer, cylinder, sector;
     //BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, cylinder, sector);
 
     // std::cout << "PosX: "<< bcalhit->getPosition()[0]  << std::endl;
@@ -307,7 +308,6 @@ void DrawBeamCalFromDD4hep::drawCartesianGridXY() {
 
   TCanvas c1("xy", "xy", 800, 800);
 
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
   typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
 
   ParDou* parGridX = static_cast<ParDou*>(m_seg.segmentation()->parameter("grid_size_x"));
@@ -379,7 +379,7 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   gPad->SetLogz();
   dummy.SetAxisRange(1e-5, 1e2, "Z");
   gPad->Update();
-  TPaletteAxis *pal = (TPaletteAxis*)dummy.GetListOfFunctions()->FindObject("palette");
+  //  TPaletteAxis *pal = (TPaletteAxis*)dummy.GetListOfFunctions()->FindObject("palette");
 
   c1.SaveAs("dummy.eps");
 
