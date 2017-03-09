@@ -8,8 +8,8 @@
 
 namespace DD4hep{
   namespace Geometry {
-    struct DetElement;
-    struct LCDD;
+    class DetElement;
+    class LCDD;
   }
 }
 
