@@ -81,7 +81,7 @@ BeamCalFitShower::operator=(const BeamCalFitShower&fs)
 
 double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, double &chi2)
 {
-  BCUtil::IgnoreRootError ire();
+  BCUtil::IgnoreRootError ire{};
 
   // select spot pads around most likely shower
   m_spotPads.clear();

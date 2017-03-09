@@ -79,8 +79,8 @@ void BeamCalPadGeometry::setLocalCoords(const double &R, const double &Phi)
   // calculate line parameters y = a*x + b for every side
   vector<PadSide_t>::iterator it_ps = m_sides.begin();
   for (;it_ps != m_sides.end(); it_ps++){
-    if ( abs(it_ps->x1 - it_ps->x2 ) < 1.e-10)  it_ps->x1+= 1.e-8;
-    if ( abs(it_ps->y1 - it_ps->y2 ) < 1.e-10)  it_ps->y1+= 1.e-8;
+    if ( fabs(it_ps->x1 - it_ps->x2 ) < 1.e-10)  it_ps->x1+= 1.e-8;
+    if ( fabs(it_ps->y1 - it_ps->y2 ) < 1.e-10)  it_ps->y1+= 1.e-8;
     double x1 = it_ps->x1, y1 = it_ps->y1;
     double x2 = it_ps->x2, y2 = it_ps->y2;
     // make small offset, if x-corrdinate accidentally coinside

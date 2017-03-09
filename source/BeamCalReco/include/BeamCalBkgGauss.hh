@@ -38,9 +38,6 @@ class BeamCalBkgGauss : public BeamCalBkg {
   void getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight);
 
  private:
-  void setTowerErrors(const std::vector<BCPadEnergies*> singles, 
-         const BCPadEnergies::BeamCalSide_t bc_side);
-
   void readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies::BeamCalSide_t bc_side);
 
  public:
