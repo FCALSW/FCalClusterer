@@ -1,44 +1,39 @@
 # v04-00
 
-PR #14 from andresailer 
+## PR #14 from andresailer 
  
 * Replace deprecated calls from dd4hep
 * Fix warnings for GCC 
 
-PR #13 from andresailer 
+## PR #13 from andresailer 
  
 * BeamCalReco: Fix bug causing printouts of integration errors from ROOT  
 
-PR #11 from andresailer 
+## PR #11 from andresailer 
  
 * LumiCalReco: allow the use or arbitrary processor names 
 
-PR #6 from andresailer 
+## PR #6 from andresailer 
  
 * LumiCalReco: corrected the cell neighbor selection to pick the correct neighbors in phi and r 
 
-PR #5 from andresailer 
+## PR #5 from andresailer 
  
 * LumiCalReco can now use geometry from DD4hep 
 
-PR #3 from andresailer 
+## PR #3 from andresailer 
  
 * LumiCalReco: fix bug in LCCluster setZ function 
 
-PR #2 from pawlikb 
+## PR #2 from pawlikb 
  
 * Fix cellID Issue in LumiCal 
-
- -------
-| v0-04 |
- -------
 
 BeamCalReco:
 * Implemented compatibility with DD4hep Geometry
 
- -------
-| v0-03 |
- -------
+
+# v0-03
 
 BeamCalReco (A.Sailer):
 * Reduce memory footprint and fix memory leaks for Parameterized background method
@@ -49,9 +44,8 @@ LumiCalReco (B.Pawlik):
 * Massive fixes, mainly coordinate system, cluster merging. Creating ClustersClass Map and root output is optional now
 * Fix LCIO interface to pass hit positions, geo info. Create LucasGear for Marlin reco, and more...
 
- -------
-| v0-02 |
- ------- 
+
+# v0-02 
 
 LumiCalReco:
 * Bugfixes/improvements by Bogdan Pawlik
@@ -68,9 +62,8 @@ BeamCalReco:
 
 * Bugfixes from Andre Sailer
 
- ------- 
-| v0-01 |
- ------- 
+
+# v0-01
 
 First release of FCalClusterer
 
