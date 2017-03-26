@@ -1,33 +1,4 @@
-# v04-00
-
-## PR #14 from andresailer 
- 
-* Replace deprecated calls from dd4hep
-* Fix warnings for GCC 
-
-## PR #13 from andresailer 
- 
-* BeamCalReco: Fix bug causing printouts of integration errors from ROOT  
-
-## PR #11 from andresailer 
- 
-* LumiCalReco: allow the use or arbitrary processor names 
-
-## PR #6 from andresailer 
- 
-* LumiCalReco: corrected the cell neighbor selection to pick the correct neighbors in phi and r 
-
-## PR #5 from andresailer 
- 
-* LumiCalReco can now use geometry from DD4hep 
-
-## PR #3 from andresailer 
- 
-* LumiCalReco: fix bug in LCCluster setZ function 
-
-## PR #2 from pawlikb 
- 
-* Fix cellID Issue in LumiCal 
+# v00-04
 
 BeamCalReco:
 * Implemented compatibility with DD4hep Geometry
