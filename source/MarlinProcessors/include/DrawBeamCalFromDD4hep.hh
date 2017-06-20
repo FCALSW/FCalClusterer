@@ -6,8 +6,8 @@
 #include <marlin/Processor.h>
 #include <lcio.h>
 
-#include <DD4hep/LCDD.h>
 #include <DD4hep/Detector.h>
+#include <DD4hep/DetElement.h>
 
 #include <string>
 #include <vector>
@@ -68,8 +68,8 @@ class DrawBeamCalFromDD4hep : public marlin::Processor {
   int m_nEvt ;
 
   BeamCalGeo* m_bcg;
-  DD4hep::Geometry::DetElement m_BeamCal{};
-  DD4hep::Geometry::Segmentation m_seg{};
+  dd4hep::DetElement m_BeamCal{};
+  dd4hep::Segmentation m_seg{};
   TFile * m_file;
   TTree * m_tree;
   double m_x, m_y, m_z, m_energy;

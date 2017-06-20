@@ -1,7 +1,5 @@
 #include "BeamCalGeoDD.hh"
 
-#include <DD4hep/LCDD.h>
-#include <DD4hep/Detector.h>
 #include <DD4hep/DD4hepUnits.h>
 #include <DDRec/DetectorData.h>
 #include <DDRec/API/IDDecoder.h>
@@ -21,36 +19,36 @@ class BeamCalInfo;
 #include <vector>
 #include <algorithm>
 
-BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.detector("BeamCal")),
-								m_segmentation(lcdd.readout("BeamCalCollection").segmentation()),
-								m_innerRadius(0.0),
-								m_outerRadius(0.0),
-								m_layers(0),
-								m_rings(0),
-								m_phiSegmentation(0),
-								m_radSegmentation(0),
-								m_nPhiSegments(0),
-								m_layerDistanceToIP(0),
-								m_beamCalZPosition(0),
-								m_deadAngle(0),
-								m_padsPerRing(0),
-								m_padsBeforeRing(0),
-								m_padsPerLayer(-1),
-								m_padsPerBeamCal(-1),
-								m_crossingAngle(0),
-								m_cutOut(0),
-								m_firstFullRing(0)
+BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector): m_BeamCal(theDetector.detector("BeamCal")),
+                                                                 m_segmentation(theDetector.readout("BeamCalCollection").segmentation()),
+                                                                 m_innerRadius(0.0),
+                                                                 m_outerRadius(0.0),
+                                                                 m_layers(0),
+                                                                 m_rings(0),
+                                                                 m_phiSegmentation(0),
+                                                                 m_radSegmentation(0),
+                                                                 m_nPhiSegments(0),
+                                                                 m_layerDistanceToIP(0),
+                                                                 m_beamCalZPosition(0),
+                                                                 m_deadAngle(0),
+                                                                 m_padsPerRing(0),
+                                                                 m_padsBeforeRing(0),
+                                                                 m_padsPerLayer(-1),
+                                                                 m_padsPerBeamCal(-1),
+                                                                 m_crossingAngle(0),
+                                                                 m_cutOut(0),
+                                                                 m_firstFullRing(0)
 {
 
-  const DD4hep::DDRec::LayeredCalorimeterData * theExtension = m_BeamCal.extension<DD4hep::DDRec::LayeredCalorimeterData>();
+  const dd4hep::rec::LayeredCalorimeterData * theExtension = m_BeamCal.extension<dd4hep::rec::LayeredCalorimeterData>();
   m_innerRadius = theExtension->extent[0]/dd4hep::mm;
   m_outerRadius = theExtension->extent[1]/dd4hep::mm;
   m_beamCalZPosition = theExtension->extent[2]/dd4hep::mm;
-  const std::vector<DD4hep::DDRec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
+  const std::vector<dd4hep::rec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
 
   m_layers = layers.size();
   for (size_t i = 0; i < layers.size(); i++) {
-    const DD4hep::DDRec::LayeredCalorimeterStruct::Layer & theLayer = layers.at(i);
+    const dd4hep::rec::LayeredCalorimeterStruct::Layer & theLayer = layers.at(i);
     //no inner thickness means no sensitive detector, like the old graphite layer
     if ( theLayer.inner_thickness == 0.0 ) {
       m_layers--;
@@ -70,7 +68,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
     throw std::runtime_error( "BeamCalReco: Incompatible segmentation type" );
   }
 
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
   ParVec* rPar = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_r_values"));
   ParVec* pPar = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_phi_values"));
   std::vector<double> rValues = rPar->typedValue();
@@ -81,7 +79,7 @@ BeamCalGeoDD::BeamCalGeoDD(DD4hep::Geometry::LCDD const& lcdd): m_BeamCal(lcdd.d
   m_phiSegmentation = pValues;
 
   //DeadAngle Calculations
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
   ParDou* oPPar = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
   double offsetPhi = oPPar->typedValue();
   m_deadAngle = 2.0 * ( M_PI + offsetPhi/dd4hep::radian );
@@ -239,12 +237,12 @@ void BeamCalGeoDD::setCutOut() {
 
 /// get the full crossing angle from the position of the BeamCal
 void BeamCalGeoDD::setCrossingAngle() {
-  DD4hep::Geometry::DetElement::Children children = m_BeamCal.children();
-  for ( DD4hep::Geometry::DetElement::Children::const_iterator it = children.begin();
+  dd4hep::DetElement::Children children = m_BeamCal.children();
+  for ( dd4hep::DetElement::Children::const_iterator it = children.begin();
 	it != children.end();
 	++it ) {
-    DD4hep::Geometry::Position loc(0.0, 0.0, 0.0);
-    DD4hep::Geometry::Position glob(0.0, 0.0, 0.0);
+    dd4hep::Position loc(0.0, 0.0, 0.0);
+    dd4hep::Position glob(0.0, 0.0, 0.0);
     it->second.nominal().localToWorld( loc, glob );
     m_crossingAngle = 2.0*fabs( atan( glob.x() / glob.z() ) / dd4hep::mrad );
     if( m_crossingAngle > 0 ){
