@@ -128,43 +128,43 @@ void DrawBeamCalFromDD4hep::init() {
   m_tree->Branch("e",&m_energy);
 
 
-  DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+  dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
   
-  m_BeamCal = lcdd.detector("BeamCal");
+  m_BeamCal = theDetector.detector("BeamCal");
 
-  //  DD4hep::Geometry::PlacedVolume place = m_BeamCal.placement();
-  DD4hep::Geometry::Position local(4.0, 0.0, 0.0);
-  DD4hep::Geometry::Position global(0.0, 0.0, 0.0);
+  //  dd4hep::PlacedVolume place = m_BeamCal.placement();
+  dd4hep::Position local(4.0, 0.0, 0.0);
+  dd4hep::Position global(0.0, 0.0, 0.0);
   m_BeamCal.child("BeamCal01").nominal().localToWorld(local, global);
   std::cout << global  << std::endl;
   std::cout << local  << std::endl;
-  DD4hep::Geometry::DetElement::Children children = m_BeamCal.children();
+  dd4hep::DetElement::Children children = m_BeamCal.children();
   std::cout << children.size()  << std::endl;
 
-  for (DD4hep::Geometry::DetElement::Children::iterator it = children.begin(); it != children.end(); ++it) {
+  for (dd4hep::DetElement::Children::iterator it = children.begin(); it != children.end(); ++it) {
     std::cout << it->first  << std::endl;
   }
  
   m_BeamCal.child("BeamCal01").nominal().worldTransformation().Print();
 
-  DD4hep::Geometry::LCDD::HandleMap readouts = lcdd.readouts();
-  for (DD4hep::Geometry::LCDD::HandleMap::iterator it = readouts.begin(); it != readouts.end(); ++it) {
+  dd4hep::Detector::HandleMap readouts = theDetector.readouts();
+  for (dd4hep::Detector::HandleMap::iterator it = readouts.begin(); it != readouts.end(); ++it) {
     std::cout << it->first  << std::endl;
   }
 
-  DD4hep::Geometry::Readout myReadout = lcdd.readout("BeamCalHits");
+  dd4hep::Readout myReadout = theDetector.readout("BeamCalHits");
   m_seg = myReadout.segmentation();
   std::cout << m_seg.type()  << std::endl;
   std::cout <<"FieldDef: " << m_seg.segmentation()->fieldDescription()  << std::endl;
 
-  DD4hep::DDSegmentation::Parameters pars = m_seg.parameters();
-  for (DD4hep::DDSegmentation::Parameters::iterator it = pars.begin(); it != pars.end(); ++it) {
+  dd4hep::DDSegmentation::Parameters pars = m_seg.parameters();
+  for (dd4hep::DDSegmentation::Parameters::iterator it = pars.begin(); it != pars.end(); ++it) {
     std::cout << (*it)->toString()
       //	      << " " << (*it)->value()  
 	      << std::endl;
   }
 
-  DD4hep::DDSegmentation::CellID cid = m_seg.cellID(local, global, 0);
+  dd4hep::DDSegmentation::CellID cid = m_seg.cellID(local, global, 0);
   
   std::cout << "CellID:" <<  cid  << std::endl;
   std::cout <<  "Some position: " << m_seg.position(cid)  << std::endl;
@@ -201,10 +201,10 @@ void DrawBeamCalFromDD4hep::processEvent( LCEvent * evt ) {
     // std::cout << "PosY: "<< bcalhit->getPosition()[1]  << std::endl;
     // std::cout << "PosZ: "<< bcalhit->getPosition()[2]  << std::endl;
 
-    DD4hep::Geometry::Position global(double(bcalhit->getPosition()[0])*dd4hep::mm,
+    dd4hep::Position global(double(bcalhit->getPosition()[0])*dd4hep::mm,
 				      double(bcalhit->getPosition()[1])*dd4hep::mm,
 				      double(bcalhit->getPosition()[2])*dd4hep::mm );
-    //    DD4hep::Geometry::Position local(0.0,0.0,0.0);
+    //    dd4hep::Position local(0.0,0.0,0.0);
 
 
     // (global.z() > 0 ) ?
@@ -217,11 +217,11 @@ void DrawBeamCalFromDD4hep::processEvent( LCEvent * evt ) {
 
 
 
-    DD4hep::DDSegmentation::CellID cID = (((unsigned long long)(bcalhit->getCellID0()) ) + 
+    dd4hep::DDSegmentation::CellID cID = (((unsigned long long)(bcalhit->getCellID0()) ) +
 					  ((unsigned long long)(bcalhit->getCellID1()) << 32));
     // cID = m_seg.cellID(local, global, 0);
 
-    DD4hep::DDSegmentation::Vector3D pos = m_seg.position(cID);
+    dd4hep::DDSegmentation::Vector3D pos = m_seg.position(cID);
 
     // std::cout << std::setw(25) << cID << ":" 
     // 	      << std::setw(15) << pos.x()/dd4hep::mm
@@ -308,7 +308,7 @@ void DrawBeamCalFromDD4hep::drawCartesianGridXY() {
 
   TCanvas c1("xy", "xy", 800, 800);
 
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
 
   ParDou* parGridX = static_cast<ParDou*>(m_seg.segmentation()->parameter("grid_size_x"));
   ParDou* parGridY = static_cast<ParDou*>(m_seg.segmentation()->parameter("grid_size_y"));
@@ -351,8 +351,8 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   TCanvas c1("rphi2", "rphi2", 800, 800);
   TH2D dummy("dummy", "dummy", 20, 0, 20, 200, 0, 200); //16 bits to get colours from pal->GetValueColor
   TH2D g("g", "g;x [cm]; y [cm]", 200, -20, 20, 200, -20, 20); //16 bits to get colours from pal->GetValueColor
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
   ParVec* rPar = static_cast<ParVec*>(m_seg.segmentation()->parameter("grid_r_values"));
   ParVec* pPar = static_cast<ParVec*>(m_seg.segmentation()->parameter("grid_phi_values"));
 

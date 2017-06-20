@@ -10,7 +10,6 @@
 
 #ifdef FCAL_WITH_DD4HEP
 
-#include <DD4hep/LCDD.h>
 #include <DD4hep/Detector.h>
 #include <DD4hep/DD4hepUnits.h>
 #include <DDRec/DetectorData.h>
@@ -374,18 +373,18 @@ void GlobalMethodsClass::SetGeometryGear() {
 bool GlobalMethodsClass::SetGeometryDD4HEP() {
 #ifdef FCAL_WITH_DD4HEP
 
-  DD4hep::Geometry::LCDD& lcdd = DD4hep::Geometry::LCDD::getInstance();
+  dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
 
-  if( lcdd.detectors().count("LumiCal") == 0 ) return false;
+  if( theDetector.detectors().count("LumiCal") == 0 ) return false;
 
-  DD4hep::Geometry::DetElement lumical(lcdd.detector("LumiCal"));
-  DD4hep::Geometry::Segmentation readout(lcdd.readout("LumiCalCollection").segmentation());
+  dd4hep::DetElement lumical(theDetector.detector("LumiCal"));
+  dd4hep::Segmentation readout(theDetector.readout("LumiCalCollection").segmentation());
 
   streamlog_out(MESSAGE) << "Segmentation Type" << readout.type()  << std::endl;
   streamlog_out(MESSAGE) <<"FieldDef: " << readout.segmentation()->fieldDescription()  << std::endl;
 
-  const DD4hep::DDRec::LayeredCalorimeterData * theExtension = lumical.extension<DD4hep::DDRec::LayeredCalorimeterData>();
-  const std::vector<DD4hep::DDRec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
+  const dd4hep::rec::LayeredCalorimeterData * theExtension = lumical.extension<dd4hep::rec::LayeredCalorimeterData>();
+  const std::vector<dd4hep::rec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
 
   GlobalParamD[RMin] = theExtension->extent[0]/dd4hep::mm;
   GlobalParamD[RMax] = theExtension->extent[1]/dd4hep::mm;
@@ -395,7 +394,7 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   GlobalParamD[ZEnd]   = theExtension->extent[3]/dd4hep::mm;
 
   // cell division numbers
-  typedef DD4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
   ParDou* rPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_r"));
   ParDou* pPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_phi"));
 
@@ -410,15 +409,15 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   GlobalParamI[NumCellsZ]     = layers.size();
 
   // beam crossing angle ( convert to rad )
-  DD4hep::Geometry::DetElement::Children children = lumical.children();
+  dd4hep::DetElement::Children children = lumical.children();
 
   if( children.empty() ) {
     throw std::runtime_error( "Cannot obtain crossing angle from this LumiCal, update lcgeo?" );
   }
 
-  for( DD4hep::Geometry::DetElement::Children::const_iterator it = children.begin(); it != children.end(); ++it ) {
-    DD4hep::Geometry::Position loc(0.0, 0.0, 0.0);
-    DD4hep::Geometry::Position glob(0.0, 0.0, 0.0);
+  for( dd4hep::DetElement::Children::const_iterator it = children.begin(); it != children.end(); ++it ) {
+    dd4hep::Position loc(0.0, 0.0, 0.0);
+    dd4hep::Position glob(0.0, 0.0, 0.0);
     it->second.nominal().localToWorld( loc, glob );
     GlobalParamD[BeamCrossingAngle] = 2.0*fabs( atan( glob.x() / glob.z() ) / dd4hep::rad );
     if( glob.z() > 0.0 ) {

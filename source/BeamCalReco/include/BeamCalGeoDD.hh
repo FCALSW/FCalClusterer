@@ -3,20 +3,12 @@
 
 #include "BeamCalGeo.hh"
 
-#include <DD4hep/LCDD.h>
 #include <DD4hep/Detector.h>
-
-namespace DD4hep{
-  namespace Geometry {
-    class DetElement;
-    class LCDD;
-  }
-}
 
 class BeamCalGeoDD : public BeamCalGeo {     
 
 public:
-  BeamCalGeoDD( DD4hep::Geometry::LCDD const& lcdd );
+  BeamCalGeoDD( dd4hep::Detector const& theDetector );
   BeamCalGeoDD();
 
 
@@ -51,8 +43,8 @@ public:
 
 
 private:
-  DD4hep::Geometry::DetElement m_BeamCal;
-  DD4hep::Geometry::Segmentation m_segmentation;
+  dd4hep::DetElement m_BeamCal;
+  dd4hep::Segmentation m_segmentation;
 
   ///Read From DD4hep/DDRec/Segmentation
   double		m_innerRadius;
