@@ -152,8 +152,7 @@ int GlobalMethodsClass::CellIdZPR(int cellId, GlobalMethodsClass::Coordinate_t Z
 void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
 
   
-  marlin::StringParameters* _lcalRecoPars = NULL;
-  _lcalRecoPars = procPTR->parameters();
+  std::shared_ptr<marlin::StringParameters> _lcalRecoPars = procPTR->parameters();
 
   //SetGeometryConstants
   if( SetGeometryDD4HEP() ) {
