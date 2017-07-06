@@ -1,4 +1,13 @@
-# v00-04
+# v00-05
+
+* 2017-06-29 Andre Sailer ([PR#18](https://github.com/FCALSW/FCalClusterer/pull/18))
+  - LumiCalReco: parameters are now a shared_ptr
+
+* 2017-04-03 Andre Sailer ([PR#15](https://github.com/FCALSW/FCalClusterer/pull/15))
+  * Fixed warnings for llvm
+
+* 2017-06-20 Andre Sailer ([PR#17](https://github.com/FCALSW/FCalClusterer/pull/17))
+  - Adapt to changes in namespaces and LCDD -->  Detector in DD4hep
 
 BeamCalReco:
 * Implemented compatibility with DD4hep Geometry
