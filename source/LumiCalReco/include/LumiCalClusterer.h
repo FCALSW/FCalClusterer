@@ -30,6 +30,7 @@
 
 #include <string>
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace EVENT {
@@ -122,7 +123,7 @@ protected:
   MapIntInt    _numHitsInArm;
   //  VInt _armsToCluster;
 
-  CellIDDecoder<SimCalorimeterHit> * _mydecoder;
+  std::unique_ptr<CellIDDecoder<SimCalorimeterHit>> _mydecoder{};
 
   GlobalMethodsClass _gmc;
   bool _useDD4hep;
