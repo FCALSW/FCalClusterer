@@ -41,7 +41,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 #endif
 
     if (not _mydecoder) {
-      _mydecoder = new CellIDDecoder<SimCalorimeterHit> (col);
+      _mydecoder = std::unique_ptr< CellIDDecoder<SimCalorimeterHit> >( new CellIDDecoder<SimCalorimeterHit>(col) );
     }
     const int nHitsCol = col->getNumberOfElements();
     if ( nHitsCol < _clusterMinNumHits ) return 0;

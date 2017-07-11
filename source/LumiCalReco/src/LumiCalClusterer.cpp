@@ -51,7 +51,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
   _minSeparationDistance(), _minClusterEngyGeV(), _minClusterEngySignal(),
   _totEngyArm(),
   _numHitsInArm(),
-  _mydecoder(NULL),
+  _mydecoder(),
   _gmc(),
   _useDD4hep(false),
   RotMat()
