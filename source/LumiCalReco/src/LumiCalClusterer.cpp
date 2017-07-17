@@ -280,20 +280,23 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 
 
   // cleanUp
-  for (std::map<int, std::map < int, std::vector <IMPL::CalorimeterHitImpl*> > >::iterator it = calHits.begin(); it != calHits.end(); ++it) {
-    std::map < int, std::vector <IMPL::CalorimeterHitImpl*> >& mapVecHits = it->second;
-    for (std::map < int, std::vector <IMPL::CalorimeterHitImpl*> >::iterator it2 = mapVecHits.begin(); it2 != mapVecHits.end(); ++it2) {
-      std::vector <IMPL::CalorimeterHitImpl*>& vecHits = it2->second;
-      for (std::vector<IMPL::CalorimeterHitImpl*>::iterator it3 = vecHits.begin(); it3 != vecHits.end(); ++it3) {
-	delete (*it3);
-      }
-    }
-  }
-
-  calHits.clear();
+  cleanCalHits( calHits );
   superClusterCM.clear();
   calHitsCellIdGlobal.clear();
 
   return OK;
 
+}
+
+void LumiCalClustererClass::cleanCalHits( MapIntMapIntVCalHit & calHits ) {
+  for (MapIntMapIntVCalHit::iterator it = calHits.begin(); it != calHits.end(); ++it) {
+    MapIntVCalHit& mapVecHits = it->second;
+    for (MapIntVCalHit::iterator it2 = mapVecHits.begin(); it2 != mapVecHits.end(); ++it2) {
+      VecCalHit& vecHits = it2->second;
+      for (VecCalHit::iterator it3 = vecHits.begin(); it3 != vecHits.end(); ++it3) {
+	delete (*it3);
+      }
+    }
+  }
+  calHits.clear();
 }

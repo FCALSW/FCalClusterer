@@ -168,7 +168,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
     if(    (( _numHitsInArm[-1] < _clusterMinNumHits) || (_totEngyArm[-1] < _minClusterEngySignal))
 	   && (( _numHitsInArm[ 1] < _clusterMinNumHits) || (_totEngyArm[ 1] < _minClusterEngySignal)) ){
-      calHits.clear();
+      cleanCalHits( calHits );
       return 0;
     }else{ return 1; }
 }

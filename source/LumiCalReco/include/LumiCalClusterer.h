@@ -283,6 +283,8 @@ protected:
 
   void dumpClusters( MapIntLCCluster const& clusterCM );
 
+  void cleanCalHits( MapIntMapIntVCalHit & calHits );
+
 };
 
 #endif // LumiCalClusterer_h
