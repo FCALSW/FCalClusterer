@@ -213,7 +213,7 @@ void BCPadEnergies::subtractEnergiesWithCheck(const BCPadEnergies &bcp, const BC
 
     if( (m_BCG.getLayer(i) == 10) &&
 	(m_BCG.getRing(i) == 0) ) {
-      if ( m_PadEnergies[i] > 0.9 * sigma.m_PadEnergies[i])  {
+      if ( m_PadEnergies[i] > 0.9 * sigma.m_PadEnergies[i] && sigma.m_PadEnergies[i] > 1e-9 )  {
 	tooMuchAbove++;
       } else if( m_PadEnergies[i] < -0.9 * sigma.m_PadEnergies[i])  {
 	tooMuchBelow++;
