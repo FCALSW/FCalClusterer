@@ -273,7 +273,7 @@ int BeamCalGeo::getPadsPerLayer() const {
 }
 
 //layers start at 1, ring and pad start at 0
-int BeamCalGeo::getPadIndex(int layer, int ring, int pad) const throw(std::out_of_range){
+int BeamCalGeo::getPadIndex(int layer, int ring, int pad) const {
   if( layer < 1 || getBCLayers() < layer) {//starting at 1 ending at nLayers
     throw std::out_of_range("getPadIndex: Layer out of range:");
   } else if(ring < 0 || getBCRings() <= ring) {//starting at 0, last entry is nRings-1

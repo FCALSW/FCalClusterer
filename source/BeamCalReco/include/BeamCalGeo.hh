@@ -15,9 +15,9 @@ public:
   virtual int getPadsPerBeamCal() const;
   virtual int getPadsPerLayer() const;
 
-  void getLayerRingPad(int padIndex, int& layer, int& ring, int& pad) const;
-  int getPadIndex(int layer, int ring, int pad) const throw(std::out_of_range);
-  int getLayer(int padIndex) const;
+  virtual void getLayerRingPad(int padIndex, int& layer, int& ring, int& pad) const;
+  virtual int getPadIndex(int layer, int ring, int pad) const;
+  virtual int getLayer(int padIndex) const;
   int getRing(int padIndex) const;
   int getLocalPad(int padIndex) const;
 
