@@ -18,6 +18,9 @@ public:
   virtual int getRing(int padIndex) const;
   virtual int getLocalPad(int padIndex) const;
 
+  virtual void getLayerRingPad(int padIndex, int& layer, int& ring, int& pad) const;
+  virtual int getPadIndex(int layer, int ring, int pad) const;
+
   virtual double                getBCInnerRadius()   const;
   virtual double                getBCOuterRadius()   const;
   virtual int                   getBCLayers()        const;

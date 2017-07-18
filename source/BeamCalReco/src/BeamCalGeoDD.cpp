@@ -109,6 +109,42 @@ BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector): m_BeamCal(theDe
 
 }
 
+int BeamCalGeoDD::getPadIndex(int layer, int ring, int pad) const {
+  if( layer < 0 || getBCLayers() <= layer) {//starting at 0 ending at nLayers-1
+    throw std::out_of_range("getPadIndex: Layer out of range:");
+  } else if(ring < 0 || getBCRings() <= ring) {//starting at 0, last entry is nRings-1
+    throw std::out_of_range("getPadIndex: Ring out of range:");
+  } else if( pad < 0 || getPadsInRing(ring) <= pad ) {//starting at 0
+    throw std::out_of_range("getPadIndex: Pad out of range:");
+  }
+  return layer * (getPadsPerLayer()) + getPadsBeforeRing(ring) + (pad);
+}
+
+
+void BeamCalGeoDD::getLayerRingPad(int padIndex, int& layer, int& ring, int& pad) const{
+
+  //how often does nPadsPerLayer fit into padIndex;
+  //layer starts at 0!
+  layer = getLayer(padIndex);// ( padIndex / getPadsPerLayer() ) + 1;
+  ring = getRing(padIndex);
+
+  const int ringIndex(padIndex % getPadsPerLayer());
+  pad = ringIndex - getPadsBeforeRing(ring);
+
+#ifdef DEBUG
+  if (padIndex != this->getPadIndex(layer, ring, pad) ) {
+    std::stringstream error;
+    error << "PadIndex "
+          << std::setw(7) << padIndex
+          << std::setw(7) << this->getPadIndex(layer, ring, pad);
+    throw std::logic_error(error.str());
+  }
+#endif
+
+  return;
+
+}//getLayerRingPad
+
 //Wrappers around DD4hep Interface:
 inline double                BeamCalGeoDD::getBCInnerRadius() const { 
   return m_innerRadius;
@@ -220,8 +256,8 @@ int BeamCalGeoDD::getLocalPad(int padIndex) const {
 }
 
 int BeamCalGeoDD::getLayer(int padIndex) const {
-  //layer starts at 1
-  return   ( padIndex / m_padsPerLayer ) + 1;
+  //layer starts at 0
+  return padIndex / m_padsPerLayer ;
 }
 
 void BeamCalGeoDD::setFirstFullRing() {
