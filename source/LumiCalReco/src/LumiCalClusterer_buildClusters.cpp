@@ -388,7 +388,7 @@ int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::Ca
   streamlog_out(DEBUG3) <<  "Fit Param should be this size: " <<  engyPosCMLayer.size()  << std::endl;
 #endif
 
-  TF1 fitFunc("fitFunc","[0]+[1]*x",-3000,-2000);
+  TF1 fitFunc("fitFunc",[](double* x, double* p){ return p[0] + p[1]*x[0]; },-3000,-2000, 2);
 
   //  for(size_t clusterNow=0; clusterNow < engyPosCMLayer.size(); clusterNow++, engyPosCMLayerIterator++) {
   for(engyPosCMLayerIterator = engyPosCMLayer.begin(); engyPosCMLayerIterator != engyPosCMLayer.end(); engyPosCMLayerIterator++) {
