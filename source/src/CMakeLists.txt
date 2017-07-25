@@ -16,6 +16,10 @@ TARGET_LINK_LIBRARIES ( ReconstructBecas BeamCalReco )
 ADD_EXECUTABLE ( DrawBeamCals DrawBeamCals.cpp)
 TARGET_LINK_LIBRARIES ( DrawBeamCals BeamCalReco )
 
-INSTALL( TARGETS
-  ReconstructBecas DrawBeamCals
-  RUNTIME DESTINATION bin)
+IF( DD4hep_FOUND )
+  ADD_EXECUTABLE (TestBeamCalReco TestBeamCalReco.cpp)
+  TARGET_LINK_LIBRARIES ( TestBeamCalReco BeamCalReco )
+  INSTALL( TARGETS
+    TestBeamCalReco
+    RUNTIME DESTINATION bin)
+ENDIF()
