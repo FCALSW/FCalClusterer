@@ -572,6 +572,14 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     BCCluster.setTheta( thetaAverage * 1000 );
   }
 
+  // correct the reconstructed Phi for the "Right" side
+  // beamcal is rotated and phi goes the other way in global coordinates
+  if( m_side == kRight ) {
+    phi = 360 - phi;
+    while(phi < 0)   phi += 360;
+    while(phi > 360) phi -= 360;
+    BCCluster.setPhi(phi);
+  }
 
   return BCCluster;
 }//getClusterFromAcceptedPads
