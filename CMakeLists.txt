@@ -56,3 +56,10 @@ ADD_SUBDIRECTORY(source/)
 
 MESSAGE (STATUS "CMAKE_FLAGS ${CMAKE_CXX_FLAGS}" )
 MESSAGE (STATUS "CMAKE_FLAGS DEBUG ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+
+option(BUILD_TESTING "Enable and build tests" ON)
+if(BUILD_TESTING)
+  include(CTest)
+  enable_testing()
+  add_subdirectory(Tests)
+endif(BUILD_TESTING)
