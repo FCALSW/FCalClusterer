@@ -63,3 +63,11 @@ if(BUILD_TESTING)
   enable_testing()
   add_subdirectory(Tests)
 endif(BUILD_TESTING)
+
+### FORMATTING ##############################################################
+# Set the source files to clang-format (FIXME: determine this better
+FILE(GLOB_RECURSE
+     CHECK_CXX_SOURCE_FILES
+     /source/ *.cc *.cpp *.h *.hh
+     )
+INCLUDE("cmake/clang-cpp-checks.cmake")
