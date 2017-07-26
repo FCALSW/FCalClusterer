@@ -88,8 +88,10 @@ std::map < int , double > snbx;
 	  const double clusterEnergy = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
 	  if( clusterEnergy < _minClusterEngy ) continue;
 
-	  const double clusterTheta = thisClusterInfo.getTheta();
-	  if( fabs ( clusterTheta - ThetaMid ) >  ThetaTol ) continue;
+          if( _cutOnFiducialVolume ) {
+            const double clusterTheta = thisClusterInfo.getTheta();
+            if( fabs ( clusterTheta - ThetaMid ) >  ThetaTol ) continue;
+          }
  
 	  const float  xloc =  float(thisClusterInfo.getX());
           const float  yloc =  float(thisClusterInfo.getY());

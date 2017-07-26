@@ -83,6 +83,8 @@ public:
   // initialization routine - Called at the begining of the job.
   void init( GlobalMethodsClass const& gmc );
 
+  /// set the cutOnFiducialVolume flag
+  void setCutOnFiducialVolume( bool cutFlag ) { _cutOnFiducialVolume = cutFlag; }
 
   // main actions in each event -Called for every event - the working horse.
   int processEvent( EVENT::LCEvent * evt ) ;
@@ -127,6 +129,7 @@ protected:
 
   GlobalMethodsClass _gmc;
   bool _useDD4hep;
+  bool _cutOnFiducialVolume=false;
 
   // global to local rotations mtx elements
   std::map < int , std::map< std::string, double> > RotMat;

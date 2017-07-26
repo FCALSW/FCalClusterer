@@ -79,6 +79,7 @@ typedef std::map < int , std::vector<int> >  MapIntVInt;
     OutputManagerClass	OutputManager;
     GlobalMethodsClass	gmc;
     LumiCalClustererClass	LumiCalClusterer;
+    bool _cutOnFiducialVolume=false;
 
     void TryMarlinLumiCalClusterer(EVENT::LCEvent * evt);
 
