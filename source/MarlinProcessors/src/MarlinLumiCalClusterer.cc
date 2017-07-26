@@ -156,6 +156,10 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
                                "Number of neighbor hits to consider ",
 			       _NumOfNearNeighbor,
                                 6 );
+  registerProcessorParameter(  "CutOnFiducuialVolume",
+                               "Whether to cut clusters outside of the fiducial volume or not",
+                               _cutOnFiducialVolume,
+                               false );
 }
 
 
@@ -187,7 +191,7 @@ void MarlinLumiCalClusterer::init(){
   //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
   LumiCalClusterer.setLumiCollectionName(LumiInColName);
   LumiCalClusterer.init( gmc );
-
+  LumiCalClusterer.setCutOnFiducialVolume(_cutOnFiducialVolume);
 
   //OutputManager = new OutputManagerClass();
   OutputManager.Initialize(MemoryResidentTree, SkipNEvents , NumEventsTree, OutDirName, OutRootFileName);

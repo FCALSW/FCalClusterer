@@ -10,6 +10,10 @@
 void LumiCalClustererClass:: fiducialVolumeCuts( std::map < int , std::vector<int> > & superClusterIdToCellId,
 						 std::map < int , std::vector<double> > & superClusterIdToCellEngy,
 						 std::map < int , LCCluster > & superClusterCM ) {
+  if( not _cutOnFiducialVolume ) {
+    streamlog_out( DEBUG ) << "Skipping fiducial volume cuts" << std::endl;
+    return;
+  }
 
   int	numSuperClusters, superClusterId;
   double	thetaSuperCluster;
