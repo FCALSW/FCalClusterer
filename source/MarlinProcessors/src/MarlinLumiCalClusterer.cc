@@ -55,7 +55,7 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
                                                    LumiCalClusterer(LumiInColName)
 						   
 {
-  _description = "whatever..." ;
+  _description = "Reconstruction of clusters in the LumiCal detector" ;
 
   //---------------------------------------------------------
   // registerProcessorParameter(	 "LumiCal_Collection" ,
