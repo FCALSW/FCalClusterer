@@ -120,6 +120,9 @@ int main(int argn, char** argc) {
   } catch (std::out_of_range& e) {
     std::cerr << "Geometry does not agree with energy in the trees:" << e.what() << std::endl;
     return 1;
+  } catch (std::runtime_error& e) {
+    std::cerr << "Runtime Error: " << e.what() << std::endl;
+    return 1;
   } catch (std::invalid_argument& e) {
     std::cerr << e.what() << std::endl;
     return 1;
