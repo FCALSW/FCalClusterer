@@ -331,9 +331,10 @@ void DrawBeamCalFromDD4hep::drawCartesianGridXY() {
   for (MapIdVal::iterator it = hitEnergies.begin(); it != hitEnergies.end(); ++it) {
     unsigned int cellid = it->first;
     double energy = it->second;
-    (*m_seg.segmentation()->decoder()).setValue(0, cellid);
-    int xBin = (*m_seg.segmentation()->decoder())["x"];
-    int yBin = (*m_seg.segmentation()->decoder())["y"];
+    auto const& decoder = *m_seg.segmentation()->decoder();
+    auto llCellID = decoder.toLong(0, cellid);
+    int xBin = decoder.get(llCellID, "x");
+    int yBin = decoder.get(llCellID, "y");
     g.Fill( xBin*gridX, yBin*gridY, energy );
   }
 
@@ -366,11 +367,10 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   for (MapIdVal::iterator it = hitEnergies.begin(); it != hitEnergies.end(); ++it) {
     unsigned int cellid = it->first;
     double energy = it->second;
-    (*m_seg.segmentation()->decoder()).setValue(0, cellid);
-    int rBin = (*m_seg.segmentation()->decoder())["r"];
-    int pBin = (*m_seg.segmentation()->decoder())["phi"];
-
-
+    auto const& decoder = *m_seg.segmentation()->decoder();
+    auto llCellID = decoder.toLong(0, cellid);
+    int rBin = decoder.get(llCellID, "r");
+    int pBin = decoder.get(llCellID, "phi");
 
     dummy.Fill( rBin, pBin, energy);
   }
@@ -390,9 +390,10 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   for (MapIdVal::iterator it = hitEnergies.begin(); it != hitEnergies.end(); ++it) {
     unsigned int cellid = it->first;
     double energy = it->second;
-    (*m_seg.segmentation()->decoder()).setValue(0, cellid);
-    int rBin = (*m_seg.segmentation()->decoder())["r"];
-    int pBin = (*m_seg.segmentation()->decoder())["phi"];
+    auto const& decoder = *m_seg.segmentation()->decoder();
+    auto llCellID = decoder.toLong(0, cellid);
+    int rBin = decoder.get(llCellID, "r");
+    int pBin = decoder.get(llCellID, "phi");
 
     const double offset = offsetPhi;
     const double rI = rValues[rBin];
