@@ -13,7 +13,6 @@
 #include <DD4hep/Detector.h>
 #include <DD4hep/DD4hepUnits.h>
 #include <DDRec/DetectorData.h>
-#include <DDRec/API/IDDecoder.h>
 
 #endif
 

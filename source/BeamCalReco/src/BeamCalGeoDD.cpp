@@ -2,7 +2,6 @@
 
 #include <DD4hep/DD4hepUnits.h>
 #include <DDRec/DetectorData.h>
-#include <DDRec/API/IDDecoder.h>
 
 // ----- include for verbosity dependend logging ---------
 #include <streamlog/loglevels.h>
