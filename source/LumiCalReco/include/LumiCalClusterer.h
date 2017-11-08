@@ -19,10 +19,10 @@
 
 #include "GlobalMethodsClass.h"
 #include "LCCluster.hh"
-#include "VirtualCluster.hh"
+#include "LumiCalHit.hh"
 #include "ProjectionInfo.hh"
+#include "VirtualCluster.hh"
 
-#include <IMPL/SimCalorimeterHitImpl.h>
 #include <UTIL/CellIDDecoder.h>
 
 #include <streamlog/loglevels.h>
@@ -34,21 +34,15 @@
 #include <vector>
 
 namespace EVENT {
+  class CalorimeterHit;
   class LCEvent;
 }
 
-namespace IMPL{
-  class CalorimeterHitImpl;
-}
-
-
 class LumiCalClustererClass {
-
-  typedef std::vector <IMPL::CalorimeterHitImpl*> VecCalHit;
   typedef std::vector < double >                  VDouble;
   typedef std::vector < int >                     VInt;
 
-  typedef std::map < int , IMPL::CalorimeterHitImpl* >  MapIntCalHit;
+  typedef std::map<int, CalHit>                         MapIntCalHit;
   typedef std::map < int , LCCluster >                  MapIntLCCluster;
 
   typedef std::map < int , VecCalHit >                  MapIntVCalHit;
@@ -94,6 +88,7 @@ public:
   MapIntMapIntLCCluster  _superClusterIdClusterInfo;
 
   void setLumiCollectionName(std::string const& lumiNameNow) { _lumiName = lumiNameNow; }
+  void setLumiOutCollectionName(std::string const& name) { _lumiOutName = name; }
 
 protected:
 
@@ -102,6 +97,7 @@ protected:
 
   // Processor Parameters
   std::string	_lumiName;
+  std::string   _lumiOutName = "";
   int		_clusterMinNumHits;
   double	_hitMinEnergy;
 
@@ -125,9 +121,10 @@ protected:
   MapIntInt    _numHitsInArm;
   //  VInt _armsToCluster;
 
-  std::unique_ptr<CellIDDecoder<SimCalorimeterHit>> _mydecoder{};
+  std::unique_ptr<CellIDDecoder<CalorimeterHit>> _mydecoder{};
 
   GlobalMethodsClass _gmc;
+
   bool _useDD4hep;
   bool _cutOnFiducialVolume=false;
 
@@ -138,6 +135,7 @@ protected:
   int	getCalHits( EVENT::LCEvent * evt,
 		    MapIntMapIntVCalHit & calHits );
 
+  LCCollection* createCaloHitCollection(LCCollection* simCaloHitCollection) const;
 
   int	buildClusters(	MapIntVCalHit const& calHits,
 			MapIntCalHit & calHitsCellIdGlobal,
@@ -199,12 +197,8 @@ protected:
 				MapIntLCCluster & superClusterCM,
 				MapIntCalHit const& calHitsCellIdGlobal ) ;
 
-
-  void	clusterMerger (	      MapIntVDouble & clusterIdToCellEngy,
-			      MapIntVInt & clusterIdToCellId,
-			      MapIntLCCluster & clusterCM,
-			      MapIntCalHit calHitsCellIdGlobal ) ;
-
+  void clusterMerger(MapIntVDouble& clusterIdToCellEngy, MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
+                     MapIntCalHit& calHitsCellIdGlobal);
 
   void	fiducialVolumeCuts (	MapIntVInt & superClusterIdToCellId,
 				MapIntVDouble & superClusterIdToCellEngy,
@@ -219,22 +213,15 @@ protected:
   int	getNeighborId( int	cellId,
 		       int	neighborIndex );
 
-  double	posWeight( IMPL::CalorimeterHitImpl const* calHit ,
-			   GlobalMethodsClass::WeightingMethod_t method );
+  template <class T> double posWeight(T const& calHit, GlobalMethodsClass::WeightingMethod_t method);
 
-  double	posWeightTrueCluster( IMPL::CalorimeterHitImpl const* calHit,
-				      double			cellEngy,
-				      GlobalMethodsClass::WeightingMethod_t method );
+  template <class T>
+  double posWeightTrueCluster(T const& calHit, double cellEngy, GlobalMethodsClass::WeightingMethod_t method);
 
-  double	posWeight( IMPL::CalorimeterHitImpl const* calHit,
-			   double		totEngy,
-			   GlobalMethodsClass::WeightingMethod_t method );
+  template <class T> double posWeight(T const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method);
 
-  double	posWeight( IMPL::CalorimeterHitImpl const* calHit,
-			   double		totEngy,
-			   GlobalMethodsClass::WeightingMethod_t method,
-			   double		logWeightConstNow );
-
+  template <class T>
+  double posWeight(T const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method, double logWeightConstNow);
 
   double	distance2DPolar( double * pos1,
 				 double * pos2 );
@@ -253,8 +240,7 @@ protected:
 				  int clusterId,
 				  GlobalMethodsClass::WeightingMethod_t method );
 
-  void	updateEngyPosCM( IMPL::CalorimeterHitImpl	* calHit,
-			 LCCluster & clusterCM );
+  template <class T> void updateEngyPosCM(T const& calHit, LCCluster& clusterCM);
 
   int	checkClusterMergeCM( int clusterId1,
 			     int clusterId2,
@@ -285,8 +271,6 @@ protected:
 					  MapIntInt & flag );
 
   void dumpClusters( MapIntLCCluster const& clusterCM );
-
-  void cleanCalHits( MapIntMapIntVCalHit & calHits );
 
 };
 

@@ -15,11 +15,10 @@ namespace IMPL{
   class CalorimeterHitImpl;
 }
 
-void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int> >	     & superClusterIdToCellId,
-						std::map < int , std::vector<double> >	     & superClusterIdToCellEngy,
-						std::map < int , LCCluster >		& superClusterCM,
-						std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellIdGlobal ) {
-
+void LumiCalClustererClass::energyCorrections(MapIntVInt& superClusterIdToCellId,
+                                              MapIntVDouble& superClusterIdToCellEngy,
+                                              MapIntLCCluster& superClusterCM,
+                                              MapIntCalHit const& calHitsCellIdGlobal) {
   std::map < int , std::vector<int> > :: iterator	superClusterIdToCellIdIterator;
 
   std::vector < int >		cellIdV;
@@ -105,9 +104,9 @@ void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int
     for(int hitNow = 0; hitNow < numElementsInCluster; hitNow++){
       cellIdHit = superClusterIdToCellId[superClusterId][hitNow];
 
-      const IMPL::CalorimeterHitImpl* thisHit = calHitsCellIdGlobal.at(cellIdHit);
+      const auto& thisHit = calHitsCellIdGlobal.at(cellIdHit);
       double pos3[2] = { thisHit -> getPosition()[0],
-			 thisHit -> getPosition()[1]};
+			thisHit -> getPosition()[1]};
 
       engyNow = superClusterIdToCellEngy[superClusterId][hitNow];
 
@@ -168,7 +167,7 @@ void LumiCalClustererClass::energyCorrections (	std::map < int , std::vector<int
     for(int hitNow = 0; hitNow < numElementsInSuperCluster; hitNow++){
       cellIdHit = superClusterIdToCellId[superClusterId][hitNow];
 
-      const IMPL::CalorimeterHitImpl* thisHit = calHitsCellIdGlobal.at(cellIdHit);
+      const auto& thisHit = calHitsCellIdGlobal.at(cellIdHit);
       double pos3[2] = { thisHit -> getPosition()[0],
 			 thisHit -> getPosition()[1]};
 

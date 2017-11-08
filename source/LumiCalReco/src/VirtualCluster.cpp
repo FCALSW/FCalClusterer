@@ -3,20 +3,9 @@
 #include <iostream>
 #include <iomanip>
 
+VirtualCluster::VirtualCluster() : _position{0.0, 0.0, 0.0} {}
 
-VirtualCluster::VirtualCluster()
-{
-  _position[0] = 0.0;
-  _position[1] = 0.0;
-  _position[2] = 0.0;
-}
-
-VirtualCluster::VirtualCluster(double x, double y, double z)
-{
-  _position[0] = x;
-  _position[1] = y;
-  _position[2] = z;
-}
+VirtualCluster::VirtualCluster(double x, double y, double z) : _position{x, y, z} {}
 
 void VirtualCluster::clear() {
   _position[0] = 0.0;

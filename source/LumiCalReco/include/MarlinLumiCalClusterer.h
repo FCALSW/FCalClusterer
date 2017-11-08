@@ -57,6 +57,7 @@ typedef std::map < int , std::vector<int> >  MapIntVInt;
 
     // Processor Parameters
     std::string	LumiInColName;
+    std::string LumiOutColName = "LumiCalHits";
     std::string LumiClusterColName;
     std::string LumiRecoParticleColName ;
     double _BeamCrossingAngle;

@@ -1,13 +1,12 @@
-#ifndef LumiCalClusterer_getCalHits_h
-#define LumiCalClusterer_getCalHits_h 1
 // Local
 #include "LumiCalClusterer.h"
 //LCIO
-#include <Exceptions.h>
 #include <EVENT/LCCollection.h>
 #include <EVENT/LCEvent.h>
-#include <IMPL/SimCalorimeterHitImpl.h>
+#include <Exceptions.h>
 #include <IMPL/CalorimeterHitImpl.h>
+#include <IMPL/LCCollectionVec.h>
+#include <IMPL/SimCalorimeterHitImpl.h>
 #include <UTIL/CellIDDecoder.h>
 // Stdlib
 #include <map>
@@ -27,32 +26,34 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
   EVENT::LCCollection * col = NULL;
   try {
     col = evt->getCollection(_lumiName.c_str());
-  } // try
-  // if an exception has been thrown (no *col for this event) then do....
-  catch( EVENT::DataNotAvailableException &e){
-#if _GENERAL_CLUSTERER_DEBUG == 1
-    streamlog_out( ERROR ) << "Event has a SimCalorimeterHitImpl exception"<< std::endl;
-#endif
+  } catch (EVENT::DataNotAvailableException& e) {
+    streamlog_out(WARNING) << "Event does not have the '" << _lumiName << "' collection" << std::endl;
     return 0;
   }
 
-#if _GENERAL_CLUSTERER_DEBUG == 1
-  streamlog_out( MESSAGE4 ) << std::endl  << "Getting hit information .... event: "<< evt->getEventNumber() << std::endl;
-#endif
+  streamlog_out(DEBUG6) << std::endl << "Getting hit information .... event: " << evt->getEventNumber() << std::endl;
 
-    if (not _mydecoder) {
-      _mydecoder = std::unique_ptr< CellIDDecoder<SimCalorimeterHit> >( new CellIDDecoder<SimCalorimeterHit>(col) );
-    }
+
     const int nHitsCol = col->getNumberOfElements();
     if ( nHitsCol < _clusterMinNumHits ) return 0;
+
+    // figure out if we have a CalorimeterHit or SimCalorimeterHit collection,
+    // and create CalorimeterHit collection if necessary
+    if (dynamic_cast<EVENT::SimCalorimeterHit*>(col->getElementAt(0)) != nullptr) {
+      col = createCaloHitCollection(col);
+      evt->addCollection(col, _lumiOutName.c_str());
+    }
+
+    if (not _mydecoder) {
+      _mydecoder = std::unique_ptr<CellIDDecoder<CalorimeterHit>>(new CellIDDecoder<CalorimeterHit>(col));
+    }
 
     for (int i=0; i<nHitsCol; ++i) {
       
       int arm(0), layer(0);
       int rCell(0), phiCell(0);
 
-      // get the hit from the LCCollection with index i
-      IMPL::SimCalorimeterHitImpl * calHitIn = static_cast<IMPL::SimCalorimeterHitImpl*> (col->getElementAt(i));
+      auto* calHitIn = static_cast<EVENT::CalorimeterHit*>(col->getElementAt(i));
 
       const double engyHit = (double)calHitIn -> getEnergy();
 
@@ -127,7 +128,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       float hitPosV[3] = {xHit, yHit, zHit};
       */
       const float* Pos = calHitIn->getPosition();
-      float locPos[3] = {0.0, 0.0, 0.0};
+      double       locPos[3] = {0.0, 0.0, 0.0};
       locPos[0] =  Pos[0]*RotMat[arm]["cos"] - Pos[2]*RotMat[arm]["sin"];
       locPos[1] =  Pos[1];
       locPos[2] =  Pos[0]*RotMat[arm]["sin"] + Pos[2]*RotMat[arm]["cos"];
@@ -144,21 +145,22 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
                               << std::setw(13) << locPos[2] << "), "
                               << 1000.*engyHit
                               <<std::endl;
-#endif    
-     // 
-      // create a new IMPL::CalorimeterHitImpl
-      IMPL::CalorimeterHitImpl *calHitNew = new IMPL::CalorimeterHitImpl();
+#endif
 
-      // write the parameters to the new IMPL::CalorimeterHitImpl
-      calHitNew -> setCellID0(cellId);
-      calHitNew -> setEnergy(engyHit);
-      calHitNew -> setPosition(locPos);
+        // create a new LumiCalHit
+        auto calHitNew = std::make_shared<LumiCalHit>();
 
-      // add the IMPL::CalorimeterHitImpl to a vector according to the detector
-      // arm, and sum the total collected energy at either arm
-      calHits[arm][layer].push_back( calHitNew );
-      _numHitsInArm[arm]++;
-      _totEngyArm[arm] += engyHit;
+        // write the parameters to the new LumiCalHit
+        calHitNew->setCellID0(cellId);
+        calHitNew->setEnergy(engyHit);
+        calHitNew->setPosition(locPos);
+        calHitNew->addHit(calHitIn);
+
+        // add the LumiCalHit to a vector according to the detector
+        // arm, and sum the total collected energy at either arm
+        calHits[arm][layer].push_back(std::move(calHitNew));
+        _numHitsInArm[arm]++;
+        _totEngyArm[arm] += engyHit;
     }//for all simHits
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
@@ -168,9 +170,28 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
     if(    (( _numHitsInArm[-1] < _clusterMinNumHits) || (_totEngyArm[-1] < _minClusterEngySignal))
 	   && (( _numHitsInArm[ 1] < _clusterMinNumHits) || (_totEngyArm[ 1] < _minClusterEngySignal)) ){
-      cleanCalHits( calHits );
       return 0;
     }else{ return 1; }
 }
 
-#endif // LumiCalClusterer_getCalHits_h
+LCCollection* LumiCalClustererClass::createCaloHitCollection(LCCollection* simCaloHitCollection) const {
+  streamlog_out(MESSAGE) << "Creating the CalorimeterHit collection with dummy digitization" << std::endl;
+
+  auto caloHitCollection = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
+  caloHitCollection->parameters().setValue(LCIO::CellIDEncoding,
+                                           simCaloHitCollection->getParameters().getStringVal(LCIO::CellIDEncoding));
+  caloHitCollection->setFlag(simCaloHitCollection->getFlag());
+  for (int i = 0; i < simCaloHitCollection->getNumberOfElements(); ++i) {
+    auto simHit = static_cast<EVENT::SimCalorimeterHit*>(simCaloHitCollection->getElementAt(i));
+    auto calHit = new CalorimeterHitImpl();
+
+    calHit->setCellID0(simHit->getCellID0());
+    calHit->setCellID1(simHit->getCellID1());
+    calHit->setEnergy(simHit->getEnergy());
+    calHit->setPosition(simHit->getPosition());
+
+    caloHitCollection->addElement(calHit);
+  }
+
+  return caloHitCollection;
+}

@@ -12,15 +12,9 @@ namespace IMPL{
   class CalorimeterHitImpl;
 }
 
-
-
-
-void LumiCalClustererClass::clusterMerger(	std::map < int , std::vector<double> >		& clusterIdToCellEngy,
-						std::map < int , std::vector<int> >		& clusterIdToCellId,
-						std::map < int , LCCluster > & clusterCM,
-						std::map < int , IMPL::CalorimeterHitImpl* >	calHitsCellIdGlobal ){
-
-
+void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy,
+                                          MapIntVInt& clusterIdToCellId,
+                                          MapIntLCCluster& clusterCM, MapIntCalHit& calHitsCellIdGlobal) {
   int clusterId, clusterId1, clusterId2;
   int numClusters, numClusters2, numElementsInCluster, cellId;
   double	engyNow;

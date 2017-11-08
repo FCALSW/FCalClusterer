@@ -1,23 +1,38 @@
 #ifndef ProjectionInfo_hh
 #define ProjectionInfo_hh 1
 
-namespace IMPL {
-  class CalorimeterHitImpl;
+#include <memory>
+#include <set>
+
+namespace EVENT{
+  class CalorimeterHit;
 }
+
+class LumiCalHit;
+
+using CalHit = std::shared_ptr<LumiCalHit>;
+using VecLCIOCalHit = std::set<EVENT::CalorimeterHit*>;
 
 class ProjectionInfo {
 
 public:
-  ProjectionInfo ();
-  ProjectionInfo ( IMPL::CalorimeterHitImpl const* calHit, int cellIdHitZ);
+  ProjectionInfo();
+  ProjectionInfo(CalHit const& calHit, int cellIdHitZ);
+
+  void addHit(CalHit const& calHit );
 
   const double* getPosition() const { return position; }
+  double getEnergy() const { return energy; }
+  int getCellIdHitZ() const { return cellIdHitZ; }
+  VecLCIOCalHit const& getCaloHits() const { return hits; }
 
+private:
   double energy;
   double position[3];
   int cellIdHitZ;
+  VecLCIOCalHit hits{};
+public:
   bool newObject;
-
 };
 
 
