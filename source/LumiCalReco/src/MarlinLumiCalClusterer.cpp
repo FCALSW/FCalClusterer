@@ -48,7 +48,6 @@ std::map < int , double > snbx;
 
     try{
 
-      std::map< int , MapIntPClusterClass > clusterClassMap;
 
       double ThetaMid = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMin] + gmc.GlobalParamD[GlobalMethodsClass::ThetaMax])/2.;
       double ThetaTol = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMax] - gmc.GlobalParamD[GlobalMethodsClass::ThetaMin])/2.;
@@ -82,7 +81,6 @@ std::map < int , double > snbx;
 	     clusterIdToCellIdIterator++) {
 	  const int clusterId = clusterIdToCellIdIterator->first;
 
-	  //	  ClusterClass const* thisCluster = clusterClassMap[armNow][clusterId];
 	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
 
 	  const double clusterEnergy = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
@@ -145,10 +143,10 @@ std::map < int , double > snbx;
 // empty string OutRootFileName in steering file
 
       if ( OutRootFileName != "" ) {
+        // instantiate a clusterClass object for each mcParticle which was
+        // created infront of LumiCal and was destroyed after lumical.
+        std::map<int, MapIntPClusterClass> clusterClassMap;
 
-// instantiate a clusterClass object for each mcParticle which was created
-// infront of LumiCal and was destroyed after lumical.
-     
 	CreateClusters( LumiCalClusterer._superClusterIdToCellId,
 			LumiCalClusterer._superClusterIdToCellEngy,
 			clusterClassMap,
