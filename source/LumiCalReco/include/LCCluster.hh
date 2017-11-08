@@ -2,6 +2,7 @@
 #define LCCluster_hh 1
 
 #include "GlobalMethodsClass.h"
+#include "LumiCalHit.hh"
 
 #include <cmath>
 #include <ostream>
@@ -13,9 +14,9 @@ class LCCluster
 
 public:
   LCCluster();
-  LCCluster( const VirtualCluster& vc );
+  explicit LCCluster( const VirtualCluster& vc );
   LCCluster( double energy, double x, double y, double z, double weight,
-	     GlobalMethodsClass::WeightingMethod_t method, double theta, double phi );
+	     GlobalMethodsClass::WeightingMethod_t method, double theta, double phi, VecCalHit const& caloHitVector);
 
   ~LCCluster(){}
 
@@ -43,8 +44,11 @@ public:
   inline void setPhi    (double p) { _phi = p; }
 
   void addToEnergy( double E) { _energy += E; }
+
   friend std::ostream& operator<<(std::ostream & o, const LCCluster& rhs);
 
+
+  inline VecCalHit const& getCaloHits() const { return _caloHits; }
 
 private:
 
@@ -54,6 +58,7 @@ private:
   double _energy, _weight;
   GlobalMethodsClass::WeightingMethod_t _method;
   double _theta, _phi;
+  VecCalHit _caloHits;
 
 };
 

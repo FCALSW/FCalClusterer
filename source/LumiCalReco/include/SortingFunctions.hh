@@ -1,10 +1,10 @@
 #ifndef SortingFunctions_hh
 #define SortingFunctions_hh 1
 
-#include <IMPL/CalorimeterHitImpl.h>
+#include "LumiCalHit.hh"
 
+#include <memory>
 #include <vector>
-
 
 /* =========================================================================
    Auxiliary functions
@@ -17,11 +17,11 @@
    sorting of clusterCM[id] (for a cluster with Id 'id') with respect to the cluster CM energy
    -------------------------------------------------------------------------- */
 //in descending order (highest energy is first)
-inline bool clusterCMEnergyCmpDesc( std::vector<double> a, std::vector<double> b ) {
+inline bool clusterCMEnergyCmpDesc(std::vector<double> const& a, std::vector<double> const& b) {
   return a[0] > b[0];
 }
 //in ascending order (lowest energy is first)
-inline bool clusterCMEnergyCmpAsc( std::vector<double> a, std::vector<double> b ) {
+inline bool clusterCMEnergyCmpAsc(std::vector<double> const& a, std::vector<double> const& b) {
   return a[0] < b[0];
 }
 
@@ -30,12 +30,12 @@ inline bool clusterCMEnergyCmpAsc( std::vector<double> a, std::vector<double> b 
    sorting of hits with respect to their energies
    -------------------------------------------------------------------------- */
 //in descending order (highest energy is first)
-inline bool HitEnergyCmpDesc( IMPL::CalorimeterHitImpl* a, IMPL::CalorimeterHitImpl* b ) {
+inline bool HitEnergyCmpDesc(CalHit const& a, CalHit const& b) {
   return a->getEnergy() > b->getEnergy();
 }
 
 //in ascending order (lowest energy is first)
-inline bool HitEnergyCmpAsc( IMPL::CalorimeterHitImpl* a, IMPL::CalorimeterHitImpl* b ) {
+inline bool HitEnergyCmpAsc(CalHit const& a, CalHit const& b ) {
   return a->getEnergy() < b->getEnergy();
 }
 
@@ -45,7 +45,7 @@ inline bool HitEnergyCmpAsc( IMPL::CalorimeterHitImpl* a, IMPL::CalorimeterHitIm
    -------------------------------------------------------------------------- */
 //in ascending order (shortest distance is first)
 template <int POS>
-inline bool HitDistanceCMCmpAsc(  std::vector<double> const&a, std::vector<double> const&b ) {
+inline bool HitDistanceCMCmpAsc(std::vector<double> const& a, std::vector<double> const& b) {
   return a[POS] < b[POS];
 }
 

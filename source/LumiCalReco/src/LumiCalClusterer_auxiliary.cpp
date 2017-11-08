@@ -4,8 +4,6 @@
 #include "Distance2D.hh"
 using LCHelper::distance2D;
 
-//LCIO
-#include <IMPL/CalorimeterHitImpl.h>
 // stdlib
 #include <algorithm>
 #include <cassert>
@@ -23,8 +21,7 @@ using LCHelper::distance2D;
 /* --------------------------------------------------------------------------
    calculate weight for cluster CM according to different methods
    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::posWeight( IMPL::CalorimeterHitImpl const* calHit , GlobalMethodsClass::WeightingMethod_t method) {
-
+template <> double LumiCalClustererClass::posWeight(CalHit const& calHit, GlobalMethodsClass::WeightingMethod_t method) {
   double posWeightHit = -1.;
 
   if( method == GlobalMethodsClass::EnergyMethod ) {
@@ -45,8 +42,9 @@ double LumiCalClustererClass::posWeight( IMPL::CalorimeterHitImpl const* calHit 
 /* --------------------------------------------------------------------------
    calculate weight for cluster CM according to different methods
    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::posWeightTrueCluster(IMPL::CalorimeterHitImpl const* calHit , double cellEngy, GlobalMethodsClass::WeightingMethod_t method) {
-
+template <>
+double LumiCalClustererClass::posWeightTrueCluster(CalHit const& calHit, double cellEngy,
+                                                   GlobalMethodsClass::WeightingMethod_t method) {
   double	posWeightHit = 0.;
   int	detectorArm = ((calHit->getPosition()[2] < 0) ? -1 : 1 );
 
@@ -67,9 +65,8 @@ double LumiCalClustererClass::posWeightTrueCluster(IMPL::CalorimeterHitImpl cons
    calculate weight for cluster CM according to different methods
    - overloaded version with a given energy normalization
    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::posWeight(IMPL::CalorimeterHitImpl const* calHit, double totEngy,
-					GlobalMethodsClass::WeightingMethod_t method) {
-
+template <>
+double LumiCalClustererClass::posWeight(CalHit const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method) {
   double	posWeightHit = 0.;
 
   if(method == GlobalMethodsClass::EnergyMethod) posWeightHit = calHit->getEnergy();
@@ -89,9 +86,9 @@ double LumiCalClustererClass::posWeight(IMPL::CalorimeterHitImpl const* calHit, 
    calculate weight for cluster CM according to different methods
    - overloaded version with a given energy normalization and a logWeightConst
    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::posWeight(IMPL::CalorimeterHitImpl const* calHit, double totEngy,
-					GlobalMethodsClass::WeightingMethod_t method, double logWeightConstNow) {
-
+template <>
+double LumiCalClustererClass::posWeight(CalHit const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method,
+                                        double logWeightConstNow) {
   double	posWeightHit = 0.;
 
   if(method == GlobalMethodsClass::EnergyMethod ) posWeightHit = calHit->getEnergy();
@@ -166,13 +163,17 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( VInt const& cellIdV,
 
   double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);
   int loopFlag = 1;
+  VecCalHit caloHits;
   while(loopFlag == 1) {
+    caloHits.clear();
     for (VInt::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
-      const IMPL::CalorimeterHitImpl* calHit = calHitsCellId.at(*it);
+      auto& calHit = calHitsCellId.at(*it);
+      caloHits.push_back(calHit);
+
       const double weightHit = posWeight(calHit,method);
       weightSum += weightHit;
 
-      const float* position = calHit->getPosition();
+      const double* position = calHit->getPosition();
 
       xHit      += position[0] * weightHit;
       yHit      += position[1] * weightHit;
@@ -192,8 +193,7 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM( VInt const& cellIdV,
     }
   }
 
-  return LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0);
-
+  return LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0, caloHits);
 }
 
 
@@ -209,13 +209,16 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV( VInt const& cellIdV,
 
   double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);
   int loopFlag = 1;
+  VecCalHit caloHits;
   while(loopFlag == 1) {
+    caloHits.clear();
     for (VInt::const_iterator it = cellIdV.begin(); it != cellIdV.end(); ++it) {
       const int k = it - cellIdV.begin();
-      const IMPL::CalorimeterHitImpl * calHit = calHitsCellId.at(*it);
+      const auto& calHit = calHitsCellId.at(*it);
+      caloHits.push_back(calHit);
       const double weightHit = posWeightTrueCluster(calHit,cellEngyV[k],method);
       weightSum += weightHit;
-      const float* position = calHit->getPosition();
+      const double* position = calHit->getPosition();
 
       xHit      += position[0] * weightHit;
       yHit      += position[1] * weightHit;
@@ -235,17 +238,14 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV( VInt const& cellIdV,
     }
   }
 
-  clusterCM[clusterId] = LCCluster(totEngy, xHit, yHit, zHit,
-				   weightSum, method, thetaHit, 0.0);
-
+  clusterCM[clusterId] = LCCluster(totEngy, xHit, yHit, zHit, weightSum, method, thetaHit, 0.0, caloHits);
 }
 
 /* --------------------------------------------------------------------------
    compute center of mass of each cluster
    (2). update the map clusterCM with the new cal hit
    -------------------------------------------------------------------------- */
-void LumiCalClustererClass::updateEngyPosCM(IMPL::CalorimeterHitImpl* calHit, LCCluster & clusterCM) {
-
+template <> void LumiCalClustererClass::updateEngyPosCM(CalHit const& calHit, LCCluster& clusterCM) {
   double	engyHit = (double)calHit->getEnergy();
   GlobalMethodsClass::WeightingMethod_t method =  clusterCM.getMethod();
 
@@ -310,7 +310,7 @@ int LumiCalClustererClass::checkClusterMergeCM(  int clusterId1, int clusterId2,
   for( VInt::iterator cellIt = cellIdV.begin();
        cellIt != cellIdV.end();
        ++cellIt ) {
-    const IMPL::CalorimeterHitImpl *hit = calHitsCellId.at(*cellIt);
+    const auto&  hit        = calHitsCellId.at(*cellIt);
     const double distanceCM = distance2D(CM1,hit->getPosition());
     if(distanceCM < distanceAroundCM) {
       double engyHit = hit->getEnergy();
@@ -339,7 +339,7 @@ double LumiCalClustererClass::getEngyInMoliereFraction(	MapIntCalHit  const& cal
   for(MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
       calHitsCellIdIterator != calHitsCellId.end();
       ++calHitsCellIdIterator) {
-    const IMPL::CalorimeterHitImpl * calHit = calHitsCellIdIterator->second;
+    const auto&  calHit     = calHitsCellIdIterator->second;
     const double distanceCM = distance2D(clusterCM.getPosition(),calHit->getPosition());
     if(distanceCM < distanceToScan)
       engyAroundCM += calHit->getEnergy();
@@ -363,7 +363,7 @@ double LumiCalClustererClass::getEngyInMoliereFraction( MapIntCalHit  const& cal
   for(MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
       calHitsCellIdIterator != calHitsCellId.end();
       ++calHitsCellIdIterator) {
-    const IMPL::CalorimeterHitImpl * calHit = calHitsCellIdIterator->second;
+    const auto&  calHit     = calHitsCellIdIterator->second;
     const double distanceCM = distance2D(clusterCM.getPosition(),calHit->getPosition());
 
     const int cellIdHit = calHitsCellIdIterator->first;
@@ -395,7 +395,7 @@ void LumiCalClustererClass::getThetaPhiZCluster( MapIntCalHit  const& calHitsCel
     for( VInt::const_iterator cellIt = clusterIdToCellId.begin();
 	 cellIt != clusterIdToCellId.end();
 	 ++cellIt ) {
-      const IMPL::CalorimeterHitImpl* hit = calHitsCellId.at(*cellIt);
+      const auto& hit = calHitsCellId.at(*cellIt);
       //(BP) posWeight returns always weight >= 0.
       const double weightHit = posWeight(hit, totEngy, method, (_logWeightConst + logWeightConstFactor) );
       if(weightHit > 0){
@@ -476,7 +476,7 @@ double LumiCalClustererClass::getMoliereRadius( MapIntCalHit const& calHitsCellI
        ++cellIt ){
     const int cellIdHit = *cellIt;
     const int hitNow = cellIt - clusterIdToCellId.begin();
-    const IMPL::CalorimeterHitImpl * thisHit = calHitsCellId.at(cellIdHit);
+    const auto& thisHit   = calHitsCellId.at(cellIdHit);
     double CM2[2] = {thisHit->getPosition()[0], thisHit->getPosition()[1]};
 
 #if _IMPROVE_PROFILE_LAYER_POS == 1
@@ -544,7 +544,7 @@ double LumiCalClustererClass::getDistanceAroundCMWithEnergyPercent( LCCluster co
        ++cellIt) {
 
     const int clusterId = cellIt - clusterIdToCellId.begin();
-    IMPL::CalorimeterHitImpl *thisHit = calHitsCellId.at(*cellIt);
+    const auto& thisHit   = calHitsCellId.at(*cellIt);
 
     clusterHitsEngyPos[clusterId][0] = thisHit->getEnergy();
     clusterHitsEngyPos[clusterId][1] = distance2D(clusterCM.getPosition(),thisHit->getPosition());

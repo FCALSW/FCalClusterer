@@ -4,10 +4,12 @@
 #include "ClusterClass.h"
 #include "MCInfo.h"
 
-#include <IMPL/ReconstructedParticleImpl.h>
-#include <IMPL/ClusterImpl.h>
 #include <EVENT/LCCollection.h>
+#include <EVENT/MCParticle.h>
+#include <IMPL/ClusterImpl.h>
 #include <IMPL/LCCollectionVec.h>
+#include <IMPL/LCFlagImpl.h>
+#include <IMPL/ReconstructedParticleImpl.h>
 
 #include <TH1F.h>
 #include <TH2F.h>
@@ -64,6 +66,10 @@ std::map < int , double > snbx;
       if ( !LumiCalClusterer.processEvent(evt) ) return;
 
       LCCollectionVec* LCalClusterCol = new LCCollectionVec(LCIO::CLUSTER);
+      IMPL::LCFlagImpl lcFlagImpl;
+      lcFlagImpl.setBit(LCIO::CLBIT_HITS);
+      LCalClusterCol->setFlag(lcFlagImpl.getFlag());
+
       LCCollectionVec* LCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
 
 #if _CREATE_CLUSTERS_DEBUG == 1
@@ -116,17 +122,18 @@ std::map < int , double > snbx;
 					      float(gP[1]/norm * clusterEnergy),
 					      float(gP[2]/norm * clusterEnergy) };
 	  particle->setMomentum ( clusterMomentum) ;
+      for (auto& lumicalHit : thisClusterInfo.getCaloHits()) {
+        for (auto* hit : lumicalHit->getHits()) {
+          cluster->addHit(hit, 1.0);
+        }
+      }
+      cluster->subdetectorEnergies().resize(6);
+      //LCAL_INDEX=3 in DDPFOCreator.hh
+      cluster->subdetectorEnergies()[3] = clusterEnergy;
 
-#pragma message ("FIXME: Link Calohits to the Cluster")
-	  //Get the cellID from the container Hit of the cluster and find the
-	  //matching LumiCal SimCalorimeterHit in the event collection, probably
-	  //have to loop over all of them until it is found
-
-	  LCalClusterCol->addElement(cluster);
-	  LCalRPCol->addElement(particle);
-
-	}
-
+      LCalClusterCol->addElement(cluster);
+      LCalRPCol->addElement(particle);
+    }
      }	
 
       //Add collections to the event if there are clusters
@@ -294,9 +301,6 @@ std::map < int , double > snbx;
       }
  } // if ( _Lumi_Control_Out )
 
-
-
- 
     } // try
 
     // if an !E!9exception has been thrown (no *col for this event) than do....

@@ -69,6 +69,9 @@ MarlinLumiCalClusterer::MarlinLumiCalClusterer() : Processor("MarlinLumiCalClust
 			  LumiInColName ,
 			  std::string("LumiCalCollection") ) ;
 
+  registerOutputCollection(LCIO::CALORIMETERHIT, "LumiCal_Hits", "Collection of CalorimtersHits from the LumiCal",
+                           LumiOutColName, LumiOutColName);
+
   registerOutputCollection(LCIO::CLUSTER,
 			   "LumiCal_Clusters" ,
 			   "Collection of Cluster found in the LumiCal" ,
@@ -190,6 +193,7 @@ void MarlinLumiCalClusterer::init(){
 
   //LumiCalClusterer = new LumiCalClustererClass(LumiInColName);
   LumiCalClusterer.setLumiCollectionName(LumiInColName);
+  LumiCalClusterer.setLumiOutCollectionName(LumiOutColName);
   LumiCalClusterer.init( gmc );
   LumiCalClusterer.setCutOnFiducialVolume(_cutOnFiducialVolume);
 

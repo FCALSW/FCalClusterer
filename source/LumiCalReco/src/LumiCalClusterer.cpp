@@ -275,28 +275,6 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     }
   }
 
-
-
-
-
-  // cleanUp
-  cleanCalHits( calHits );
-  superClusterCM.clear();
-  calHitsCellIdGlobal.clear();
-
   return OK;
 
-}
-
-void LumiCalClustererClass::cleanCalHits( MapIntMapIntVCalHit & calHits ) {
-  for (MapIntMapIntVCalHit::iterator it = calHits.begin(); it != calHits.end(); ++it) {
-    MapIntVCalHit& mapVecHits = it->second;
-    for (MapIntVCalHit::iterator it2 = mapVecHits.begin(); it2 != mapVecHits.end(); ++it2) {
-      VecCalHit& vecHits = it2->second;
-      for (VecCalHit::iterator it3 = vecHits.begin(); it3 != vecHits.end(); ++it3) {
-	delete (*it3);
-      }
-    }
-  }
-  calHits.clear();
 }

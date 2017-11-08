@@ -27,12 +27,9 @@ using LCHelper::distance2D;
    - SOME DESCRIPTION ......
    ============================================================================ */
 
-int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-						std::map < int , int > & cellIdToClusterId,
-						std::map < int , std::vector<int> > & clusterIdToCellId,
-						std::map < int , LCCluster > & clusterCM,
-						std::vector < int > const& controlVar  ) {
-
+int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId, MapIntInt& cellIdToClusterId,
+                                               MapIntVInt& clusterIdToCellId,
+                                               MapIntLCCluster& clusterCM, VInt const& controlVar) {
   /* --------------------------------------------------------------------------
      layer parameters
      -------------------------------------------------------------------------- */
@@ -107,10 +104,9 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
   std::map <int , std::vector <int> >	neighborsConectedToMe ;
 
   // copy hits in this layer to a cal hit std::vector
-  std::vector <IMPL::CalorimeterHitImpl*>	calHitsLayer ;
+  VecCalHit calHitsLayer;
 
-  std::map <int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator= calHitsCellId.begin(),
-    calHitsEnd = calHitsCellId.end();
+  MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin(), calHitsEnd = calHitsCellId.end();
   for(; calHitsCellIdIterator != calHitsEnd; ++calHitsCellIdIterator){
     const int cellIdHit = (int)(*calHitsCellIdIterator).first;
     calHitsLayer.push_back( calHitsCellIdIterator->second );
@@ -142,10 +138,9 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
       if(cellIdNeighbor == 0) continue;
       try {
 	// if the neighbor has a cal hit...
-	std::map <int , IMPL::CalorimeterHitImpl* > :: const_iterator neighborIt =
-	  calHitsCellId.find(cellIdNeighbor);
-	if( neighborIt != calHitsCellId.end() ) {
-	  IMPL::CalorimeterHitImpl* neighbor = neighborIt->second;
+        MapIntCalHit::const_iterator neighborIt = calHitsCellId.find(cellIdNeighbor);
+        if (neighborIt != calHitsCellId.end()) {
+          auto const& neighbor = neighborIt->second;
 
 	  //if(tmpFlag==1) cout << "neighbor " << cellIdNeighbor
 	  //	<< " " << neighborIndex <<endl;
@@ -587,21 +582,19 @@ int LumiCalClustererClass::initialClusterBuild(	std::map < int , IMPL::Calorimet
    -     merge the unclustered cal hits with the existing clusters
    ============================================================================ */
 
-int LumiCalClustererClass::initialLowEngyClusterBuild( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsSmallEngyCellId,
-						       std::map < int , IMPL::CalorimeterHitImpl* >	& calHitsCellId,
-						       std::map < int , int >			& cellIdToClusterId,
-						       std::map < int , std::vector<int> >		& clusterIdToCellId,
-						       std::map < int , LCCluster > & clusterCM ) {
-
+int LumiCalClustererClass::initialLowEngyClusterBuild(MapIntCalHit const& calHitsSmallEngyCellId,
+                                                      MapIntCalHit& calHitsCellId, MapIntInt& cellIdToClusterId,
+                                                      MapIntVInt& clusterIdToCellId,
+                                                      MapIntLCCluster& clusterCM) {
   /* --------------------------------------------------------------------------
      merge the unclustered cal hits with the existing clusters
      -------------------------------------------------------------------------- */
-  std::map < int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator = calHitsSmallEngyCellId.begin();
+  MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsSmallEngyCellId.begin();
   for(; calHitsCellIdIterator != calHitsSmallEngyCellId.end(); ++calHitsCellIdIterator){
     const int cellIdHit = calHitsCellIdIterator->first;
 
     // add the small energy hits that have now been clustred to the cal hit list at calHitsCellId
-    IMPL::CalorimeterHitImpl* thisHit = calHitsCellIdIterator->second;
+    auto const& thisHit      = calHitsCellIdIterator->second;
     calHitsCellId[cellIdHit] = thisHit;
     // position of the cal hit
     double CM1[2] = { thisHit -> getPosition()[0], thisHit -> getPosition()[1]};
@@ -651,12 +644,10 @@ int LumiCalClustererClass::initialLowEngyClusterBuild( std::map < int , IMPL::Ca
    --------------------------------
    - SOME DESCRIPTION ......
    ============================================================================ */
-int LumiCalClustererClass::virtualCMClusterBuild( std::map < int , IMPL::CalorimeterHitImpl* >	const& calHitsCellId,
-						  std::map < int , int >			& cellIdToClusterId,
-						  std::map < int , std::vector<int> >		& clusterIdToCellId,
-						  std::map < int , LCCluster >	& clusterCM,
-						  std::map < int , VirtualCluster >	const& virtualClusterCM ) {
-
+int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCellId, MapIntInt& cellIdToClusterId,
+                                                 MapIntVInt& clusterIdToCellId,
+                                                 MapIntLCCluster& clusterCM,
+                                                 MapIntVirtualCluster const& virtualClusterCM) {
   std::vector < int > unClusteredCellId;
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
@@ -666,10 +657,9 @@ int LumiCalClustererClass::virtualCMClusterBuild( std::map < int , IMPL::Calorim
   /* --------------------------------------------------------------------------
      form clusters by gathering hits inside the virtual cluster radius
      -------------------------------------------------------------------------- */
-  for( std::map < int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator = calHitsCellId.begin();
+  for (MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
        calHitsCellIdIterator != calHitsCellId.end(); ++calHitsCellIdIterator) {
-
-    const IMPL::CalorimeterHitImpl *thisHit = calHitsCellIdIterator->second;
+    const auto& thisHit = calHitsCellIdIterator->second;
     double CM1[2] = { thisHit->getPosition()[0], thisHit->getPosition()[1] };
 
     // compute the distance of the cal hit from the virtual cluster CMs, and keep score of
@@ -756,7 +746,7 @@ int LumiCalClustererClass::virtualCMClusterBuild( std::map < int , IMPL::Calorim
     std::map < int , double > weightedDistanceV;
 
     // position of the cal hit
-    const IMPL::CalorimeterHitImpl *thisHit = calHitsCellId.at(cellIdHit);
+    const auto& thisHit = calHitsCellId.at(cellIdHit);
     double CM1[2] = { thisHit->getPosition()[0], thisHit->getPosition()[1] };
 
     // compute weight for the cal hit and each cluster
@@ -795,12 +785,10 @@ int LumiCalClustererClass::virtualCMClusterBuild( std::map < int , IMPL::Calorim
    --------------------------------
    - SOME DESCRIPTION ......
    ============================================================================ */
-int LumiCalClustererClass::virtualCMPeakLayersFix( std::map < int , IMPL::CalorimeterHitImpl* > const& calHitsCellId,
-						   std::map < int , int > & cellIdToClusterId,
-						   std::map < int , std::vector<int> > & clusterIdToCellId,
-						   std::map < int , LCCluster > & clusterCM,
-						   std::map < int , VirtualCluster > virtualClusterCM ) {
-
+int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCellId, MapIntInt& cellIdToClusterId,
+                                                  MapIntVInt& clusterIdToCellId,
+                                                  MapIntLCCluster& clusterCM,
+                                                  MapIntVirtualCluster virtualClusterCM) {
   // general variables
   std::vector < std::vector <double> >	unClusteredCellId;
 
@@ -897,7 +885,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix( std::map < int , IMPL::Calori
     std::map < int , double > weightedDistanceV;
 
     // compute the distance of the cal hit from the virtual cluster CMs
-    const IMPL::CalorimeterHitImpl *thisHit = calHitsCellIdIterator->second;
+    const auto& thisHit = calHitsCellIdIterator->second;
 
     for(std::map < int , VirtualCluster > :: const_iterator virtualClusterCMIterator = virtualClusterCM.begin();
 	virtualClusterCMIterator != virtualClusterCM.end(); ++virtualClusterCMIterator ) {
@@ -973,17 +961,14 @@ int LumiCalClustererClass::virtualCMPeakLayersFix( std::map < int , IMPL::Calori
    - SOME DESCRIPTION ......
    ============================================================================ */
 
-int LumiCalClustererClass::buildSuperClusters ( std::map <int , IMPL::CalorimeterHitImpl* > & calHitsCellIdGlobal,
-						std::vector < std::map < int , IMPL::CalorimeterHitImpl* > > const& calHitsCellIdLayer,
-						std::vector < std::map < int , std::vector<int> > > const& clusterIdToCellId,
-						std::vector < std::map < int , LCCluster > > const& clusterCM,
-						std::vector < std::map < int , VirtualCluster > > const& virtualClusterCM,
-						std::map < int , int > & cellIdToSuperClusterId,
-						std::map < int , std::vector<int> > & superClusterIdToCellId,
-						std::map < int , LCCluster > & superClusterCM ) {
-
-
-  /* --------------------------------------------------------------------------
+int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal, VMapIntCalHit const& calHitsCellIdLayer,
+                                              VMapIntVInt const& clusterIdToCellId,
+                                              VMapIntLCCluster const& clusterCM,
+                                              VMapIntVirtualCluster const& virtualClusterCM,
+                                              MapIntInt& cellIdToSuperClusterId,
+                                              MapIntVInt& superClusterIdToCellId,
+                                              MapIntLCCluster& superClusterCM) {
+/* --------------------------------------------------------------------------
      merge all layer-clusters into global superClusters according to distance
      from the virtual clusters' CM
      -------------------------------------------------------------------------- */
@@ -1084,7 +1069,7 @@ int LumiCalClustererClass::buildSuperClusters ( std::map <int , IMPL::Calorimete
 	std::map < int , double > weightedDistanceV;
 
 	// position of the cal hit
-	IMPL::CalorimeterHitImpl* thisHit = calHitsCellIdLayer.at(layerNow).at(cellIdHit);
+        const auto& thisHit = calHitsCellIdLayer.at(layerNow).at(cellIdHit);
 	double CM1[2] = { thisHit->getPosition()[0], thisHit->getPosition()[1] };
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
@@ -1173,18 +1158,14 @@ int LumiCalClustererClass::buildSuperClusters ( std::map <int , IMPL::Calorimete
    --------------------------------
    - SOME DESCRIPTION ......
    ============================================================================ */
-int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHitsCellIdGlobal,
-                                                      std::map < int,std::vector <IMPL::CalorimeterHitImpl*> > const& calHits,
-                                                      std::vector < MapIntCalHit > const& ,//   calHitsCellIdLayer,
-                                                      std::vector < MapIntVInt > & clusterIdToCellId,
-                                                      std::vector < MapIntLCCluster > & clusterCM,
-                                                      std::vector < std::map < int , int > > & cellIdToClusterId,
-                                                      std::map < int , int > & cellIdToSuperClusterId,
-                                                      MapIntVInt & superClusterIdToCellId,
-                                                      MapIntLCCluster & superClusterCM,
-                                                      double middleEnergyHitBound,
-                                                      int /* detectorArm */ ) {
-
+int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsCellIdGlobal, MapIntVCalHit const& calHits,
+                                                    VMapIntCalHit const&,  //   calHitsCellIdLayer,
+                                                    VMapIntVInt&      clusterIdToCellId,
+                                                    VMapIntLCCluster& clusterCM,
+                                                    VMapIntInt& cellIdToClusterId,
+                                                    MapIntInt& cellIdToSuperClusterId,
+                                                    MapIntVInt& superClusterIdToCellId, MapIntLCCluster& superClusterCM,
+                                                    double middleEnergyHitBound, int /* detectorArm */) {
   // ???????? DECIDE/FIX - incorparate the parameter given here better in the code ????????
   int    engyHitBoundMultiply = 1;
   double molRadPercentage     = 0.4;
@@ -1289,13 +1270,11 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
     /* --------------------------------------------------------------------------
        sum up the energy for each Phi/R cell for all Z layers
        -------------------------------------------------------------------------- */
-    std::map < int , std::vector <IMPL::CalorimeterHitImpl*> >::const_iterator calHitsIt = calHits.begin(),
-      calHitsEnd = calHits.end();
+    MapIntVCalHit::const_iterator calHitsIt = calHits.begin(), calHitsEnd = calHits.end();
     for (; calHitsIt != calHitsEnd; ++calHitsIt) {
-      std::pair < int , std::vector < IMPL::CalorimeterHitImpl*> > const& layerHits = (*calHitsIt);
-      const int numElementsInLayer = (int)layerHits.second.size();
+      const int numElementsInLayer = (int)calHitsIt->second.size();
       for(int j=0; j<numElementsInLayer; j++){
-	IMPL::CalorimeterHitImpl const* thisCalHit = layerHits.second.at(j);
+        const auto& thisCalHit = calHitsIt->second.at(j);
 	const int cellIdHit = (int)thisCalHit->getCellID0();
 
 	double cellEngy = (double)thisCalHit->getEnergy();
@@ -1315,7 +1294,7 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 	  if( thisProjection.newObject )  {
 	    thisProjection = ProjectionInfo( thisCalHit, cellIdHitZ );
 	  } else {
-	    thisProjection.energy += thisCalHit -> getEnergy();
+	    thisProjection.addHit(thisCalHit);
 	  }
 	}
 	// store all hits above _hitMinEnergy energy
@@ -1324,7 +1303,7 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 	  if( thisProjection.newObject )  {
 	    thisProjection = ProjectionInfo( thisCalHit, cellIdHitZ );
 	  } else {
-	    thisProjection.energy += thisCalHit -> getEnergy();
+	    thisProjection.addHit(thisCalHit);
 	  }
 	}
       }
@@ -1337,18 +1316,9 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 	 calHitsProjectionIterator != calHitsProjection.end(); ++calHitsProjectionIterator ){
       const int cellIdProjection = calHitsProjectionIterator->first;
       ProjectionInfo const& projection = calHitsProjectionIterator->second;
-      const double engyCellProjection = projection.energy;
-      const float hitPosV[3] = { (float)projection.getPosition()[0], 
-				 (float)projection.getPosition()[1], 
-				 (float)projection.getPosition()[2]};
-      const int cellIdHitZ = projection.cellIdHitZ;
-      IMPL::CalorimeterHitImpl *calHitNew = new IMPL::CalorimeterHitImpl();
-      calHitNew -> setCellID0(cellIdProjection);
-      calHitNew -> setCellID1(cellIdHitZ);
-      calHitNew -> setEnergy(engyCellProjection);
-      calHitNew -> setPosition(hitPosV);
+      auto calHitNew = std::make_shared<LumiCalHit>(cellIdProjection, projection);
 
-      calHitsCellIdProjection[cellIdProjection] = calHitNew;
+      calHitsCellIdProjection[cellIdProjection] = std::move(calHitNew);
     }
 
     /* --------------------------------------------------------------------------
@@ -1438,9 +1408,6 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 
       for(int hitNow = 0; hitNow < numIdsToErase; hitNow++){
 	int idsToEraseNow = idsToErase[hitNow];
-
-	// cleanUp dynamicly allocated memory
-	delete calHitsCellIdProjection[idsToEraseNow];
 	// erase entry from map
 	calHitsCellIdProjection.erase(idsToEraseNow);
       }
@@ -1497,18 +1464,9 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 	  calHitsProjectionIterator != calHitsProjectionFull.end(); ++calHitsProjectionIterator ){
       const int cellIdProjection = calHitsProjectionIterator->first;
       ProjectionInfo const& projection = calHitsProjectionIterator->second;
-      const float hitPosV[3] = { (float)projection.getPosition()[0], 
-				 (float)projection.getPosition()[1], 
-				 (float)projection.getPosition()[2]};
-      const int cellIdHitZ = projection.cellIdHitZ;
+      auto calHitNew = std::make_shared<LumiCalHit>(cellIdProjection, projection);
 
-      IMPL::CalorimeterHitImpl *calHitNew = new IMPL::CalorimeterHitImpl();
-      calHitNew -> setCellID0(cellIdProjection);
-      calHitNew -> setCellID1(cellIdHitZ);
-      calHitNew -> setEnergy(projection.energy);
-      calHitNew -> setPosition(hitPosV);
-
-      calHitsCellIdProjectionFull[cellIdProjection] = calHitNew;
+      calHitsCellIdProjectionFull[cellIdProjection] = std::move(calHitNew);
       // a flag map for avoiding double counting of clustered cells
       projectionFlag[cellIdProjection] = 0;
     }
@@ -1564,12 +1522,12 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 
 
     // create new clusters around the projection CMs
-    for(std::map < int , IMPL::CalorimeterHitImpl* > :: const_iterator calHitsCellIdIterator = calHitsCellIdGlobal.begin();
-	calHitsCellIdIterator != calHitsCellIdGlobal.end(); ++calHitsCellIdIterator) {
+    for (MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellIdGlobal.begin();
+         calHitsCellIdIterator != calHitsCellIdGlobal.end(); ++calHitsCellIdIterator) {
       const int cellIdHit = calHitsCellIdIterator->first;
 
       std::map < int , double > weightedDistanceV;
-      const IMPL::CalorimeterHitImpl * thisHit = calHitsCellIdIterator->second;
+      const auto& thisHit = calHitsCellIdIterator->second;
 
       for( MapIntLCCluster::iterator clusterCMIterator = clusterCM[_maxLayerToAnalyse].begin();
 	   clusterCMIterator != clusterCM[_maxLayerToAnalyse].end(); ++clusterCMIterator) {
@@ -1690,7 +1648,7 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 	const int cellIdHit = cellIds[hitNow];
 
 	std::map < int , double > weightedDistanceV;
-	const IMPL::CalorimeterHitImpl * thisHit = calHitsCellIdGlobal.at(cellIdHit);
+        const auto& thisHit = calHitsCellIdGlobal.at(cellIdHit);
 
 	int numSuperClustersGood = superClusterAccepted.size();
 	for(int superClusterNowGood = 0; superClusterNowGood < numSuperClustersGood; superClusterNowGood++) {
@@ -1763,14 +1721,8 @@ int LumiCalClustererClass::engyInMoliereCorrections ( MapIntCalHit const& calHit
 
 
   // cleanUp dynamically allocated memory
-  for( MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellIdProjection.begin(); 
-      calHitsCellIdIterator != calHitsCellIdProjection.end(); ++calHitsCellIdIterator ) {
-    delete calHitsCellIdIterator->second;
-  }
-  for( MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellIdProjectionFull.begin();
-      calHitsCellIdIterator != calHitsCellIdProjectionFull.end(); ++calHitsCellIdIterator) {
-    delete calHitsCellIdIterator->second;
-  }
+  calHitsCellIdProjection.clear();
+  calHitsCellIdProjectionFull.clear();
 
   /* --------------------------------------------------------------------------
      re-compute total energy and center of mass of each superCluster (just in case...)

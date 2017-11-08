@@ -28,18 +28,14 @@ using LCHelper::distance2D;
    - SOME DESCRIPTION ......
    ============================================================================ */
 
-int LumiCalClustererClass::buildClusters( std::map < int , std::vector <IMPL::CalorimeterHitImpl*> > const& calHits,
-					  MapIntCalHit & calHitsCellIdGlobal,
-					  MapIntVInt & superClusterIdToCellId,
-					  MapIntVDouble & superClusterIdToCellEngy,
-					  MapIntLCCluster & superClusterCM,
-					  const int detectorArm) {
-
+int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCalHit& calHitsCellIdGlobal,
+                                         MapIntVInt& superClusterIdToCellId, MapIntVDouble& superClusterIdToCellEngy,
+                                         MapIntLCCluster& superClusterCM, const int detectorArm) {
   int   maxEngyLayerN(-1);
   double maxEngyLayer;
   int numSuperClusters;
 
-  std::vector < std::map <int , IMPL::CalorimeterHitImpl* > > calHitsCellId(_maxLayerToAnalyse), calHitsSmallEngyCellId(_maxLayerToAnalyse);
+  VMapIntCalHit calHitsCellId(_maxLayerToAnalyse), calHitsSmallEngyCellId(_maxLayerToAnalyse);
 
   std::vector < std::map < int , int > >        cellIdToClusterId(_maxLayerToAnalyse+1);
 
