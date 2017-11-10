@@ -272,28 +272,8 @@ void OutputManagerClass::Initialize(int treeLocOptNow, int skipNEventsNow, int n
 }
 
 void OutputManagerClass::CleanUp() {
-  // 1D histogram std::map
-  streamlog_out(DEBUG) << "OutputManagerClass::CleanUp: cleaning 1D map .........\n";
-  HisMap1DIterator = HisMap1D.begin();
-  for (; HisMap1DIterator != HisMap1D.end(); ++HisMap1DIterator) {
-    if (HisMap1DIterator->second)
-      delete HisMap1DIterator->second;
-  }
 
-  // 2D histogram std::map
-  streamlog_out(DEBUG) << "OutputManagerClass::CleanUp: cleaning 2D map .........\n";
-  HisMap2DIterator = HisMap2D.begin();
-  for (; HisMap2DIterator != HisMap2D.end(); ++HisMap2DIterator) {
-    delete HisMap2DIterator->second;
-  }
-
-  // tree std::map
-  streamlog_out(DEBUG) << "OutputManagerClass::CleanUp: cleaning Tree map .......\n";
-  TreeMapIterator = TreeMap.begin();
-  for (; TreeMapIterator != TreeMap.end(); ++TreeMapIterator) {
-    delete TreeMapIterator->second;
-  }
-
+  //objects are owned by the root file, no need for cleaning up objects
   TreeMap.clear();
   HisMap2D.clear();
   HisMap1D.clear();
