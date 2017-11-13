@@ -507,7 +507,7 @@ double LumiCalClustererClass::getMoliereRadius( MapIntCalHit const& calHitsCellI
   }
 
   // sort the std::vector of the cal hits according to distance from CM in ascending order (shortest distance is first)
-  std::sort (clusterHitsEngyPos.begin(), clusterHitsEngyPos.end(), HitDistanceCMCmpAsc<1> );
+  std::sort(clusterHitsEngyPos.begin(), clusterHitsEngyPos.end(), HitDistanceCMCmpAsc<VVDouble::value_type, 1>);
   double distanceCM(0.0), engyAroundCM(0.0);
   for( VVDouble::iterator energyIt = clusterHitsEngyPos.begin();
        energyIt != clusterHitsEngyPos.end();
@@ -552,7 +552,7 @@ double LumiCalClustererClass::getDistanceAroundCMWithEnergyPercent( LCCluster co
   }
 
   // sort the std::vector of the cal hits according to distance from CM in ascending order (shortest distance is first)
-  sort (clusterHitsEngyPos.begin(), clusterHitsEngyPos.end(), HitDistanceCMCmpAsc<1> );
+  sort(clusterHitsEngyPos.begin(), clusterHitsEngyPos.end(), HitDistanceCMCmpAsc<VVDouble::value_type, 1>);
 
   double engyAroundCM(0.0), distanceCM(0.0);
   for( VVDouble::iterator energyIt = clusterHitsEngyPos.begin();

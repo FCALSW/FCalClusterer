@@ -1,11 +1,6 @@
 #ifndef SortingFunctions_hh
 #define SortingFunctions_hh 1
 
-#include "LumiCalHit.hh"
-
-#include <memory>
-#include <vector>
-
 /* =========================================================================
    Auxiliary functions
    ----------------------------------------------------------------------------
@@ -17,11 +12,13 @@
    sorting of clusterCM[id] (for a cluster with Id 'id') with respect to the cluster CM energy
    -------------------------------------------------------------------------- */
 //in descending order (highest energy is first)
-inline bool clusterCMEnergyCmpDesc(std::vector<double> const& a, std::vector<double> const& b) {
+template<class T>
+inline bool clusterCMEnergyCmpDesc(T const& a, T const& b) {
   return a[0] > b[0];
 }
 //in ascending order (lowest energy is first)
-inline bool clusterCMEnergyCmpAsc(std::vector<double> const& a, std::vector<double> const& b) {
+template<class T>
+inline bool clusterCMEnergyCmpAsc(T const& a, T const& b) {
   return a[0] < b[0];
 }
 
@@ -30,12 +27,14 @@ inline bool clusterCMEnergyCmpAsc(std::vector<double> const& a, std::vector<doub
    sorting of hits with respect to their energies
    -------------------------------------------------------------------------- */
 //in descending order (highest energy is first)
-inline bool HitEnergyCmpDesc(CalHit const& a, CalHit const& b) {
+template<class T>
+inline bool HitEnergyCmpDesc(T const& a, T const& b) {
   return a->getEnergy() > b->getEnergy();
 }
 
 //in ascending order (lowest energy is first)
-inline bool HitEnergyCmpAsc(CalHit const& a, CalHit const& b ) {
+template<typename T>
+inline bool HitEnergyCmpAsc(T const& a, T const& b) {
   return a->getEnergy() < b->getEnergy();
 }
 
@@ -44,8 +43,8 @@ inline bool HitEnergyCmpAsc(CalHit const& a, CalHit const& b ) {
    sorting of hits with respect to their distance from the CM of their cluster
    -------------------------------------------------------------------------- */
 //in ascending order (shortest distance is first)
-template <int POS>
-inline bool HitDistanceCMCmpAsc(std::vector<double> const& a, std::vector<double> const& b) {
+template <class T, int POS>
+inline bool HitDistanceCMCmpAsc(T const& a, T const& b) {
   return a[POS] < b[POS];
 }
 
