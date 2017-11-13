@@ -326,7 +326,7 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
     Double_t extents[6];
     this->m_BCG.getPadExtents(i, 1, extents);
     if( not (extents[0] > this->m_BCG.getCutout()) ){
-#warning "FixMe number of bins in drawphidistributions"
+#pragma message "FixMe number of bins in drawphidistributions"
       //calculate bins for the limited range
       const double degreesDeadAngle = m_BCG.getDeadAngle()*TMath::RadToDeg();
       double limitedBinSize =  (360.0-degreesDeadAngle) / double(m_BCG.getPadsInRing(i));
