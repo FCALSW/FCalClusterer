@@ -116,7 +116,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
   }
 
   // sort acording to energy in ascending order (lowest energy is first)
-  sort( calHitsLayer.begin(), calHitsLayer.end(), HitEnergyCmpAsc );
+  sort(calHitsLayer.begin(), calHitsLayer.end(), HitEnergyCmpAsc<CalHit>);
 
   /* --------------------------------------------------------------------------
      connect each cal hit to it's highest-energy near neighbor.
@@ -185,7 +185,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
      create clusters from each connected bunch of cal hits.
      -------------------------------------------------------------------------- */
   // sort according to energy in descending order (highest energy is first)
-  sort( calHitsLayer.begin(), calHitsLayer.end(), HitEnergyCmpDesc );
+  sort(calHitsLayer.begin(), calHitsLayer.end(), HitEnergyCmpDesc<VecCalHit::value_type>);
 
   for(int j=0; j<(int)calHitsLayer.size(); j++) {
 
@@ -305,7 +305,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
      -------------------------------------------------------------------------- */
   if(mergeSmallToLargeClusters == 1){
     // sort the clusterIds according to clusterCM energy in ascending order (lowest energy is first)
-    std::vector< std::vector<double> > clusterIdEngyV2;
+    VVDouble clusterIdEngyV2;
 
     for(std::map < int , std::vector<int> > :: iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
 	clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator) {
@@ -315,7 +315,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
       clusterIdEngyV2.back()[1] = (double)clusterIdToCellIdIterator->first;
     }
 
-    sort(clusterIdEngyV2.begin(),clusterIdEngyV2.end(),clusterCMEnergyCmpAsc);
+    sort(clusterIdEngyV2.begin(), clusterIdEngyV2.end(), clusterCMEnergyCmpAsc<VVDouble::value_type>);
 
     // copy the Ids that are now in order to a std::vector
     for(size_t j=0; j<clusterIdEngyV2.size(); j++)
@@ -403,7 +403,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
     // sort the clusterIds according to clusterCM energy in
     // descending order (highest energy is first)
 
-    std::vector< std::vector<double> > clusterIdEngyV2;
+    VVDouble clusterIdEngyV2;
 
     for(std::map < int , std::vector<int> > :: iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
 	clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator){
@@ -414,7 +414,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
 
     }
 
-    sort(clusterIdEngyV2.begin(),clusterIdEngyV2.end(),clusterCMEnergyCmpDesc);
+    sort(clusterIdEngyV2.begin(), clusterIdEngyV2.end(), clusterCMEnergyCmpDesc<VVDouble::value_type>);
 
     // copy the Ids that are now in order to a std::vector
     for(size_t j=0; j<clusterIdEngyV2.size(); j++)
