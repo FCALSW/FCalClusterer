@@ -39,35 +39,6 @@ namespace EVENT {
 }
 
 class LumiCalClustererClass {
-  typedef std::vector < double >                  VDouble;
-  typedef std::vector < int >                     VInt;
-
-  typedef std::map<int, CalHit>                         MapIntCalHit;
-  typedef std::map < int , LCCluster >                  MapIntLCCluster;
-
-  typedef std::map < int , VecCalHit >                  MapIntVCalHit;
-  typedef std::map < int , VDouble >                    MapIntVDouble;
-  typedef std::map < int , VInt >                       MapIntVInt;
-
-  typedef std::map < int , MapIntLCCluster >            MapIntMapIntLCCluster;
-  typedef std::map < int , MapIntVCalHit >              MapIntMapIntVCalHit;
-  typedef std::map < int , MapIntVDouble >              MapIntMapIntVDouble; 
-  typedef std::map < int , MapIntVInt >                 MapIntMapIntVInt; 
-  typedef std::map < int , ProjectionInfo >             MapIntProjectionInfo;
-  typedef std::map < int , VirtualCluster >             MapIntVirtualCluster;
-  typedef std::map < int , double >                     MapIntDouble;
-  typedef std::map < int , int >                        MapIntInt;
-
-  typedef std::map < int , MapIntCalHit > MapIntMapIntCalHit;
-
-
-  typedef std::vector < MapIntCalHit >         VMapIntCalHit;
-  typedef std::vector < MapIntInt >            VMapIntInt;
-  typedef std::vector < MapIntLCCluster >      VMapIntLCCluster;
-  typedef std::vector < MapIntVInt >           VMapIntVInt;
-  typedef std::vector < MapIntVirtualCluster > VMapIntVirtualCluster;
-
-  typedef std::vector < VDouble >              VVDouble;
 
 public:
 
