@@ -57,7 +57,4 @@ public:
   const double* getPosition() const { return m_position; }
 };
 
-using CalHit    = std::shared_ptr<LumiCalHit>;
-using VecCalHit = std::vector<CalHit>;
-
 #endif  // LUMICALHIT_HH
