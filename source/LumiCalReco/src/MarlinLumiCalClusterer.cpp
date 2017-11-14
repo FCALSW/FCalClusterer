@@ -325,19 +325,15 @@ std::map < int , double > snbx;
     std::vector < MCInfo > mcParticlesVecPos;
     std::vector < MCInfo > mcParticlesVecNeg;
 
-#if _CREATE_CLUSTERS_DEBUG == 1
-	streamlog_out(MESSAGE4) << "CreateClusters: event = " << evt-> getEventNumber() << std::endl;
-#endif
+    streamlog_out(DEBUG7) << "CreateClusters: event = " << evt->getEventNumber()<< std::endl;
     LCCollection * particles = evt->getCollection( "MCParticle" );
     if ( particles ){
       int numMCParticles = particles->getNumberOfElements();
-#if _CREATE_CLUSTERS_DEBUG == 1
-      if( numMCParticles ){
-	streamlog_out(MESSAGE4) << "CreateClusters: numMCParticles = " << numMCParticles  << std::endl;
+      if(numMCParticles){
+	streamlog_out(DEBUG6) << "CreateClusters: numMCParticles = " << numMCParticles << std::endl;
       }else{
-	streamlog_out(MESSAGE4) << "CreateClusters: No MCparticles in this event !" << std::endl;
+	streamlog_out(DEBUG6) << "CreateClusters: No MCparticles in this event !" << std::endl;
       }
-#endif
       for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
 	MCParticle * particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
 	MCInfo p = MCInfo::getMCParticleInfo( particle, gmc );
@@ -352,10 +348,10 @@ std::map < int , double > snbx;
     int numOfClustersPos =  clusterIdToCellId.at(1).size();
 #if _CREATE_CLUSTERS_DEBUG == 1
     if( numOfClustersNeg || numOfClustersPos ){
-      streamlog_out(MESSAGE) << "Initial Set Stats for LumiCal......."<< std::endl;
-      streamlog_out(MESSAGE) << "     numOfClusters arm[-1] = "<< numOfClustersNeg << "\t arm[1] = "<< numOfClustersPos << std::endl;
+      streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal......."<< std::endl;
+      streamlog_out(DEBUG6) << "     numOfClusters arm[-1] = "<< numOfClustersNeg << "\t arm[1] = "<< numOfClustersPos << std::endl;
     }else{
-      streamlog_out(MESSAGE) << "Initial Set Stats for LumiCal: No clusters found in this event !"<< std::endl;
+      streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal: No clusters found in this event !"<< std::endl;
     }
 #endif
     if( numOfClustersNeg || numOfClustersPos ){ 
@@ -389,7 +385,7 @@ std::map < int , double > snbx;
 	  thisCluster->ResetStats(); // calculate energy, position for the cluster
 	
 	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
-	  streamlog_out(DEBUG3) << "arm =   " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl
+	  streamlog_out(DEBUG6) << "arm =   " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl
 				<< std::setw(20) << "X, Y, Z:" << std::endl
 				<< std::setw(20) << "ClusterClass"
 				<< std::fixed << std::setprecision(3)

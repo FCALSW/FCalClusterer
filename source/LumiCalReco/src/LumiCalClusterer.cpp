@@ -191,19 +191,14 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     int armNow = _armsToCluster[armToClusterNow];
  */
   for(int armNow = -1; armNow < 2; armNow += 2) {
-#if _GENERAL_CLUSTERER_DEBUG == 1
-    streamlog_out( DEBUG ) << std::endl
+    streamlog_out(DEBUG6) << std::endl
 	      << "ARM = " << armNow << " : " << std::endl << std::endl;
-#endif
     /* --------------------------------------------------------------------------
        Construct clusters for each arm
        -------------------------------------------------------------------------- */
-#if _CLUSTER_BUILD_DEBUG == 1
-    streamlog_out(DEBUG2) << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
-    streamlog_out(DEBUG2) << "\tEnergy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
-			  << "\tNumber of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << "\n\n";
-#endif
-
+    streamlog_out(DEBUG6) << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
+    streamlog_out(DEBUG5) << "\tEnergy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
+			  << "\tNumber of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << std::endl;
     buildClusters( calHits[armNow],
 		   calHitsCellIdGlobal[armNow],
 		   _superClusterIdToCellId[armNow],
@@ -215,10 +210,7 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     /* --------------------------------------------------------------------------
        Merge superClusters according the minDistance nad minEngy rules
        -------------------------------------------------------------------------- */
-#if _GENERAL_CLUSTERER_DEBUG == 1
-    streamlog_out( DEBUG ) << "\tRun LumiCalClustererClass::clusterMerger()" << std::endl;
-#endif
-
+    streamlog_out(DEBUG6) << "\tRun LumiCalClustererClass::clusterMerger()" << std::endl;
     clusterMerger(		_superClusterIdToCellEngy[armNow],
 				_superClusterIdToCellId[armNow],
 				superClusterCM[armNow],
@@ -228,6 +220,7 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     /* --------------------------------------------------------------------------
        Perform fiducial volume cuts
        -------------------------------------------------------------------------- */
+    streamlog_out(DEBUG6) << "\tRun LumiCalClustererClass::fiducialVolumeCuts()" << std::endl;
     fiducialVolumeCuts(		_superClusterIdToCellId[armNow],
 				_superClusterIdToCellEngy[armNow],
 				superClusterCM[armNow] );
@@ -238,10 +231,7 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
        -------------------------------------------------------------------------- */
 #if _CLUSTER_MIXING_ENERGY_CORRECTIONS == 1
     if(superClusterCM[armNow].size() == 2) {
-#if _GENERAL_CLUSTERER_DEBUG == 1
-      streamlog_out( DEBUG ) << "\tRun LumiCalClustererClass::energyCorrections()" << std::endl;
-#endif
-
+      streamlog_out(DEBUG6) << "Run LumiCalClustererClass::energyCorrections()" << std::endl;
       energyCorrections( _superClusterIdToCellId[armNow],
 			 _superClusterIdToCellEngy[armNow],
 			 superClusterCM[armNow],
@@ -255,22 +245,16 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
   /* --------------------------------------------------------------------------
      verbosity
      -------------------------------------------------------------------------- */
-#if _GENERAL_CLUSTERER_DEBUG == 1
-  streamlog_out( DEBUG4 ) << "Final clusters:" << std::endl;
-#endif
- for(int armNow = -1; armNow < 2; armNow += 2) {
-     for(MapIntLCCluster::iterator superClusterCMIterator = superClusterCM[armNow].begin();
-	superClusterCMIterator != superClusterCM[armNow].end();
-	++superClusterCMIterator) {
+  streamlog_out(DEBUG6) << "Final clusters:" << std::endl;
+  for (int armNow = -1; armNow < 2; armNow += 2) {
+    for (MapIntLCCluster::iterator superClusterCMIterator = superClusterCM[armNow].begin();
+         superClusterCMIterator != superClusterCM[armNow].end(); ++superClusterCMIterator) {
       const int superClusterId = (int)superClusterCMIterator->first;
 
-#if _GENERAL_CLUSTERER_DEBUG == 1
-      streamlog_out( DEBUG4 ) << "  Arm:"    << std::setw(4)  << armNow
-			     << "  Id:"     << std::setw(4)  << superClusterId
-			     << superClusterCMIterator->second
-			     << std::endl;
-#endif
-      //Store information of clusters
+      streamlog_out(DEBUG6) << "  Arm:"    << std::setw(4) << armNow
+                            << "  Id:"     << std::setw(4) << superClusterId
+                            << superClusterCMIterator->second
+                            << std::endl;
       _superClusterIdClusterInfo[armNow][superClusterId] = superClusterCMIterator->second;
     }
   }
