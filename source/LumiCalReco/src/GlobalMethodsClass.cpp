@@ -259,7 +259,7 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
 
   // theta
   double rCell      = GlobalParamD[RMin] + (cellIdR + .5) * GlobalParamD[RCellLength];
-  double zCell      = fabs(GlobalParamD[ZStart]) + GlobalParamD[ZLayerThickness] * (cellIdZ - 1);
+  double zCell      = fabs(GlobalParamD[ZStart]) + GlobalParamD[ZLayerThickness] * (cellIdZ);
   double thetaCell  = atan(rCell / zCell);
 
   // phi
@@ -447,7 +447,7 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   }
 
   // layer thickness
-  GlobalParamD[ZLayerThickness] = layers[0].inner_thickness + layers[0].outer_thickness;
+  GlobalParamD[ZLayerThickness] = (layers[0].inner_thickness + layers[0].outer_thickness)/dd4hep::mm;;
   
   //successfully created geometry from DD4hep
   return true;
