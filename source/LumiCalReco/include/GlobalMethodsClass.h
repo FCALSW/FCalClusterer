@@ -42,6 +42,7 @@ class GlobalMethodsClass {
     PhiCellLength,
     ZLayerThickness,
     ZLayerPhiOffset,
+    ZLayerZOffset,
     ThetaMin,
     ThetaMax,
     LogWeightConstant,

@@ -259,7 +259,7 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
 
   // theta
   double rCell      = GlobalParamD[RMin] + (cellIdR + .5) * GlobalParamD[RCellLength];
-  double zCell      = fabs(GlobalParamD[ZStart]) + GlobalParamD[ZLayerThickness] * (cellIdZ);
+  double zCell      = fabs(GlobalParamD[ZStart]) + GlobalParamD[ZLayerThickness] * (cellIdZ) +  GlobalParamD[ZLayerZOffset];
   double thetaCell  = atan(rCell / zCell);
 
   // phi
@@ -290,6 +290,7 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
   case PhiCellLength:	                 return "PhiCellLength";
   case ZLayerThickness:	                 return "ZLayerThickness";
   case ZLayerPhiOffset:	                 return "ZLayerPhiOffset";
+  case ZLayerZOffset:	                 return "ZLayerZOffset";
   case ThetaMin:	                 return "ThetaMin";
   case ThetaMax:	                 return "ThetaMax";
   case LogWeightConstant:                return "LogWeightConstant";
@@ -447,7 +448,8 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   }
 
   // layer thickness
-  GlobalParamD[ZLayerThickness] = (layers[0].inner_thickness + layers[0].outer_thickness)/dd4hep::mm;;
+  GlobalParamD[ZLayerThickness] = (layers[0].inner_thickness + layers[0].outer_thickness)/dd4hep::mm;
+  GlobalParamD[ZLayerZOffset] = (layers[0].inner_thickness + (layers[0].outer_thickness/2.))/dd4hep::mm;
   
   //successfully created geometry from DD4hep
   return true;
