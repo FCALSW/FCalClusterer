@@ -225,7 +225,7 @@ void OutputManagerClass::Initialize(int treeLocOptNow,
   tree -> Branch("RZstart", &TreeDoubleV["rzStart"], "rzStart/D");
   tree -> Branch("Xstart", &TreeDoubleV["Xglob"], "Xglob/D");
   tree -> Branch("Ystart", &TreeDoubleV["Yglob"], "Yglob/D");
-  tree -> Branch("Zstart", &TreeDoubleV["Zglob"], "Yglob/D");
+  tree -> Branch("Zstart", &TreeDoubleV["Zglob"], "Zglob/D");
 
   TreeMap[ hisName] = tree;
   TreeDoubleV["vtxX"] = 0.;
