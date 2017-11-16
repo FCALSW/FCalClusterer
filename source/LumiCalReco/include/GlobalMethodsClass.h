@@ -23,12 +23,12 @@ class TGeoHMatrix;
 
 
 class GlobalMethodsClass {
-
- private:
+private:
   std::string _procName;
   bool _useDD4hep;
 
- public:
+public:
+  enum WeightingMethod_t { LogMethod = -1, EnergyMethod = 1 };
 
   enum Parameter_t{
     ZStart,
@@ -76,7 +76,6 @@ class GlobalMethodsClass {
   
   static std::string GetParameterName ( Parameter_t par );
 
-  typedef std::string                           WeightingMethod_t;
   typedef std::map < Parameter_t, int >         ParametersInt;
   typedef std::map < Parameter_t, double >      ParametersDouble;
   typedef std::map < Parameter_t, std::string > ParametersString;
@@ -89,9 +88,9 @@ class GlobalMethodsClass {
   virtual ~GlobalMethodsClass();
  
   void SetConstants( marlin::Processor* procPTR );
-  static WeightingMethod_t LogMethod;
-  static WeightingMethod_t EnergyMethod;
-  static double EnergyCalibrationFactor;
+  WeightingMethod_t getMethod(std::string const& methodName) const;
+
+  WeightingMethod_t method = LogMethod;
 
   double _backwardRotationPhi;
   ParametersInt    GlobalParamI;
@@ -105,6 +104,9 @@ class GlobalMethodsClass {
   static int  CellIdZPR(int cellZ, int cellPhi, int cellR, int arm);
   static int  CellIdZPR(int cellId, Coordinate_t ZPR);
 
+  double getCalibrationFactor() const { return m_energyCalibrationFactor; }
+  void setCalibrationFactor(double cf) { m_energyCalibrationFactor = cf; }
+
   void PrintAllParameters() const;
 
   inline bool isUsingDD4hep() const { return _useDD4hep; }
@@ -116,6 +118,7 @@ private:
   const TGeoHMatrix *_forwardCalo;
   const TGeoHMatrix *_backwardCalo;
 
+  double m_energyCalibrationFactor = 1.0;
 };
 
 
