@@ -37,10 +37,6 @@ bool convert(std::string input, T &value) {
  return ( ! (stream >> std::setbase(0) >> value).fail() ) && stream.eof();
 }
 
-GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::LogMethod = "LogMethod";
-GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::EnergyMethod = "EnergyMethod";
-double GlobalMethodsClass::EnergyCalibrationFactor = 0.0105;
-
 GlobalMethodsClass :: GlobalMethodsClass() :
   _procName( "MarlinLumiCalClusterer" ),
   _useDD4hep(false),
@@ -181,7 +177,7 @@ void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
   val = ( val <= GlobalParamD[PhiCellLength] ) ? val : val*M_PI/180.;
   GlobalParamD[ZLayerPhiOffset] = val; 
 
-  EnergyCalibrationFactor = _lcalRecoPars->getFloatVal("EnergyCalibConst");
+  m_energyCalibrationFactor = _lcalRecoPars->getFloatVal("EnergyCalibConst");
 
   // logarithmic constant for position reconstruction
   GlobalParamD[LogWeightConstant] = _lcalRecoPars->getFloatVal("LogWeigthConstant");
@@ -237,11 +233,11 @@ double GlobalMethodsClass::SignalGevConversion( Parameter_t optName , double val
   //const double conversionFactor(0.0105);
 
   if(optName == GeV_to_Signal)
-    returnVal = valNow * EnergyCalibrationFactor;
+    returnVal = valNow * m_energyCalibrationFactor;
   //		returnVal = valNow * .0105 + .0013;
 
   if(optName == Signal_to_GeV)
-    returnVal = valNow / EnergyCalibrationFactor;
+    returnVal = valNow / m_energyCalibrationFactor;
   //		returnVal = (valNow-.0013) / .0105;
 
   return returnVal;
@@ -454,4 +450,14 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
 #endif
   //no dd4hep geometry
   return false;
+}
+
+GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::getMethod(std::string const& methodName) const {
+  if (methodName == "LogMethod") {
+    return LogMethod;
+  }
+  if (methodName == "EnergyMethod") {
+    return EnergyMethod;
+  }
+  throw std::runtime_error("Unkown weighting method");
 }

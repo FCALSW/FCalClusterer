@@ -27,38 +27,43 @@ namespace EVENT{
 /* ============================================================================
    Constructor
    ========================================================================= */
-LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow):
-  _superClusterIdToCellId(),
-  _superClusterIdToCellEngy(),
-  _superClusterIdClusterInfo(),
-  _lumiName( lumiNameNow ),
-  _clusterMinNumHits(15),
-  _hitMinEnergy(5*1e-6),
-  // global variables
-  _numEventsPerTree(0), _resetRootTrees(0),
-  _maxLayerToAnalyse(0),
-  _zFirstLayer(0), _zLayerThickness(0.0), _zLayerPhiOffset(0.0),
-  _rMin(0.0), _rMax(0.0), _rCellLength(0.0), _phiCellLength(0.0),
-  _beamCrossingAngle(0.),
-  _elementsPercentInShowerPeakLayer(0.03),
-  _logWeightConst(0.0),
-  _nNearNeighbor (6),
-  _cellRMax(0), _cellPhiMax (0),
-  _middleEnergyHitBoundFrac(0.01),
-  _methodCM("LogMethod"),
-  _moliereRadius(),
-  _thetaContainmentBounds(),
-  _minSeparationDistance(), _minClusterEngyGeV(), _minClusterEngySignal(),
-  _totEngyArm(),
-  _numHitsInArm(),
-  _mydecoder(),
-  _gmc(),
-  _useDD4hep(false),
-  RotMat()
-{
-}
-
-
+LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow)
+    : _superClusterIdToCellId(),
+      _superClusterIdToCellEngy(),
+      _superClusterIdClusterInfo(),
+      _lumiName(lumiNameNow),
+      _clusterMinNumHits(15),
+      _hitMinEnergy(5 * 1e-6),
+      // global variables
+      _numEventsPerTree(0),
+      _resetRootTrees(0),
+      _maxLayerToAnalyse(0),
+      _zFirstLayer(0),
+      _zLayerThickness(0.0),
+      _zLayerPhiOffset(0.0),
+      _rMin(0.0),
+      _rMax(0.0),
+      _rCellLength(0.0),
+      _phiCellLength(0.0),
+      _beamCrossingAngle(0.),
+      _elementsPercentInShowerPeakLayer(0.03),
+      _logWeightConst(0.0),
+      _nNearNeighbor(6),
+      _cellRMax(0),
+      _cellPhiMax(0),
+      _middleEnergyHitBoundFrac(0.01),
+      _methodCM(GlobalMethodsClass::LogMethod),
+      _moliereRadius(),
+      _thetaContainmentBounds(),
+      _minSeparationDistance(),
+      _minClusterEngyGeV(),
+      _minClusterEngySignal(),
+      _totEngyArm(),
+      _numHitsInArm(),
+      _mydecoder(),
+      _gmc(),
+      _useDD4hep(false),
+      RotMat() {}
 
 /* ============================================================================
    initial action before first event analysis starts:
@@ -73,7 +78,7 @@ void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
   _armsToCluster.push_back(-1);
   _armsToCluster.push_back(1);
      -------------------------------------------------------------------------- */
-  _methodCM				= gmc.GlobalParamS.at(GlobalMethodsClass::WeightingMethod); // GlobalMethodsClass::LogMethod
+  _methodCM = gmc.getMethod(gmc.GlobalParamS.at(GlobalMethodsClass::WeightingMethod));  // GlobalMethodsClass::LogMethod
   _clusterMinNumHits			= gmc.GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits); // = 15
   _hitMinEnergy				= gmc.GlobalParamD.at(GlobalMethodsClass::MinHitEnergy); // = 5e-6
   _zLayerThickness			= gmc.GlobalParamD.at(GlobalMethodsClass::ZLayerThickness); // = 4.5

@@ -5,13 +5,19 @@
 #include <iomanip>
 
 LCCluster::LCCluster()
-    : _position{0.0, 0.0, 0.0}, _energy(0.0), _weight(0.0), _method("LogMethod"), _theta(0.0), _phi(0.0), _caloHits{} {}
+    : _position{0.0, 0.0, 0.0},
+      _energy(0.0),
+      _weight(0.0),
+      _method(GlobalMethodsClass::LogMethod),
+      _theta(0.0),
+      _phi(0.0),
+      _caloHits{} {}
 
 LCCluster::LCCluster(const VirtualCluster& vc)
     : _position{vc.getX(), vc.getY(), vc.getZ()},
       _energy(0.0),
       _weight(0.0),
-      _method("LogMethod"),
+      _method(GlobalMethodsClass::LogMethod),
       _theta(0.0),
       _phi(0.0),
       _caloHits{} {}
@@ -34,7 +40,7 @@ void LCCluster::clear() {
   _position[1] = 0.0;
   _position[2] = 0.0;
   _weight = 0.0;
-  _method = "";
+  _method      = GlobalMethodsClass::LogMethod;
   _theta = 0.0;
   _phi = 0.0;
   _caloHits.clear();
