@@ -16,70 +16,15 @@ using LCHelper::distance2D;
 #include <DD4hep/DD4hepUnits.h>
 #endif
 
-
-
 /* --------------------------------------------------------------------------
    calculate weight for cluster CM according to different methods
-   -------------------------------------------------------------------------- */
-template <> double LumiCalClustererClass::posWeight(CalHit const& calHit, GlobalMethodsClass::WeightingMethod_t method) {
-  double posWeightHit = -1.;
-
-  if( method == GlobalMethodsClass::EnergyMethod ) {
- 
-      return ( calHit->getEnergy() ) ;
-
-  }else if (method == GlobalMethodsClass::LogMethod)  {            // ???????? DECIDE/FIX - improve the log weight constants ????????
-
-    int	detectorArm = ((calHit->getPosition()[2] < 0) ? -1 : 1 );
-    posWeightHit = log(calHit->getEnergy() / _totEngyArm[detectorArm]) + _logWeightConst;
-    if(posWeightHit < 0) posWeightHit = 0. ;
-    return posWeightHit;
-
-  }
-  return posWeightHit;
-}
-
-/* --------------------------------------------------------------------------
-   calculate weight for cluster CM according to different methods
+   - provide cellEnergy to use
    -------------------------------------------------------------------------- */
 template <>
 double LumiCalClustererClass::posWeightTrueCluster(CalHit const& calHit, double cellEngy,
-                                                   GlobalMethodsClass::WeightingMethod_t method) {
-  double	posWeightHit = 0.;
+                                                   GlobalMethodsClass::WeightingMethod_t method) const {
   int	detectorArm = ((calHit->getPosition()[2] < 0) ? -1 : 1 );
-
-  if(method == GlobalMethodsClass::EnergyMethod) posWeightHit = cellEngy;
-
-
-  // ???????? DECIDE/FIX - improve the log weight constants ????????
-  if(method == GlobalMethodsClass::LogMethod) {
-    posWeightHit = log(cellEngy / _totEngyArm[detectorArm]) + _logWeightConst;
-
-    if(posWeightHit < 0) posWeightHit = 0. ;
-  }
-
-  return posWeightHit;
-}
-
-/* --------------------------------------------------------------------------
-   calculate weight for cluster CM according to different methods
-   - overloaded version with a given energy normalization
-   -------------------------------------------------------------------------- */
-template <>
-double LumiCalClustererClass::posWeight(CalHit const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method) {
-  double	posWeightHit = 0.;
-
-  if(method == GlobalMethodsClass::EnergyMethod) posWeightHit = calHit->getEnergy();
-
-
-  // ???????? DECIDE/FIX - improve the log weight constants ????????
-  if(method == GlobalMethodsClass::LogMethod) {
-    posWeightHit = log(calHit->getEnergy() / totEngy) + _logWeightConst;
-
-    if(posWeightHit < 0) posWeightHit = 0. ;
-  }
-
-  return posWeightHit;
+  return GlobalMethodsClass::posWeight(cellEngy, _totEngyArm.at(detectorArm), method, _logWeightConst);
 }
 
 /* --------------------------------------------------------------------------
@@ -88,20 +33,26 @@ double LumiCalClustererClass::posWeight(CalHit const& calHit, double totEngy, Gl
    -------------------------------------------------------------------------- */
 template <>
 double LumiCalClustererClass::posWeight(CalHit const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method,
-                                        double logWeightConstNow) {
-  double	posWeightHit = 0.;
+                                        double logWeightConstNow) const {
+  return GlobalMethodsClass::posWeight(calHit->getEnergy(), totEngy, method, logWeightConstNow);
+}
 
-  if(method == GlobalMethodsClass::EnergyMethod ) posWeightHit = calHit->getEnergy();
+/* --------------------------------------------------------------------------
+   calculate weight for cluster CM according to different methods
+   -------------------------------------------------------------------------- */
+template <>
+double LumiCalClustererClass::posWeight(CalHit const& calHit, GlobalMethodsClass::WeightingMethod_t method) const {
+  return posWeightTrueCluster(calHit, calHit->getEnergy(), method);
+}
 
-
-  // ???????? DECIDE/FIX - improve the log weight constants ????????
-  if(method == GlobalMethodsClass::LogMethod ) {
-    posWeightHit = log(calHit->getEnergy() / totEngy) + logWeightConstNow;
-
-    if(posWeightHit < 0) posWeightHit = 0. ;
-  }
-
-  return posWeightHit;
+/* --------------------------------------------------------------------------
+   calculate weight for cluster CM according to different methods
+   - overloaded version with a given energy normalization
+   -------------------------------------------------------------------------- */
+template <>
+double LumiCalClustererClass::posWeight(CalHit const& calHit, double totEngy,
+                                        GlobalMethodsClass::WeightingMethod_t method) const {
+  return GlobalMethodsClass::posWeight(calHit->getEnergy(), totEngy, method, _logWeightConst);
 }
 
 /* --------------------------------------------------------------------------

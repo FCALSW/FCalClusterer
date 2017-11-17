@@ -111,6 +111,9 @@ public:
 
   inline bool isUsingDD4hep() const { return _useDD4hep; }
 
+  static double posWeight(double cellEngy, double totEngy, GlobalMethodsClass::WeightingMethod_t method,
+                          double logWeightConstNow);
+
 private:
   void SetGeometryGear();
   bool SetGeometryDD4HEP();
