@@ -125,20 +125,15 @@ void ClusterClass::FillHit(int cellNow, double engyNow) {
 
 int ClusterClass::ResetStats() {
 
-  double thetaSum(0.0), weightSum(0.0), engySum(0.0);
-  std::map < GlobalMethodsClass::Coordinate_t , double > thetaPhiCellV;
-
   // initialize modification flag
   ModifiedFlag = 0;
 
   // re-sum energy from all cells (just in case)
-  NumHits = 0;
-  for( std::map < int , double > :: iterator hitIterator = Hit.begin();
-       hitIterator != Hit.end(); ++hitIterator) {
-    engySum += hitIterator->second;
-    NumHits++;
+  NumHits = Hit.size();
+  Engy    = 0.0;
+  for (auto const& pairIDEng : Hit) {
+    Engy += pairIDEng.second;
   }
-  Engy = engySum;
 
   // if the particle has no deposits in LumiCal
   // (BP) this already done in getCalHits method !?
@@ -153,23 +148,27 @@ int ClusterClass::ResetStats() {
     OutsideReason = " Number of hits below minimum";
   }
 
-  double xtemp(0.0), ytemp(0.0), ztemp(0.0);
-  for( std::map < int , double > :: iterator hitIterator = Hit.begin();  hitIterator != Hit.end(); ++hitIterator) {
-    int cellId = hitIterator->first;
-    gmc.ThetaPhiCell(cellId , thetaPhiCellV);
+  const double logConstant(gmc.GlobalParamD[GlobalMethodsClass::LogWeightConstant]);
+  double       xtemp(0.0), ytemp(0.0), ztemp(0.0), thetaSum(0.0), weightSum(0.0);
+  std::map<GlobalMethodsClass::Coordinate_t, double> thetaPhiCellV;
 
-    const double engyNow = hitIterator->second;
-    const double weightNow = gmc.GlobalParamD[GlobalMethodsClass::LogWeightConstant] + log(engyNow/engySum);
+  for (auto const& pairIDEng : Hit) {
+    const double weightNow =
+        GlobalMethodsClass::posWeight(pairIDEng.second, Engy, GlobalMethodsClass::LogMethod, logConstant);
 
-    if(weightNow < 0) continue;
+    if (not(weightNow > 0))
+      continue;
+
+    const int cellId = pairIDEng.first;
+    gmc.ThetaPhiCell(cellId, thetaPhiCellV);
 
     weightSum += weightNow;
     thetaSum  += thetaPhiCellV[GlobalMethodsClass::COTheta] * weightNow;
     const double phi = thetaPhiCellV[GlobalMethodsClass::COPhi];
-    ztemp += thetaPhiCellV[GlobalMethodsClass::COZ] * weightNow;
     const double rcell = thetaPhiCellV[GlobalMethodsClass::COR];
     xtemp += rcell*cos(phi) * weightNow;
     ytemp += rcell*sin(phi) * weightNow;
+    ztemp += thetaPhiCellV[GlobalMethodsClass::COZ] * weightNow;
   }
 
 
@@ -179,17 +178,18 @@ int ClusterClass::ResetStats() {
   ztemp /= weightSum;
   RZStart  = atan(fabs(Theta)) * gmc.GlobalParamD[GlobalMethodsClass::ZStart];
   Phi = atan2(ytemp, xtemp);
-  
-  clusterPosition[0] = RZStart*cos(Phi);
-  clusterPosition[1] = RZStart*sin(Phi);
-  clusterPosition[2] = gmc.GlobalParamD[GlobalMethodsClass::ZStart]*double(SignMC); //ztemp*double(SignMC);
-  
+
+  const double r     = sqrt(xtemp * xtemp + ytemp * ytemp + ztemp * ztemp);
+  clusterPosition[0] = r * sin(Theta) * cos(Phi);
+  clusterPosition[1] = r * sin(Theta) * sin(Phi);
+  clusterPosition[2] = r * cos(Theta);
+
   if( Theta < gmc.GlobalParamD[GlobalMethodsClass::ThetaMin] || Theta > gmc.GlobalParamD[GlobalMethodsClass::ThetaMax] ){
     OutsideFlag = 1;
     OutsideReason = "Reconstructed outside the fiducial volume";
   }
 
-  if(engySum < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngySignal]) {
+  if (Engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngySignal]) {
     OutsideFlag = 1;
     OutsideReason = "Cluster energy below minimum";
   }
@@ -199,13 +199,14 @@ int ClusterClass::ResetStats() {
 }
 
 void ClusterClass::PrintInfo(){
-
+  // clang-format off
   streamlog_out( MESSAGE4 ) << std::endl
-    << "Cluster Information:   " << Id << std::endl
-    << std::setw(30) << "sign, engyHits, engyMC:  "
+    << "ClusterClass Information:   " << Id << std::endl
+    << std::setw(30) << "sign, engyHits, engyMC, nHits:"
     << std::setw(13) << SignMC
     << std::setw(13) << gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , Engy)
-    << std::setw(13) << EngyMC << std::endl
+    << std::setw(13) << EngyMC
+    << std::setw(13) << Hit.size() << std::endl
     << std::setw(30) << "theta mc,rec:  "
     << std::setw(13) << ThetaMC
     << std::setw(13) << Theta << std::endl
@@ -225,9 +226,10 @@ void ClusterClass::PrintInfo(){
 			    << std::setw(13) << RZStart*cos(Phi)
 			    << std::setw(13) << RZStart*sin(Phi)
 			    << std::setw(13) << gmc.GlobalParamD[GlobalMethodsClass::ZStart]*double(SignMC) << std::endl
-    << std::setw(30) << "MCstart  X,Y,Z: "
+    << std::setw(30) << "MCstart  X,Y,Z:  "
     << std::setw(13) << mcpPosition[0]
     << std::setw(13) << mcpPosition[1]
     << std::setw(13) << mcpPosition[2] << std::endl
     << std::endl;
+  // clang-format on
 }
