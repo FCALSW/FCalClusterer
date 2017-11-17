@@ -54,10 +54,8 @@ public:
     ClusterMinNumHits,
     MinHitEnergy,
     MinClusterEngyGeV,
-    MinClusterEngySignal,
     MiddleEnergyHitBoundFrac,
     WeightingMethod,
-    GeV_to_Signal,
     Signal_to_GeV,
     BeamCrossingAngle,
     LumiInColName,
@@ -98,15 +96,14 @@ public:
   ParametersDouble GlobalParamD;
   ParametersString GlobalParamS;
 
-  double SignalGevConversion( Parameter_t optName , double valNow );
+  double toSignal(double valNow) const;
+  double toGev(double valNow) const;
+
   void	ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> & thetaPhiCell);
 
   static void CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
   static int  CellIdZPR(int cellZ, int cellPhi, int cellR, int arm);
   static int  CellIdZPR(int cellId, Coordinate_t ZPR);
-
-  double getCalibrationFactor() const { return m_energyCalibrationFactor; }
-  void setCalibrationFactor(double cf) { m_energyCalibrationFactor = cf; }
 
   void PrintAllParameters() const;
 
@@ -115,6 +112,8 @@ public:
   static double posWeight(double cellEngy, double totEngy, GlobalMethodsClass::WeightingMethod_t method,
                           double logWeightConstNow);
 
+  inline double getCalibrationFactor() const { return GlobalParamD.at(Signal_to_GeV); }
+
 private:
   void SetGeometryGear();
   bool SetGeometryDD4HEP();
@@ -122,7 +121,6 @@ private:
   const TGeoHMatrix *_forwardCalo;
   const TGeoHMatrix *_backwardCalo;
 
-  double m_energyCalibrationFactor = 1.0;
 };
 
 

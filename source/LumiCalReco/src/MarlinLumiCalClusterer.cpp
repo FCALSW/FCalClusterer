@@ -87,8 +87,9 @@ std::map < int , double > snbx;
           LCCluster& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
           thisClusterInfo.recalculatePositionFromHits(gmc);
 
-	  const double clusterEnergy = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
-	  if( clusterEnergy < _minClusterEngy ) continue;
+          const double clusterEnergy = thisClusterInfo.getE();
+          if (clusterEnergy < _minClusterEngy)
+            continue;
 
           if( _cutOnFiducialVolume ) {
             const double clusterTheta = thisClusterInfo.getTheta();
@@ -170,8 +171,7 @@ std::map < int , double > snbx;
 	     ++mapIntClusterClassIt) {
 
 	  ClusterClass* thisCluster = mapIntClusterClassIt->second;
-	  const double engyNow  = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV,
-							  thisCluster->Engy);
+	  const double engyNow  = thisCluster->Engy;
 	  const double thetaNow = thisCluster -> Theta;
 	  // highest energy RecoParticle
 	  if(thisCluster->HighestEnergyFlag == 1){
@@ -224,8 +224,7 @@ std::map < int , double > snbx;
 	  //	  if(thisCluster->HighestEnergyFlag == 0)	continue;
 	  clusterInFlag++;
 
-	  const double engyNow = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV,
-							 thisCluster -> Engy);
+	  const double engyNow = thisCluster -> Engy;
 	  const double thetaNow = thisCluster -> Theta;
 	  const double phiNow   = thisCluster -> Phi;
 	  const double rzstartNow = thisCluster -> RZStart;
@@ -435,7 +434,7 @@ std::map < int , double > snbx;
 	    const int clusterId = mapIntClusterClassIt->first;
 	    ClusterClass* thisCluster = mapIntClusterClassIt->second;
 
-	    double eneCL = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,thisCluster -> Engy);
+	    double eneCL = thisCluster->Engy;
 	    double phiCL = thisCluster -> Phi;
 	    double RZStart = thisCluster -> RZStart;
 	    double xs = RZStart*cos(phiCL);
@@ -489,7 +488,7 @@ std::map < int , double > snbx;
 	    }
 
 	    if( thisCluster -> Pdg != 0) {
-	      double Ereco = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV ,thisCluster -> Engy);
+	      double Ereco = thisCluster->Engy;
 	      streamlog_out( MESSAGE4 ) << "\tParticle Out ("
 		  << thisCluster -> OutsideReason << "):   " << clusterId << std::endl
 		  << "\t\t side(arm), pdg, parentId , NumMCDaughters = "

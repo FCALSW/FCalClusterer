@@ -168,14 +168,16 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 			   << "Number of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << "\n\n";
 #endif
 
-    if(    (( _numHitsInArm[-1] < _clusterMinNumHits) || (_totEngyArm[-1] < _minClusterEngySignal))
-	   && (( _numHitsInArm[ 1] < _clusterMinNumHits) || (_totEngyArm[ 1] < _minClusterEngySignal)) ){
+    if (((_numHitsInArm[-1] < _clusterMinNumHits) || (_totEngyArm[-1] < _minClusterEngyGeV)) &&
+        ((_numHitsInArm[1] < _clusterMinNumHits) || (_totEngyArm[1] < _minClusterEngyGeV))) {
       return 0;
     }else{ return 1; }
 }
 
 LCCollection* LumiCalClustererClass::createCaloHitCollection(LCCollection* simCaloHitCollection) const {
   streamlog_out(MESSAGE) << "Creating the CalorimeterHit collection with dummy digitization" << std::endl;
+
+  const double calibrationFactor = _gmc.getCalibrationFactor();
 
   auto caloHitCollection = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
   caloHitCollection->parameters().setValue(LCIO::CellIDEncoding,
@@ -187,7 +189,7 @@ LCCollection* LumiCalClustererClass::createCaloHitCollection(LCCollection* simCa
 
     calHit->setCellID0(simHit->getCellID0());
     calHit->setCellID1(simHit->getCellID1());
-    calHit->setEnergy(simHit->getEnergy());
+    calHit->setEnergy(simHit->getEnergy() * calibrationFactor);
     calHit->setPosition(simHit->getPosition());
 
     caloHitCollection->addElement(calHit);

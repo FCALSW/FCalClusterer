@@ -177,12 +177,12 @@ void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
   val = ( val <= GlobalParamD[PhiCellLength] ) ? val : val*M_PI/180.;
   GlobalParamD[ZLayerPhiOffset] = val; 
 
-  m_energyCalibrationFactor = _lcalRecoPars->getFloatVal("EnergyCalibConst");
+  GlobalParamD[Signal_to_GeV] = 1. / _lcalRecoPars->getFloatVal("EnergyCalibConst");
 
   // logarithmic constant for position reconstruction
   GlobalParamD[LogWeightConstant] = _lcalRecoPars->getFloatVal("LogWeigthConstant");
   
-  GlobalParamD[MinHitEnergy] = _lcalRecoPars->getFloatVal("MinHitEnergy");
+  GlobalParamD[MinHitEnergy] = toGev(_lcalRecoPars->getFloatVal("MinHitEnergy"));
   GlobalParamD[MiddleEnergyHitBoundFrac] = _lcalRecoPars->getFloatVal(  "MiddleEnergyHitBoundFrac" );
   GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal(  "ElementsPercentInShowerPeakLayer" );
   GlobalParamI[ClusterMinNumHits]   = _lcalRecoPars->getIntVal(  "ClusterMinNumHits" );
@@ -201,9 +201,7 @@ void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
 
   // minimal energy of a single cluster
   GlobalParamD[MinClusterEngyGeV] = _lcalRecoPars->getFloatVal(  "MinClusterEngy" );  // value in GeV
-  GlobalParamD[MinClusterEngySignal] = SignalGevConversion(GeV_to_Signal , GlobalParamD[MinClusterEngyGeV]); 
-  // conversion factor "detector Signal to primary particle energy"
-  GlobalParamD[Signal_to_GeV] = SignalGevConversion( Signal_to_GeV, 1. );             
+
   // hits positions weighting method 
   GlobalParamS[WeightingMethod] = _lcalRecoPars->getStringVal(  "WeightingMethod" );
   GlobalParamD[ElementsPercentInShowerPeakLayer] = _lcalRecoPars->getFloatVal("ElementsPercentInShowerPeakLayer");
@@ -220,30 +218,9 @@ void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
 
 }
 
+double GlobalMethodsClass::toSignal(double value) const { return value * getCalibrationFactor(); }
 
-/* --------------------------------------------------------------------------
-   ccccccccc
-   -------------------------------------------------------------------------- */
-double GlobalMethodsClass::SignalGevConversion( Parameter_t optName , double valNow ){
-
-#pragma message("FIXME: SignalToGeV conversion")
-  double	returnVal = -1;
-  //  const double conversionFactor(0.0105*1789/1500*(1488/1500.0));
-  //  const double conversionFactor(0.0105);
-  //const double conversionFactor(0.0105);
-
-  if(optName == GeV_to_Signal)
-    returnVal = valNow * m_energyCalibrationFactor;
-  //		returnVal = valNow * .0105 + .0013;
-
-  if(optName == Signal_to_GeV)
-    returnVal = valNow / m_energyCalibrationFactor;
-  //		returnVal = (valNow-.0013) / .0105;
-
-  return returnVal;
-}
-
-
+double GlobalMethodsClass::toGev(double value) const { return value / getCalibrationFactor(); }
 
 void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> &thetaPhiCell) {
 
@@ -298,10 +275,8 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
   case ClusterMinNumHits:                return "ClusterMinNumHits";
   case MinHitEnergy:                     return "MinHitEnergy";
   case MinClusterEngyGeV:	         return "MinClusterEngyGeV";
-  case MinClusterEngySignal:	         return "MinClusterEngySignal";
   case MiddleEnergyHitBoundFrac:         return "MiddleEnergyHitBoundFrac";
   case WeightingMethod:                  return "WeightingMethod";
-  case GeV_to_Signal:	                 return "GeV_to_Signal";
   case Signal_to_GeV:                    return "Signal_to_GeV";
   case BeamCrossingAngle:                return "BeamCrossingAngle";
   case LumiInColName:                    return "LumiInColName";
