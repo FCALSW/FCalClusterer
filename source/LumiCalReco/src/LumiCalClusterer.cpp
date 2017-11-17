@@ -57,7 +57,6 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow)
       _thetaContainmentBounds(),
       _minSeparationDistance(),
       _minClusterEngyGeV(),
-      _minClusterEngySignal(),
       _totEngyArm(),
       _numHitsInArm(),
       _mydecoder(),
@@ -106,7 +105,6 @@ void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
   // minimal separation distance and energy (of either cluster) to affect a merge
   _minSeparationDistance = gmc.GlobalParamD.at(GlobalMethodsClass::MinSeparationDist);
   _minClusterEngyGeV = gmc.GlobalParamD.at(GlobalMethodsClass::MinClusterEngyGeV);
-  _minClusterEngySignal = gmc.GlobalParamD.at(GlobalMethodsClass::MinClusterEngySignal);
 
 
   _thetaContainmentBounds[0] = gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMin);
@@ -145,7 +143,6 @@ void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
 			 << " _moliereRadius: "		            << _moliereRadius			 << std::endl
 			 << " _minSeparationDistance: "	            << _minSeparationDistance		 << std::endl
 			 << " _minClusterEngy - GeV: "	            << _minClusterEngyGeV		 << std::endl
-			 << " _minClusterEngy - Signal: "	    << _minClusterEngySignal             << std::endl
 			 << " _hitMinEnergy: "		            << _hitMinEnergy		         << std::endl
 			 << " _thetaContainmentBounds[0]: "	    << _thetaContainmentBounds[0]	 << std::endl
 			 << " _thetaContainmentBounds[1]: "	    << _thetaContainmentBounds[1]	 << std::endl

@@ -189,7 +189,7 @@ int ClusterClass::ResetStats() {
     OutsideReason = "Reconstructed outside the fiducial volume";
   }
 
-  if (Engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngySignal]) {
+  if (Engy < gmc.GlobalParamD[GlobalMethodsClass::MinClusterEngyGeV]) {
     OutsideFlag = 1;
     OutsideReason = "Cluster energy below minimum";
   }
@@ -204,7 +204,7 @@ void ClusterClass::PrintInfo(){
     << "ClusterClass Information:   " << Id << std::endl
     << std::setw(30) << "sign, engyHits, engyMC, nHits:"
     << std::setw(13) << SignMC
-    << std::setw(13) << gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , Engy)
+    << std::setw(13) << Engy
     << std::setw(13) << EngyMC
     << std::setw(13) << Hit.size() << std::endl
     << std::setw(30) << "theta mc,rec:  "

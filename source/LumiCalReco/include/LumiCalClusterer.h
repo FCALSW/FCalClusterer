@@ -86,7 +86,7 @@ protected:
   GlobalMethodsClass::WeightingMethod_t _methodCM;
   double	_moliereRadius;
   double	_thetaContainmentBounds[2];
-  double	_minSeparationDistance, _minClusterEngyGeV, _minClusterEngySignal;
+  double	_minSeparationDistance, _minClusterEngyGeV;
 
   MapIntDouble _totEngyArm;
   MapIntInt    _numHitsInArm;
