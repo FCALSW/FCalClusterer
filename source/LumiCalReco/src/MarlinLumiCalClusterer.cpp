@@ -82,12 +82,10 @@ std::map < int , double > snbx;
 			     << "\t Number of clusters: "<< LumiCalClusterer._superClusterIdToCellId[armNow].size()
 			     <<std::endl;
 
-	for( MapIntVInt::const_iterator clusterIdToCellIdIterator = LumiCalClusterer._superClusterIdToCellId[armNow].begin();
-	     clusterIdToCellIdIterator != LumiCalClusterer._superClusterIdToCellId[armNow].end();
-	     clusterIdToCellIdIterator++) {
-	  const int clusterId = clusterIdToCellIdIterator->first;
-
-	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
+        for (auto const& pairIDCells : LumiCalClusterer._superClusterIdToCellId[armNow]) {
+          const int  clusterId       = pairIDCells.first;
+          LCCluster& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
+          thisClusterInfo.recalculatePositionFromHits(gmc);
 
 	  const double clusterEnergy = gmc.SignalGevConversion(GlobalMethodsClass::Signal_to_GeV , thisClusterInfo.getE());
 	  if( clusterEnergy < _minClusterEngy ) continue;
