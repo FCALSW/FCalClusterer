@@ -39,6 +39,7 @@ public:
     NumCellsPhi,
     NumCellsZ,
     RCellLength,
+    RCellOffset,
     PhiCellLength,
     ZLayerThickness,
     ZLayerPhiOffset,
