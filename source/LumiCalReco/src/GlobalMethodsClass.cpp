@@ -461,3 +461,14 @@ GlobalMethodsClass::WeightingMethod_t GlobalMethodsClass::getMethod(std::string 
   }
   throw std::runtime_error("Unkown weighting method");
 }
+
+double GlobalMethodsClass::posWeight(double cellEngy, double totEngy, GlobalMethodsClass::WeightingMethod_t method,
+                                     double logWeightConstNow) {
+  if (method == GlobalMethodsClass::EnergyMethod)
+    return cellEngy;
+  // ???????? DECIDE/FIX - improve the log weight constants ????????
+  if (method == GlobalMethodsClass::LogMethod) {
+    return std::max(0.0, log(cellEngy / totEngy) + logWeightConstNow);
+  }
+  return -1;
+}

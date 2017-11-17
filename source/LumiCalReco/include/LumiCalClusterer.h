@@ -184,15 +184,16 @@ protected:
   int	getNeighborId( int	cellId,
 		       int	neighborIndex );
 
-  template <class T> double posWeight(T const& calHit, GlobalMethodsClass::WeightingMethod_t method);
+  template <class T> double posWeight(T const& calHit, GlobalMethodsClass::WeightingMethod_t method) const;
 
   template <class T>
-  double posWeightTrueCluster(T const& calHit, double cellEngy, GlobalMethodsClass::WeightingMethod_t method);
+  double posWeightTrueCluster(T const& calHit, double cellEngy, GlobalMethodsClass::WeightingMethod_t method) const;
 
-  template <class T> double posWeight(T const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method);
+  template <class T> double posWeight(T const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method) const;
 
   template <class T>
-  double posWeight(T const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method, double logWeightConstNow);
+  double posWeight(T const& calHit, double totEngy, GlobalMethodsClass::WeightingMethod_t method,
+                   double logWeightConstNow) const;
 
   double	distance2DPolar( double * pos1,
 				 double * pos2 );
