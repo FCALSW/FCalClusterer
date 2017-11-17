@@ -50,6 +50,9 @@ public:
 
   inline VecCalHit const& getCaloHits() const { return _caloHits; }
 
+  /// calculate the cluster position based on the caloHits associated to the cluster
+  void recalculatePositionFromHits(GlobalMethodsClass const& gmc);
+
 private:
 
   void CalculatePhi();
