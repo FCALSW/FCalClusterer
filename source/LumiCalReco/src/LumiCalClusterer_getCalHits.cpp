@@ -175,7 +175,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 }
 
 LCCollection* LumiCalClustererClass::createCaloHitCollection(LCCollection* simCaloHitCollection) const {
-  streamlog_out(MESSAGE) << "Creating the CalorimeterHit collection with dummy digitization" << std::endl;
+  streamlog_out(DEBUG7) << "Creating the CalorimeterHit collection with dummy digitization" << std::endl;
 
   const double calibrationFactor = _gmc.getCalibrationFactor();
 
