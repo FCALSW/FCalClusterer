@@ -72,15 +72,12 @@ std::map < int , double > snbx;
 
       LCCollectionVec* LCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
 
-#if _CREATE_CLUSTERS_DEBUG == 1
-      streamlog_out(DEBUG2) << " Transfering reco results to LCalClusterCollection....."<<std::endl;
-#endif 
-  
-      for(int armNow = -1; armNow < 2; armNow += 2) {
+      streamlog_out(DEBUG6) << " Transfering reco results to LCalClusterCollection....." << std::endl;
 
-        streamlog_out(DEBUG2)<<" Arm  "<< std::setw(4)<< armNow
-			     << "\t Number of clusters: "<< LumiCalClusterer._superClusterIdToCellId[armNow].size()
-			     <<std::endl;
+      for (int armNow = -1; armNow < 2; armNow += 2) {
+        streamlog_out(DEBUG6) << " Arm  " << std::setw(4) << armNow
+                              << "\t Number of clusters: " << LumiCalClusterer._superClusterIdToCellId[armNow].size()
+                              << std::endl;
 
         for (auto const& pairIDCells : LumiCalClusterer._superClusterIdToCellId[armNow]) {
           const int  clusterId       = pairIDCells.first;
@@ -271,12 +268,12 @@ std::map < int , double > snbx;
       int numCounters = OutputManager.Counter.size();
 
       if(numCounters > 0)
-	streamlog_out(DEBUG) << std::endl << "Global counters:"  << std::endl;
+        streamlog_out(DEBUG1) << std::endl << "Global counters:" << std::endl;
 
       OutputManager.CounterIterator = OutputManager.Counter.begin();
       for(int hisNow = 0; hisNow < numCounters; hisNow++ , OutputManager.CounterIterator++) {
 	std::string counterName = (std::string)(*OutputManager.CounterIterator).first;
-	streamlog_out(DEBUG) << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
+    streamlog_out(DEBUG1) << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
       }
 #endif
 
@@ -302,9 +299,7 @@ std::map < int , double > snbx;
 
     // if an !E!9exception has been thrown (no *col for this event) than do....
     catch( DataNotAvailableException &e ){
-#ifdef _LC_DEBUG
-      streamlog_out(DEBUG) << "Event " << NumEvt << " has an exception"<< std::endl;
-#endif
+      streamlog_out(DEBUG7) << "Event " << NumEvt << " has an exception" << std::endl;
     }
 
     return;
@@ -343,14 +338,12 @@ std::map < int , double > snbx;
     }
     int numOfClustersNeg =  clusterIdToCellId.at(-1).size();
     int numOfClustersPos =  clusterIdToCellId.at(1).size();
-#if _CREATE_CLUSTERS_DEBUG == 1
     if( numOfClustersNeg || numOfClustersPos ){
       streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal......."<< std::endl;
       streamlog_out(DEBUG6) << "     numOfClusters arm[-1] = "<< numOfClustersNeg << "\t arm[1] = "<< numOfClustersPos << std::endl;
     }else{
       streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal: No clusters found in this event !"<< std::endl;
     }
-#endif
     if( numOfClustersNeg || numOfClustersPos ){ 
       for(int armNow = -1; armNow < 2; armNow += 2) {
 	double EngyMax =  0.;
@@ -413,11 +406,12 @@ std::map < int , double > snbx;
 
 #if _CREATE_CLUSTERS_DEBUG == 1
       if( mcParticlesVecNeg.size() || mcParticlesVecPos.size() ) {
-	streamlog_out(MESSAGE4) << "Transfering MC information into ClusterClass objects ......  "  << std::endl;
-	streamlog_out(MESSAGE4) << "MC particles arm z-: "<< mcParticlesVecNeg.size() << "\t arm z+: "<< mcParticlesVecPos.size() << std::endl;
+        streamlog_out(DEBUG5) << "Transfering MC information into ClusterClass objects ......  " << std::endl;
+        streamlog_out(DEBUG5) << "MC particles arm z-: " << mcParticlesVecNeg.size()
+                              << "\t arm z+: " << mcParticlesVecPos.size() << std::endl;
       }else{
-	streamlog_out(MESSAGE4) << "Transfering MC information into ClusterClass objects: No primary MCParticles"
-				<< " entering LumiCal found!"  << std::endl;
+        streamlog_out(DEBUG5) << "Transfering MC information into ClusterClass objects: No primary MCParticles"
+                              << " entering LumiCal found!" << std::endl;
       }
 #endif
     
@@ -447,11 +441,11 @@ std::map < int , double > snbx;
 	      // try to match MC true particle with cluster by comparing positions at Lumical entry
 	      //	  sort( mcParticlesVec.begin(), mcParticlesVec.end(), ThetaCompAsc );
 	      sort( mcParticlesVec.begin(), mcParticlesVec.end(), PositionCompAsc );
-	      streamlog_out(DEBUG2) << "Trying to match particle: " << mcParticlesVec[0].engy << std::endl;
-	      double dTheta  = fabs( _sortAgainstThisTheta - mcParticlesVec[0].theta );
-	      double dPos0    = sqrt( ( sqr(xs - mcParticlesVec[0].x) + sqr( ys - mcParticlesVec[0].y)));
-	      streamlog_out(DEBUG4) << "RZStart " << RZStart  << std::endl;
-	      streamlog_out(DEBUG4) << "  xs, ys "
+          streamlog_out(DEBUG4) << "Trying to match particle: " << mcParticlesVec[0].engy << std::endl;
+          double dTheta = fabs(_sortAgainstThisTheta - mcParticlesVec[0].theta);
+          double dPos0  = sqrt((sqr(xs - mcParticlesVec[0].x) + sqr(ys - mcParticlesVec[0].y)));
+          streamlog_out(DEBUG4) << "RZStart " << RZStart << std::endl;
+          streamlog_out(DEBUG4) << "  xs, ys "
 				    << std::setw(13) << xs
 				    << std::setw(13) << ys  << std::endl
 				    << "MCP x, y "
@@ -489,7 +483,8 @@ std::map < int , double > snbx;
 
 	    if( thisCluster -> Pdg != 0) {
 	      double Ereco = thisCluster->Engy;
-	      streamlog_out( MESSAGE4 ) << "\tParticle Out ("
+          // clang-format off
+          streamlog_out( DEBUG6 ) << "\tParticle Out ("
 		  << thisCluster -> OutsideReason << "):   " << clusterId << std::endl
 		  << "\t\t side(arm), pdg, parentId , NumMCDaughters = "
 		  << "\t" << thisCluster -> SignMC<<"("<<armNow<<")"
@@ -513,10 +508,12 @@ std::map < int , double > snbx;
 		  << "\t"<< std::setw(13)<<thisCluster -> Theta
 		  << "\t"<< std::setw(13)<<thisCluster -> Phi
 		  << std::endl << std::endl;
-	    }else{
-	      streamlog_out( MESSAGE4 ) << "Arm: "<< armNow << "\t Cluster: " << clusterId << " does not match MC particle !\n";
-	      thisCluster->PrintInfo();
-	    }
+          // clang-format on
+
+        } else {
+          streamlog_out(DEBUG6) << "Arm: " << armNow << "\t Cluster: " << clusterId << " does not match MC particle !\n";
+          thisCluster->PrintInfo();
+	}
 
 	  } // loop over clusters
 	} // loop over arms
