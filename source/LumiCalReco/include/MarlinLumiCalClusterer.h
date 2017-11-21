@@ -16,6 +16,11 @@ namespace EVENT{
   class LCEvent;
 }
 
+namespace IMPL {
+  class ClusterImpl;
+  class ReconstructedParticleImpl;
+}
+
 typedef std::map < int , ClusterClass * > MapIntPClusterClass;
 typedef std::map < int , std::vector<int> >  MapIntVInt;
 
@@ -89,6 +94,7 @@ typedef std::map < int , std::vector<int> >  MapIntVInt;
 			 //			 std::map < int , std::map < int , LCCluster > > const& superClusterIdClusterInfo,
 			 std::map < int , MapIntPClusterClass > & clusterClassMapP,
 			 EVENT::LCEvent * evt);
+    std::tuple<ClusterImpl*, ReconstructedParticleImpl*> getLCIOObjects(LCCluster const& clusterInfo) const;
 
     inline double sqr( double a){ return a*a;};
     inline float sqr( float a){ return a*a;};
