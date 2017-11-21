@@ -24,7 +24,6 @@ class TGeoHMatrix;
 
 class GlobalMethodsClass {
 private:
-  std::string _procName;
   bool _useDD4hep;
 
 public:
@@ -80,9 +79,8 @@ public:
   typedef std::map < Parameter_t, std::string > ParametersString;
 
   GlobalMethodsClass();
-  GlobalMethodsClass( const std::string &procType );
-  GlobalMethodsClass( const GlobalMethodsClass &rhs );
-  GlobalMethodsClass& operator=( const GlobalMethodsClass &rhs );
+  GlobalMethodsClass(const GlobalMethodsClass& rhs) = delete;
+  GlobalMethodsClass& operator=(const GlobalMethodsClass& rhs) = default;
 
   virtual ~GlobalMethodsClass();
  
@@ -114,6 +112,8 @@ public:
 
   inline double getCalibrationFactor() const { return GlobalParamD.at(Signal_to_GeV); }
 
+  template <class T, class U> inline void rotateToGlobal(const T* loc, U* glob) const;
+
 private:
   void SetGeometryGear();
   bool SetGeometryDD4HEP();
@@ -121,8 +121,16 @@ private:
   const TGeoHMatrix *_forwardCalo;
   const TGeoHMatrix *_backwardCalo;
 
+  // LumiCal rotations angles ( local->Global )
+  std::map<int, double> m_armCosAngle{};
+  std::map<int, double> m_armSinAngle{};
 };
 
-
+template <class T, class U> void GlobalMethodsClass::rotateToGlobal(const T* loc, U* glob) const {
+  const int armNow = (loc[2] < 0) ? -1 : 1;
+  glob[0]          = +m_armCosAngle.at(armNow) * loc[0] + m_armSinAngle.at(armNow) * loc[2];
+  glob[1]          = loc[1];
+  glob[2]          = -m_armSinAngle.at(armNow) * loc[0] + m_armCosAngle.at(armNow) * loc[2];
+}
 
 #endif
