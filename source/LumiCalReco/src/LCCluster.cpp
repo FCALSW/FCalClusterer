@@ -72,15 +72,19 @@ void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
     _energy += calHit->getEnergy();
   }
 
+  const double rMin = gmc.GlobalParamD.at(GlobalMethodsClass::RMin);
+
   double thetaTemp(0.0), weightsTemp(0.0), xTemp(0.0), yTemp(0.0), zTemp(0.0);
   for (auto const& calHit : _caloHits) {
     const auto*  pos    = calHit->getPosition();
-    const double weight = GlobalMethodsClass::posWeight(calHit->getEnergy(), _energy, _method, logConstant);
+    const double rCell  = sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+    //cell area scales with radius, reduce weight for cells at larger radii
+    const double weight = GlobalMethodsClass::posWeight(calHit->getEnergy(), _energy, _method, logConstant) * rMin / rCell;
+
     if (not(weight > 0))
       continue;
 
-    const double r     = sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
-    const double theta = atan(r / pos[2]);
+    const double theta = atan(rCell / pos[2]);
 
     thetaTemp += theta * weight;
 
