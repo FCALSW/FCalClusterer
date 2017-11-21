@@ -16,28 +16,49 @@ using namespace streamlog;
 /* --------------------------------------------------------------------------
    This class holds information about the clusters
    -------------------------------------------------------------------------- */
-ClusterClass::ClusterClass(int idNow, GlobalMethodsClass& _gmc):
-  Id(idNow), Pdg(0), SignMC(0), ParentId(-1), NumMCDaughters(0),
-  OutsideFlag(0), MatchFlag(0), HighestEnergyFlag(0), ModifiedFlag(0),NumHits(0),
-  Engy(0.0), Theta(0.0), Phi(0.0), RZStart(0.0),
-  VtxX(0.0), VtxY(0.0), VtxZ(0.0), EndPointX(0.0), EndPointY(0.0), EndPointZ(0.0),
-  EngyMC(0.0), ThetaMC(0.0), PhiMC(0.0),
-  DiffTheta(0.), DiffPosXY(0.),
-  MergedV(0),
-  OutsideReason(""),
-  Hit(),
-  gmc(_gmc)
-{
+ClusterClass::ClusterClass(GlobalMethodsClass& _gmc, int idNow, int armNow, VInt const& cells, VDouble const& cellEnergies)
+    : Id(idNow),
+      Pdg(0),
+      SignMC(armNow),
+      ParentId(-1),
+      NumMCDaughters(0),
+      OutsideFlag(0),
+      MatchFlag(0),
+      HighestEnergyFlag(0),
+      ModifiedFlag(0),
+      NumHits(0),
+      Engy(0.0),
+      Theta(0.0),
+      Phi(0.0),
+      RZStart(0.0),
+      VtxX(0.0),
+      VtxY(0.0),
+      VtxZ(0.0),
+      EndPointX(0.0),
+      EndPointY(0.0),
+      EndPointZ(0.0),
+      EngyMC(0.0),
+      ThetaMC(0.0),
+      PhiMC(0.0),
+      DiffTheta(0.),
+      DiffPosXY(0.),
+      MergedV(0),
+      OutsideReason(""),
+      Hit(),
+      gmc(_gmc) {
+  int cellNow = 0;
+  for (VInt::const_iterator cellIt = cells.begin(); cellIt != cells.end(); ++cellIt, ++cellNow) {
+    FillHit(*cellIt, cellEnergies.at(cellNow));  //Adds to Engy!
+  }
+
   clusterPosition[0] = 0.0;
   clusterPosition[1] = 0.0;
   clusterPosition[2] = 0.0;
   mcpPosition[0] = 0.0;
   mcpPosition[1] = 0.0;
   mcpPosition[2] = 0.0;
-}
 
-ClusterClass::~ClusterClass() {
-
+  ResetStats();  // calculate energy, position for the cluster
 }
 
 void ClusterClass::SetStatsMC(EVENT::MCParticle * mcParticle) {
