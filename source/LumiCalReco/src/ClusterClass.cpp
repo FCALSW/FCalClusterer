@@ -170,23 +170,25 @@ int ClusterClass::ResetStats() {
   }
 
   const double logConstant(gmc.GlobalParamD[GlobalMethodsClass::LogWeightConstant]);
+  const double rMin(gmc.GlobalParamD[GlobalMethodsClass::RMin]);
+
   double       xtemp(0.0), ytemp(0.0), ztemp(0.0), thetaSum(0.0), weightSum(0.0);
   std::map<GlobalMethodsClass::Coordinate_t, double> thetaPhiCellV;
 
   for (auto const& pairIDEng : Hit) {
+    const int cellId = pairIDEng.first;
+    gmc.ThetaPhiCell(cellId, thetaPhiCellV);
+    const double phi   = thetaPhiCellV[GlobalMethodsClass::COPhi];
+    const double rcell = thetaPhiCellV[GlobalMethodsClass::COR];
+
     const double weightNow =
-        GlobalMethodsClass::posWeight(pairIDEng.second, Engy, GlobalMethodsClass::LogMethod, logConstant);
+        GlobalMethodsClass::posWeight(pairIDEng.second, Engy, GlobalMethodsClass::LogMethod, logConstant) * rMin / rcell;
 
     if (not(weightNow > 0))
       continue;
 
-    const int cellId = pairIDEng.first;
-    gmc.ThetaPhiCell(cellId, thetaPhiCellV);
-
     weightSum += weightNow;
     thetaSum  += thetaPhiCellV[GlobalMethodsClass::COTheta] * weightNow;
-    const double phi = thetaPhiCellV[GlobalMethodsClass::COPhi];
-    const double rcell = thetaPhiCellV[GlobalMethodsClass::COR];
     xtemp += rcell*cos(phi) * weightNow;
     ytemp += rcell*sin(phi) * weightNow;
     ztemp += thetaPhiCellV[GlobalMethodsClass::COZ] * weightNow;
