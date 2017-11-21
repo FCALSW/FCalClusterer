@@ -80,84 +80,88 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
       delete LCalClusterCol;
       delete LCalRPCol;
     }
- 
 
-// (BP) this is optional
-// empty string OutRootFileName in steering file
+    //Optionally write information to ROOT tree
+    writeRootInfo(evt);
 
-      if ( OutRootFileName != "" ) {
-        // instantiate a clusterClass object for each mcParticle which was
-        // created infront of LumiCal and was destroyed after lumical.
-        std::map<int, MapIntPClusterClass> clusterClassMap;
+  }  // try
 
-	CreateClusters( LumiCalClusterer._superClusterIdToCellId,
-			LumiCalClusterer._superClusterIdToCellEngy,
-			clusterClassMap,
-			evt );
-      
-      /* --------------------------------------------------------------------------
-	 histograming
-	 -------------------------------------------------------------------------- */
+  // if an !E!9exception has been thrown (no *col for this event) than do....
+  catch (DataNotAvailableException& e) {
+    streamlog_out(DEBUG7) << "Event " << NumEvt << " has an exception" << std::endl;
+  }
 
-     for(int armNow = -1; armNow < 2; armNow += 2) {
-	double totEngyIn = 0.;
-	double totEngyOut= 0.;
+  return;
+}
 
-	for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
-	     mapIntClusterClassIt != clusterClassMap[armNow].end();
-	     ++mapIntClusterClassIt) {
+void MarlinLumiCalClusterer::writeRootInfo(LCEvent* evt) {
+  if (OutRootFileName == "")
+    return;
 
-	  ClusterClass* thisCluster = mapIntClusterClassIt->second;
-	  const double engyNow  = thisCluster->Engy;
-	  const double thetaNow = thisCluster -> Theta;
-	  // highest energy RecoParticle
-	  if(thisCluster->HighestEnergyFlag == 1){
-	    OutputManager.HisMap1D["higestEngyParticle_Engy"] -> Fill (engyNow);
-	    OutputManager.HisMap1D["higestEngyParticle_Theta"] -> Fill (thetaNow);
-	  }
-	  if(thisCluster->OutsideFlag == 1){
-	    // beyond acceptance ( energy and/or fid. vol.
-	    bool reason = (thisCluster->OutsideReason == "Reconstructed outside the fiducial volume" );
-	         reason = ( reason || ( thisCluster->OutsideReason == "Cluster energy below minimum" ) );
+  // instantiate a clusterClass object for each mcParticle which was
+  // created infront of LumiCal and was destroyed after lumical.
+  std::map<int, MapIntPClusterClass> clusterClassMap;
 
-	    if( reason ) {
-	      OutputManager.HisMap2D["thetaEnergyOut_DepositedEngy"] -> Fill (engyNow , thetaNow);
-	    }
-	    totEngyOut += engyNow;
-	  }else{ 
-	    // accepted
-	    totEngyIn += engyNow;
-	  }
-	}
-	// total energy inside LumiCal
-	 if(totEngyIn > 0) {
-	   OutputManager.HisMap1D["totEnergyIn"] -> Fill (totEngyIn);
-	 }
-	 if(totEngyOut > 0) {
-	   OutputManager.HisMap1D["totEnergyOut"] -> Fill (totEngyOut);
-	 }
+  CreateClusters(LumiCalClusterer._superClusterIdToCellId, LumiCalClusterer._superClusterIdToCellEngy, clusterClassMap, evt);
+
+  /* --------------------------------------------------------------------------
+     histograming
+     -------------------------------------------------------------------------- */
+
+  for (int armNow = -1; armNow < 2; armNow += 2) {
+    double totEngyIn  = 0.;
+    double totEngyOut = 0.;
+
+    for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
+         mapIntClusterClassIt != clusterClassMap[armNow].end(); ++mapIntClusterClassIt) {
+      ClusterClass* thisCluster = mapIntClusterClassIt->second;
+      const double  engyNow     = thisCluster->Engy;
+      const double  thetaNow    = thisCluster->Theta;
+      // highest energy RecoParticle
+      if (thisCluster->HighestEnergyFlag == 1) {
+        OutputManager.HisMap1D["higestEngyParticle_Engy"]->Fill(engyNow);
+        OutputManager.HisMap1D["higestEngyParticle_Theta"]->Fill(thetaNow);
       }
+      if (thisCluster->OutsideFlag == 1) {
+        // beyond acceptance ( energy and/or fid. vol.
+        bool reason = (thisCluster->OutsideReason == "Reconstructed outside the fiducial volume");
+        reason      = (reason || (thisCluster->OutsideReason == "Cluster energy below minimum"));
 
+        if (reason) {
+          OutputManager.HisMap2D["thetaEnergyOut_DepositedEngy"]->Fill(engyNow, thetaNow);
+        }
+        totEngyOut += engyNow;
+      } else {
+        // accepted
+        totEngyIn += engyNow;
+      }
+    }
+    // total energy inside LumiCal
+    if (totEngyIn > 0) {
+      OutputManager.HisMap1D["totEnergyIn"]->Fill(totEngyIn);
+    }
+    if (totEngyOut > 0) {
+      OutputManager.HisMap1D["totEnergyOut"]->Fill(totEngyOut);
+    }
+  }
 
-      /* --------------------------------------------------------------------------
-	 write criteria for selection cuts for Bhabha events into a tree
-	 -------------------------------------------------------------------------- */
-      int	clusterInFlag = 0;
-      for(int armNow = -1; armNow < 2; armNow += 2) {
+  /* --------------------------------------------------------------------------
+     write criteria for selection cuts for Bhabha events into a tree
+     -------------------------------------------------------------------------- */
+  int clusterInFlag = 0;
+  for (int armNow = -1; armNow < 2; armNow += 2) {
+    for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
+         mapIntClusterClassIt != clusterClassMap[armNow].end(); ++mapIntClusterClassIt) {
+      ClusterClass* thisCluster = mapIntClusterClassIt->second;
 
-	for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
-	     mapIntClusterClassIt != clusterClassMap[armNow].end();
-	     ++mapIntClusterClassIt) {
+      if (thisCluster->OutsideFlag == 1)
+        continue;
+      // only take into account the highest-energy particle in the arm
+      // (by default this means that this particle's shower is contained)
+      //	  if(thisCluster->HighestEnergyFlag == 0)	continue;
+      clusterInFlag++;
 
-	  ClusterClass* thisCluster = mapIntClusterClassIt->second;
-
-	  if(thisCluster->OutsideFlag == 1)	continue;
-	  // only take into account the highest-energy particle in the arm
-	  // (by default this means that this particle's shower is contained)
-	  //	  if(thisCluster->HighestEnergyFlag == 0)	continue;
-	  clusterInFlag++;
-
-	  //(BP) compute x,y,z in global reference system
+      //(BP) compute x,y,z in global reference system
       double globPos[] = {0.0, 0.0, 0.0};
       gmc.rotateToGlobal(thisCluster->getPosition(), globPos);
       //-------------
@@ -181,51 +185,40 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
       //--
       OutputManager.FillRootTree("LumiRecoParticleTree");
     }
-      }
+  }
 
-      storeMCParticleInfo( evt, clusterInFlag );
+  storeMCParticleInfo(evt, clusterInFlag);
 
 #if _GLOBAL_COUNTERS_UPDATE_DEBUG == 1
-      // write out the counter map
-      int numCounters = OutputManager.Counter.size();
+  // write out the counter map
+  int numCounters = OutputManager.Counter.size();
 
-      if(numCounters > 0)
-        streamlog_out(DEBUG1) << std::endl << "Global counters:" << std::endl;
+  if (numCounters > 0)
+    streamlog_out(DEBUG1) << std::endl << "Global counters:" << std::endl;
 
-      OutputManager.CounterIterator = OutputManager.Counter.begin();
-      for(int hisNow = 0; hisNow < numCounters; hisNow++ , OutputManager.CounterIterator++) {
-	std::string counterName = (std::string)(*OutputManager.CounterIterator).first;
+  OutputManager.CounterIterator = OutputManager.Counter.begin();
+  for (int hisNow = 0; hisNow < numCounters; hisNow++, OutputManager.CounterIterator++) {
+    std::string counterName = (std::string)(*OutputManager.CounterIterator).first;
     streamlog_out(DEBUG1) << "\t" << OutputManager.Counter[counterName] << "  \t <->  " << counterName << std::endl;
-      }
+  }
 #endif
 
-     /* --------------------------------------------------------------------------
-	 write to the root tree
-	 -------------------------------------------------------------------------- */
-      OutputManager.WriteToRootTree("" , NumEvt);
+  /* --------------------------------------------------------------------------
+     write to the root tree
+     -------------------------------------------------------------------------- */
+  OutputManager.WriteToRootTree("", NumEvt);
 
-      /* --------------------------------------------------------------------------
-	 clean ClusterClassMap
-	 -------------------------------------------------------------------------- */
-      for(int armNow = -1; armNow < 2; armNow += 2) {
-	for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
-	     mapIntClusterClassIt != clusterClassMap[armNow].end();
-	     ++mapIntClusterClassIt) {
-	  delete mapIntClusterClassIt->second;
-	  mapIntClusterClassIt->second = NULL;
-	}
-      }
- } // if ( _Lumi_Control_Out )
-
-    } // try
-
-    // if an !E!9exception has been thrown (no *col for this event) than do....
-    catch( DataNotAvailableException &e ){
-      streamlog_out(DEBUG7) << "Event " << NumEvt << " has an exception" << std::endl;
+  /* --------------------------------------------------------------------------
+     clean ClusterClassMap
+     -------------------------------------------------------------------------- */
+  for (int armNow = -1; armNow < 2; armNow += 2) {
+    for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
+         mapIntClusterClassIt != clusterClassMap[armNow].end(); ++mapIntClusterClassIt) {
+      delete mapIntClusterClassIt->second;
+      mapIntClusterClassIt->second = NULL;
     }
-
-    return;
   }
+}  // WriteRootInfo
 
 void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterIdToCellId,
                                             MapIntMapIntVDouble const& cellIdToCellEngy,
