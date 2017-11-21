@@ -42,9 +42,6 @@ bool PositionCompAsc( MCInfo a, MCInfo b ){
   double dyb = ( _sortAgainstThisY - b.y);
   return (dxa*dxa+dya*dya) < (dxb*dxb+dyb*dyb)  ;
 }
-// LumiCal rotations angles ( local->Global )
-std::map < int , double > csbx;
-std::map < int , double > snbx;
 /*------------------------------------------------------------------------------------------*/
   void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(  EVENT::LCEvent * evt  ){
 
@@ -55,10 +52,6 @@ std::map < int , double > snbx;
       double ThetaTol = (gmc.GlobalParamD[GlobalMethodsClass::ThetaMax] - gmc.GlobalParamD[GlobalMethodsClass::ThetaMin])/2.;
 
 
-      csbx[-1] = cos( - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-      csbx[ 1] = cos( gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-      snbx[-1] = sin( - gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
-      snbx[ 1] = sin( gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle]/2.);
       /* --------------------------------------------------------------------------
 	 create clusters using: LumiCalClustererClass
 	 -------------------------------------------------------------------------- */
@@ -92,36 +85,32 @@ std::map < int , double > snbx;
             const double clusterTheta = thisClusterInfo.getTheta();
             if( fabs ( clusterTheta - ThetaMid ) >  ThetaTol ) continue;
           }
- 
-	  const float  xloc =  float(thisClusterInfo.getX());
-          const float  yloc =  float(thisClusterInfo.getY());
-          const float  zloc =  float(thisClusterInfo.getZ());
 
-	  ClusterImpl* cluster = new ClusterImpl;
-	  cluster->setEnergy( clusterEnergy );
+          const float locPos[3] = {float(thisClusterInfo.getX()), float(thisClusterInfo.getY()),
+                                   float(thisClusterInfo.getZ())};
 
-	  ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
-	  const float mass = 0.0;
-	  const float charge = 1e+19;
-	  particle->setMass( mass ) ;
-	  particle->setCharge( charge ) ;
-	  particle->setEnergy ( clusterEnergy ) ;
-	  particle->addCluster( cluster ) ;
+          ClusterImpl* cluster = new ClusterImpl;
+          cluster->setEnergy(clusterEnergy);
 
-	  const float gP[] = { float(  csbx[ armNow ]*xloc + snbx[ armNow ]*zloc ),
-			       float(  yloc ),
-			       float( -snbx[ armNow ]*xloc + csbx[ armNow ]*zloc )};
-	  cluster->setPosition( gP );
+          ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
+          const float                mass     = 0.0;
+          const float                charge   = 1e+19;
+          particle->setMass(mass);
+          particle->setCharge(charge);
+          particle->setEnergy(clusterEnergy);
+          particle->addCluster(cluster);
 
-	  const float norm = sqrt( gP[0]*gP[0] + gP[1]*gP[1] + gP[2]*gP[2] );
-	  const float clusterMomentum[3] =  { float(gP[0]/norm * clusterEnergy),
-					      float(gP[1]/norm * clusterEnergy),
-					      float(gP[2]/norm * clusterEnergy) };
-	  particle->setMomentum ( clusterMomentum) ;
-      for (auto& lumicalHit : thisClusterInfo.getCaloHits()) {
-        for (auto* hit : lumicalHit->getHits()) {
-          cluster->addHit(hit, 1.0);
-        }
+          float gP[3] = {0.0, 0.0, 0.0};
+          gmc.rotateToGlobal(locPos, gP);
+          cluster->setPosition(gP);
+
+          const float norm               = clusterEnergy / sqrt(gP[0] * gP[0] + gP[1] * gP[1] + gP[2] * gP[2]);
+          const float clusterMomentum[3] = {float(gP[0] * norm), float(gP[1] * norm), float(gP[2] * norm)};
+          particle->setMomentum(clusterMomentum);
+          for (auto& lumicalHit : thisClusterInfo.getCaloHits()) {
+            for (auto* hit : lumicalHit->getHits()) {
+              cluster->addHit(hit, 1.0);
+            }
       }
       cluster->subdetectorEnergies().resize(6);
       //LCAL_INDEX=3 in DDPFOCreator.hh
@@ -182,10 +171,6 @@ std::map < int , double > snbx;
 
 	    if( reason ) {
 	      OutputManager.HisMap2D["thetaEnergyOut_DepositedEngy"] -> Fill (engyNow , thetaNow);
-	      //	    } else {
-	      // EngyMC/ThetaMC is nowhere set (?) (BP)
-	      // engyNow  = thisCluster -> EngyMC;
-	      // thetaNow = thisCluster -> ThetaMC;
 	    }
 	    totEngyOut += engyNow;
 	  }else{ 
@@ -221,44 +206,30 @@ std::map < int , double > snbx;
 	  //	  if(thisCluster->HighestEnergyFlag == 0)	continue;
 	  clusterInFlag++;
 
-	  const double engyNow = thisCluster -> Engy;
-	  const double thetaNow = thisCluster -> Theta;
-	  const double phiNow   = thisCluster -> Phi;
-	  const double rzstartNow = thisCluster -> RZStart;
-
 	  //(BP) compute x,y,z in global reference system
-	  double xloc = rzstartNow * cos(phiNow);
-	  double yloc = rzstartNow * sin(phiNow);
-	  double zloc = rzstartNow / tan ( thetaNow );
-	  double xglob = xloc*csbx[armNow] + zloc*snbx[armNow];
-	  double yglob = yloc;
-	  double zglob =-xloc*snbx[armNow] + zloc*csbx[armNow];
-	  //	  thetaNow = atan( sqrt( sqr(xglob) + sqr(yglob) )/fabs(zglob) );
-	  int mFlag = thisCluster->Pdg;
-	  int nHits = thisCluster->NumHits;
-	  int highE = thisCluster->HighestEnergyFlag;
-	  //-------------
-	  OutputManager.TreeIntV["nEvt"]	= NumEvt;
-	  OutputManager.TreeIntV["outFlag"]	= thisCluster->OutsideFlag;
-	  OutputManager.TreeIntV["mFlag"]	= mFlag;
-	  OutputManager.TreeIntV["highE"]	= highE;
-	  OutputManager.TreeIntV["sign"]	= armNow;
-	  OutputManager.TreeIntV["nHits"]	= nHits;
-	  OutputManager.TreeDoubleV["distTheta"]= thisCluster->DiffTheta;
-	  OutputManager.TreeDoubleV["distXY"]   = thisCluster->DiffPosXY;
-	  OutputManager.TreeDoubleV["engy"]	= engyNow;
-	  OutputManager.TreeDoubleV["theta"]	= thetaNow;
-	  OutputManager.TreeDoubleV["engyMC"]	= thisCluster->EngyMC;
-	  OutputManager.TreeDoubleV["thetaMC"]	= thisCluster->ThetaMC;
-	  OutputManager.TreeDoubleV["phi"]	= phiNow;
-	  OutputManager.TreeDoubleV["rzStart"]	= rzstartNow;
-	  // position at Zstart
-	  OutputManager.TreeDoubleV["Xglob"]    = xglob;
-	  OutputManager.TreeDoubleV["Yglob"]    = yglob;
-	  OutputManager.TreeDoubleV["Zglob"]    = zglob;
-	  //--
-	  OutputManager.FillRootTree("LumiRecoParticleTree");
-	}
+      double globPos[] = {0.0, 0.0, 0.0};
+      gmc.rotateToGlobal(thisCluster->getPosition(), globPos);
+      //-------------
+      OutputManager.TreeIntV["nEvt"]         = NumEvt;
+      OutputManager.TreeIntV["outFlag"]      = thisCluster->OutsideFlag;
+      OutputManager.TreeIntV["mFlag"]        = thisCluster->Pdg;
+      OutputManager.TreeIntV["highE"]        = thisCluster->HighestEnergyFlag;
+      OutputManager.TreeIntV["sign"]         = armNow;
+      OutputManager.TreeIntV["nHits"]        = thisCluster->NumHits;
+      OutputManager.TreeDoubleV["distTheta"] = thisCluster->DiffTheta;
+      OutputManager.TreeDoubleV["distXY"]    = thisCluster->DiffPosXY;
+      OutputManager.TreeDoubleV["engy"]      = thisCluster->Engy;
+      OutputManager.TreeDoubleV["theta"]     = thisCluster->Theta;
+      OutputManager.TreeDoubleV["engyMC"]    = thisCluster->EngyMC;
+      OutputManager.TreeDoubleV["thetaMC"]   = thisCluster->ThetaMC;
+      OutputManager.TreeDoubleV["phi"]       = thisCluster->Phi;
+      OutputManager.TreeDoubleV["rzStart"]   = thisCluster->RZStart;
+      OutputManager.TreeDoubleV["Xglob"]     = globPos[0];
+      OutputManager.TreeDoubleV["Yglob"]     = globPos[1];
+      OutputManager.TreeDoubleV["Zglob"]     = globPos[2];
+      //--
+      OutputManager.FillRootTree("LumiRecoParticleTree");
+    }
       }
 
       storeMCParticleInfo( evt, clusterInFlag );

@@ -38,7 +38,6 @@ bool convert(std::string input, T &value) {
 }
 
 GlobalMethodsClass :: GlobalMethodsClass() :
-  _procName( "MarlinLumiCalClusterer" ),
   _useDD4hep(false),
   _backwardRotationPhi(0.0),
   GlobalParamI(),
@@ -48,44 +47,6 @@ GlobalMethodsClass :: GlobalMethodsClass() :
   _backwardCalo(NULL)
 {
 }
-GlobalMethodsClass :: GlobalMethodsClass(const std::string &name) :
-  _procName( name ),
-  _useDD4hep(false),
-  _backwardRotationPhi(0.0),
-  GlobalParamI(),
-  GlobalParamD(),
-  GlobalParamS(),
-  _forwardCalo(NULL),
-  _backwardCalo(NULL)
-{
-}
-
-
-GlobalMethodsClass::GlobalMethodsClass( const GlobalMethodsClass &rhs ):
-  _procName( rhs._procName ),
-  _useDD4hep(rhs._useDD4hep),
-  _backwardRotationPhi(rhs._backwardRotationPhi),
-  GlobalParamI( rhs.GlobalParamI ),
-  GlobalParamD( rhs.GlobalParamD ),
-  GlobalParamS( rhs.GlobalParamS ),
-  _forwardCalo( rhs._forwardCalo ),
-  _backwardCalo( rhs._backwardCalo )
-{
-}
-
-GlobalMethodsClass& GlobalMethodsClass::operator=( const GlobalMethodsClass &rhs ){
-  _procName = rhs._procName;
-  _useDD4hep = rhs._useDD4hep;
-  _backwardRotationPhi = rhs._backwardRotationPhi,
-  GlobalParamI = rhs.GlobalParamI;
-  GlobalParamD = rhs.GlobalParamD;
-  GlobalParamS = rhs.GlobalParamS;
-  _forwardCalo = rhs._forwardCalo;
-  _backwardCalo = rhs._backwardCalo;
-
-  return *this;
-}
-
 
 GlobalMethodsClass :: ~GlobalMethodsClass(){
 }
@@ -215,7 +176,10 @@ void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
   GlobalParamD[BetaGamma] = beta;
   GlobalParamD[Gamma] = sqrt( 1. + beta*beta );
 
-
+  m_armCosAngle[-1] = cos(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armCosAngle[1]  = cos(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armSinAngle[-1] = sin(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armSinAngle[1]  = sin(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
 }
 
 double GlobalMethodsClass::toSignal(double value) const { return value * getCalibrationFactor(); }
