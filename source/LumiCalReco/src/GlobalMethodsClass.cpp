@@ -202,7 +202,8 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
   // phi
   //(BP) use phiCell size and account for possible layers relative offset/stagger
   // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]) + double( cellIdZ % 2 ) * GlobalParamD[;
-  double phiCell   = (double(cellIdPhi) + .0) * GlobalParamD[PhiCellLength] + double( (cellIdZ) % 2 ) * GlobalParamD[ZLayerPhiOffset];
+  double phiCell = (double(cellIdPhi)) * GlobalParamD[PhiCellLength] +
+                   double((cellIdZ) % 2) * GlobalParamD[ZLayerPhiOffset] + GlobalParamD[PhiCellOffset];
   phiCell = ( phiCell > M_PI ) ? phiCell-2.*M_PI : phiCell;
   // fill output container
   thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;
@@ -226,6 +227,7 @@ std::string GlobalMethodsClass::GetParameterName ( Parameter_t par ){
   case RCellLength:	                 return "RCellLength";
   case RCellOffset:	                 return "RCellOffset";
   case PhiCellLength:	                 return "PhiCellLength";
+  case PhiCellOffset:	                 return "PhiCellOffset";
   case ZLayerThickness:	                 return "ZLayerThickness";
   case ZLayerPhiOffset:	                 return "ZLayerPhiOffset";
   case ZLayerZOffset:	                 return "ZLayerZOffset";
@@ -294,6 +296,7 @@ void GlobalMethodsClass::SetGeometryGear() {
   GlobalParamD[RCellLength]   = _lcalGearPars.getLayerLayout().getCellSize0(0);
   GlobalParamD[RCellOffset]   = 0.0;
   GlobalParamD[PhiCellLength] = _lcalGearPars.getLayerLayout().getCellSize1(0);
+  GlobalParamD[PhiCellOffset] = 0.0;
   GlobalParamI[NumCellsR]   = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
   GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
   GlobalParamI[NumCellsZ] = _lcalGearPars.getLayerLayout().getNLayers();
@@ -335,6 +338,7 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   ParDou* rPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_r"));
   ParDou* rOff = dynamic_cast<ParDou*>(readout.segmentation()->parameter("offset_r"));
   ParDou* pPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_phi"));
+  ParDou* pOff = dynamic_cast<ParDou*>(readout.segmentation()->parameter("offset_phi"));
 
   if (rPar == NULL or pPar == NULL ) {
     throw std::runtime_error( "Could not obtain parameters from segmentation" );
@@ -343,6 +347,7 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   GlobalParamD[RCellLength]   = rPar->typedValue()/dd4hep::mm;
   GlobalParamD[RCellOffset]   = 0.5 * GlobalParamD[RCellLength] + GlobalParamD[RMin] - rOff->typedValue() / dd4hep::mm;
   GlobalParamD[PhiCellLength] = pPar->typedValue()/dd4hep::radian;
+  GlobalParamD[PhiCellOffset] = pOff->typedValue() / dd4hep::radian;
   GlobalParamI[NumCellsR]     = (int)( (GlobalParamD[RMax]-GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
   GlobalParamI[NumCellsPhi]   = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
   GlobalParamI[NumCellsZ]     = layers.size();
