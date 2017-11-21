@@ -20,28 +20,21 @@
 #include <vector>
 #include <iomanip>
 
+/* >> */
 
-/* >> */ 
-
-/* -----------------------------------------------------------------------------------------*/
-// (BP) defs for sorting
-
-double _sortAgainstThisTheta;
-double _sortAgainstThisX;
-double _sortAgainstThisY;
-
-// variable _sortAgainstThisTheta must be set before sorting 
-bool ThetaCompAsc( MCInfo a, MCInfo b ){
-  return fabs( _sortAgainstThisTheta - a.theta) < fabs( _sortAgainstThisTheta -b.theta) ;
+/// use std::bind to set first variable and use in std::sort
+bool ThetaCompAsc(const double sortTheta, const MCInfo& a, const MCInfo& b) {
+  return fabs(sortTheta - a.theta) < fabs(sortTheta - b.theta);
 }
 
-bool PositionCompAsc( MCInfo a, MCInfo b ){
-  double dxa = ( _sortAgainstThisX - a.x);
-  double dya = ( _sortAgainstThisY - a.y);
-  double dxb = ( _sortAgainstThisX - b.x);
-  double dyb = ( _sortAgainstThisY - b.y);
+bool PositionCompAsc(const double sortAgainstX, const double sortAgainstY, const MCInfo& a, const MCInfo& b) {
+  double dxa = (sortAgainstX - a.x);
+  double dya = (sortAgainstY - a.y);
+  double dxb = (sortAgainstX - b.x);
+  double dyb = (sortAgainstY - b.y);
   return (dxa*dxa+dya*dya) < (dxb*dxb+dyb*dyb)  ;
 }
+
 /*------------------------------------------------------------------------------------------*/
 void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
   try {
@@ -234,15 +227,9 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
     return;
   }
 
-
-
-
-  void MarlinLumiCalClusterer::CreateClusters(	std::map < int , std::map < int , std::vector<int> > > const& clusterIdToCellId,
-						std::map < int , std::map < int , std::vector<double> > > const& cellIdToCellEngy,
-						std::map < int, MapIntPClusterClass > & clusterClassMap,
-						EVENT::LCEvent * evt ) {
-
-
+  void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterIdToCellId,
+                                              MapIntMapIntVDouble const& cellIdToCellEngy,
+                                              std::map<int, MapIntPClusterClass>& clusterClassMap, EVENT::LCEvent* evt) {
     std::vector < MCInfo > mcParticlesVecPos;
     std::vector < MCInfo > mcParticlesVecNeg;
 
@@ -282,28 +269,14 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
 	       clusterIdToCellIdIterator++){
 	  const int clusterId = clusterIdToCellIdIterator->first;
 	  // create a new cluster and put it on map
-	  clusterClassMap[armNow][clusterId] = new ClusterClass(clusterId, gmc);
-	  ClusterClass* thisCluster = clusterClassMap[armNow][clusterId];
-	  thisCluster->SignMC = armNow;
+      ClusterClass* thisCluster = clusterClassMap[armNow][clusterId] = new ClusterClass(
+          gmc, clusterId, armNow, clusterIdToCellIdIterator->second, cellIdToCellEngy.at(armNow).at(clusterId));
+      if (thisCluster->Engy > EngyMax) {
+        EngyMax   = thisCluster->Engy;
+        EngyMaxID = clusterId;
+      }
 
-	  double engySum = 0.;
-	  int cellNow=0;
-	  for(std::vector<int>::const_iterator cellIt = clusterIdToCellIdIterator->second.begin();
-	      cellIt != clusterIdToCellIdIterator->second.end();
-	      ++cellIt, ++cellNow) {
-	    const int cellId = *cellIt;
-	    double engyHit = cellIdToCellEngy.at(armNow).at(clusterId).at(cellNow);
-	    thisCluster->FillHit(cellId , engyHit);
-	    engySum += engyHit;
-	  }
-	  if( engySum > EngyMax ) {
-	    EngyMax   = engySum;
-	    EngyMaxID = clusterId;
-	  }
-	
-	  thisCluster->ResetStats(); // calculate energy, position for the cluster
-	
-	  LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
+      LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
 	  streamlog_out(DEBUG6) << "arm =   " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl
 				<< std::setw(20) << "X, Y, Z:" << std::endl
 				<< std::setw(20) << "ClusterClass"
@@ -357,21 +330,18 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
 	    const int clusterId = mapIntClusterClassIt->first;
 	    ClusterClass* thisCluster = mapIntClusterClassIt->second;
 
-	    double eneCL = thisCluster->Engy;
-	    double phiCL = thisCluster -> Phi;
 	    double RZStart = thisCluster -> RZStart;
-	    double xs = RZStart*cos(phiCL);
-	    double ys = RZStart*sin(phiCL);
-	    _sortAgainstThisX = xs;
-	    _sortAgainstThisY = ys;
-	    _sortAgainstThisTheta = thisCluster -> Theta;
+        double xs      = RZStart * cos(thisCluster->Phi);
+        double ys      = RZStart * sin(thisCluster->Phi);
 
-	    if( mcParticlesVec.size() ){
-	      // try to match MC true particle with cluster by comparing positions at Lumical entry
-	      //	  sort( mcParticlesVec.begin(), mcParticlesVec.end(), ThetaCompAsc );
-	      sort( mcParticlesVec.begin(), mcParticlesVec.end(), PositionCompAsc );
+        using namespace std::placeholders;  //_1, _2
+        if (mcParticlesVec.size()) {
+          // try to match MC true particle with cluster by comparing positions at Lumical entry
+          // sort(mcParticlesVec.begin(), mcParticlesVec.end(),
+          //      std::bind(BindThetaCompAsc, thisCluster->Theta, _1, _2));
+          sort(mcParticlesVec.begin(), mcParticlesVec.end(), std::bind(PositionCompAsc, xs, ys, _1, _2));
           streamlog_out(DEBUG4) << "Trying to match particle: " << mcParticlesVec[0].engy << std::endl;
-          double dTheta = fabs(_sortAgainstThisTheta - mcParticlesVec[0].theta);
+          double dTheta = fabs(thisCluster->Theta - mcParticlesVec[0].theta);
           double dPos0  = sqrt((sqr(xs - mcParticlesVec[0].x) + sqr(ys - mcParticlesVec[0].y)));
           streamlog_out(DEBUG4) << "RZStart " << RZStart << std::endl;
           streamlog_out(DEBUG4) << "  xs, ys "
@@ -382,19 +352,17 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
 				    << std::setw(13) << mcParticlesVec[0].y
 				    << std::endl;
 
-	      double dEne0    = fabs( mcParticlesVec[0].engy - eneCL);
-	      streamlog_out(DEBUG4) << " dTheta " << std::setw(13) << dTheta
-				    << " dPos0 "  << std::setw(13) << dPos0
-				    << " dEne0 "  << std::setw(13) << dEne0
-				    << std::endl;
+          double dEne0 = fabs(mcParticlesVec[0].engy - thisCluster->Engy);
+          streamlog_out(DEBUG4) << " dTheta " << std::setw(13) << dTheta << " dPos0 " << std::setw(13) << dPos0 << " dEne0 "
+                                << std::setw(13) << dEne0 << std::endl;
 
-	      thisCluster -> DiffTheta = dTheta;
-	      if( mcParticlesVec.size() > 1 ) {
+          thisCluster->DiffTheta = dTheta;
+          if( mcParticlesVec.size() > 1 ) {
 		double dPos1    = sqrt( ( sqr(xs - mcParticlesVec[1].x) + sqr( ys - mcParticlesVec[1].y)));
-                double dEne1    = fabs( mcParticlesVec[1].engy - eneCL);
-		if( dPos1 <  gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0 ) {
-		  thisCluster->SetStatsMC( mcParticlesVec[1].mcp );
-		  thisCluster -> DiffPosXY = dPos1;
+        double dEne1    = fabs(mcParticlesVec[1].engy - thisCluster->Engy);
+        if (dPos1 < gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0) {
+          thisCluster->SetStatsMC(mcParticlesVec[1].mcp);
+          thisCluster -> DiffPosXY = dPos1;
 		  mcParticlesVec.erase( mcParticlesVec.begin()+1 ); 
 		}else{
 		  thisCluster->SetStatsMC( mcParticlesVec[0].mcp );

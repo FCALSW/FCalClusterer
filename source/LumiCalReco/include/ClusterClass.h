@@ -17,8 +17,8 @@ namespace EVENT {
 class ClusterClass {
 
 public:
-  ClusterClass(int idNow, GlobalMethodsClass& gmc);
-  ~ClusterClass();
+  ClusterClass(GlobalMethodsClass& gmc, int idNow, int armNow, VInt const& cells, VDouble const& cellEnergies);
+  ~ClusterClass() = default;
 
   void	FillHit(int cellNow, double engyNow);
   int	ResetStats();
