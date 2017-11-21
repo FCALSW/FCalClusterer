@@ -95,6 +95,7 @@ typedef std::map < int , std::vector<int> >  MapIntVInt;
 			 std::map < int , MapIntPClusterClass > & clusterClassMapP,
 			 EVENT::LCEvent * evt);
     std::tuple<ClusterImpl*, ReconstructedParticleImpl*> getLCIOObjects(LCCluster const& clusterInfo) const;
+    void writeRootInfo(EVENT::LCEvent* evt);
 
     inline double sqr( double a){ return a*a;};
     inline float sqr( float a){ return a*a;};
