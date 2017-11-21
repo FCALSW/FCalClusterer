@@ -29,7 +29,7 @@ private:
 public:
   enum WeightingMethod_t { LogMethod = -1, EnergyMethod = 1 };
 
-  enum Parameter_t{
+  enum Parameter_t {
     ZStart,
     ZEnd,
     RMin,
@@ -40,6 +40,7 @@ public:
     RCellLength,
     RCellOffset,
     PhiCellLength,
+    PhiCellOffset,
     ZLayerThickness,
     ZLayerPhiOffset,
     ZLayerZOffset,
@@ -60,7 +61,7 @@ public:
     LumiInColName,
     BetaGamma,
     Gamma
-};
+  };
   //
   
  enum Coordinate_t {
