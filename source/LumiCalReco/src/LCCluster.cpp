@@ -4,23 +4,9 @@
 #include <iostream>
 #include <iomanip>
 
-LCCluster::LCCluster()
-    : _position{0.0, 0.0, 0.0},
-      _energy(0.0),
-      _weight(0.0),
-      _method(GlobalMethodsClass::LogMethod),
-      _theta(0.0),
-      _phi(0.0),
-      _caloHits{} {}
+LCCluster::LCCluster() {}
 
-LCCluster::LCCluster(const VirtualCluster& vc)
-    : _position{vc.getX(), vc.getY(), vc.getZ()},
-      _energy(0.0),
-      _weight(0.0),
-      _method(GlobalMethodsClass::LogMethod),
-      _theta(0.0),
-      _phi(0.0),
-      _caloHits{} {}
+LCCluster::LCCluster(const VirtualCluster& vc) : _position{vc.getX(), vc.getY(), vc.getZ()} {}
 
 LCCluster::LCCluster(double energy, double x, double y, double z, double weight,
                      GlobalMethodsClass::WeightingMethod_t method, double theta, double phi, VecCalHit const& caloHitVector)
@@ -109,4 +95,10 @@ void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
   _position[0] = r * sin(_theta) * cos(_phi);
   _position[1] = r * sin(_theta) * sin(_phi);
   _position[2] = r * cos(_theta);
+
+  //cluster position at front-face of LumiCal
+  _rzStart            = atan(fabs(_theta)) * gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
+  _positionAtFront[0] = _rzStart * cos(_phi);
+  _positionAtFront[1] = _rzStart * sin(_phi);
+  _positionAtFront[2] = gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
 }

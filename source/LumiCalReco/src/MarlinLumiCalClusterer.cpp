@@ -23,15 +23,15 @@
 /* >> */
 
 /// use std::bind to set first variable and use in std::sort
-bool ThetaCompAsc(const double sortTheta, const MCInfo& a, const MCInfo& b) {
-  return fabs(sortTheta - a.theta) < fabs(sortTheta - b.theta);
+bool ThetaCompAsc(const double sortTheta, SMCInfo const& a, SMCInfo const& b) {
+  return fabs(sortTheta - a->theta) < fabs(sortTheta - b->theta);
 }
 
-bool PositionCompAsc(const double sortAgainstX, const double sortAgainstY, const MCInfo& a, const MCInfo& b) {
-  double dxa = (sortAgainstX - a.x);
-  double dya = (sortAgainstY - a.y);
-  double dxb = (sortAgainstX - b.x);
-  double dyb = (sortAgainstY - b.y);
+bool PositionCompAsc(const double sortAgainstX, const double sortAgainstY, SMCInfo const& a, SMCInfo const& b) {
+  double dxa = (sortAgainstX - a->x());
+  double dya = (sortAgainstY - a->y());
+  double dxb = (sortAgainstX - b->x());
+  double dyb = (sortAgainstY - b->y());
   return (dxa*dxa+dya*dya) < (dxb*dxb+dyb*dyb)  ;
 }
 
@@ -102,7 +102,7 @@ void MarlinLumiCalClusterer::writeRootInfo(LCEvent* evt) {
   // created infront of LumiCal and was destroyed after lumical.
   std::map<int, MapIntPClusterClass> clusterClassMap;
 
-  CreateClusters(LumiCalClusterer._superClusterIdToCellId, LumiCalClusterer._superClusterIdToCellEngy, clusterClassMap, evt);
+  CreateClusters(clusterClassMap, evt);
 
   /* --------------------------------------------------------------------------
      histograming
@@ -115,8 +115,8 @@ void MarlinLumiCalClusterer::writeRootInfo(LCEvent* evt) {
     for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
          mapIntClusterClassIt != clusterClassMap[armNow].end(); ++mapIntClusterClassIt) {
       ClusterClass* thisCluster = mapIntClusterClassIt->second;
-      const double  engyNow     = thisCluster->Engy;
-      const double  thetaNow    = thisCluster->Theta;
+      const double  engyNow     = thisCluster->getEnergy();
+      const double  thetaNow    = thisCluster->getTheta();
       // highest energy RecoParticle
       if (thisCluster->HighestEnergyFlag == 1) {
         OutputManager.HisMap1D["higestEngyParticle_Engy"]->Fill(engyNow);
@@ -167,18 +167,18 @@ void MarlinLumiCalClusterer::writeRootInfo(LCEvent* evt) {
       //-------------
       OutputManager.TreeIntV["nEvt"]         = NumEvt;
       OutputManager.TreeIntV["outFlag"]      = thisCluster->OutsideFlag;
-      OutputManager.TreeIntV["mFlag"]        = thisCluster->Pdg;
+      OutputManager.TreeIntV["mFlag"]        = thisCluster->getPDG();
       OutputManager.TreeIntV["highE"]        = thisCluster->HighestEnergyFlag;
       OutputManager.TreeIntV["sign"]         = armNow;
-      OutputManager.TreeIntV["nHits"]        = thisCluster->NumHits;
+      OutputManager.TreeIntV["nHits"]        = thisCluster->getNHits();
       OutputManager.TreeDoubleV["distTheta"] = thisCluster->DiffTheta;
       OutputManager.TreeDoubleV["distXY"]    = thisCluster->DiffPosXY;
-      OutputManager.TreeDoubleV["engy"]      = thisCluster->Engy;
-      OutputManager.TreeDoubleV["theta"]     = thisCluster->Theta;
-      OutputManager.TreeDoubleV["engyMC"]    = thisCluster->EngyMC;
-      OutputManager.TreeDoubleV["thetaMC"]   = thisCluster->ThetaMC;
-      OutputManager.TreeDoubleV["phi"]       = thisCluster->Phi;
-      OutputManager.TreeDoubleV["rzStart"]   = thisCluster->RZStart;
+      OutputManager.TreeDoubleV["engy"]      = thisCluster->getEnergy();
+      OutputManager.TreeDoubleV["theta"]     = thisCluster->getTheta();
+      OutputManager.TreeDoubleV["engyMC"]    = thisCluster->getEnergyMC();
+      OutputManager.TreeDoubleV["thetaMC"]   = thisCluster->getThetaMC();
+      OutputManager.TreeDoubleV["phi"]       = thisCluster->getPhi();
+      OutputManager.TreeDoubleV["rzStart"]   = thisCluster->getRZStart();
       OutputManager.TreeDoubleV["Xglob"]     = globPos[0];
       OutputManager.TreeDoubleV["Yglob"]     = globPos[1];
       OutputManager.TreeDoubleV["Zglob"]     = globPos[2];
@@ -220,11 +220,9 @@ void MarlinLumiCalClusterer::writeRootInfo(LCEvent* evt) {
   }
 }  // WriteRootInfo
 
-void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterIdToCellId,
-                                            MapIntMapIntVDouble const& cellIdToCellEngy,
-                                            std::map<int, MapIntPClusterClass>& clusterClassMap, EVENT::LCEvent* evt) {
-  std::vector<MCInfo> mcParticlesVecPos;
-  std::vector<MCInfo> mcParticlesVecNeg;
+void MarlinLumiCalClusterer::CreateClusters(std::map<int, MapIntPClusterClass>& clusterClassMap, EVENT::LCEvent* evt) {
+  std::vector<SMCInfo> mcParticlesVecPos;
+  std::vector<SMCInfo> mcParticlesVecNeg;
 
   streamlog_out(DEBUG7) << "CreateClusters: event = " << evt->getEventNumber() << std::endl;
   LCCollection* particles = evt->getCollection("MCParticle");
@@ -237,18 +235,18 @@ void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterId
     }
     for (int jparticle = 0; jparticle < numMCParticles; jparticle++) {
       MCParticle* particle = static_cast<MCParticle*>(particles->getElementAt(jparticle));
-      MCInfo      p        = MCInfo::getMCParticleInfo(particle, gmc);
-      if (p.mcp == NULL)
+      auto        mcInfo   = MCInfo::getMCParticleInfo(particle, gmc);
+      if (mcInfo->mcp == NULL)
         continue;
-      streamlog_out(DEBUG2) << p << std::endl;
-      if (p.sign > 0)
-        mcParticlesVecPos.push_back(p);
+      streamlog_out(DEBUG2) << mcInfo.get() << std::endl;
+      if (mcInfo->sign > 0)
+        mcParticlesVecPos.push_back(std::move(mcInfo));
       else
-        mcParticlesVecNeg.push_back(p);
+        mcParticlesVecNeg.push_back(std::move(mcInfo));
     }
   }
-  int numOfClustersNeg = clusterIdToCellId.at(-1).size();
-  int numOfClustersPos = clusterIdToCellId.at(1).size();
+  int numOfClustersNeg = LumiCalClusterer._superClusterIdClusterInfo[-1].size();
+  int numOfClustersPos = LumiCalClusterer._superClusterIdClusterInfo[1].size();
   if (numOfClustersNeg || numOfClustersPos) {
     streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal......." << std::endl;
     streamlog_out(DEBUG6) << "     numOfClusters arm[-1] = " << numOfClustersNeg << "\t arm[1] = " << numOfClustersPos
@@ -261,41 +259,17 @@ void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterId
   for (int armNow = -1; armNow < 2; armNow += 2) {
     double EngyMax   = 0.;
     int    EngyMaxID = -1;
-    for (MapIntVInt::const_iterator clusterIdToCellIdIterator = clusterIdToCellId.at(armNow).begin();
-         clusterIdToCellIdIterator != clusterIdToCellId.at(armNow).end(); clusterIdToCellIdIterator++) {
-      const int clusterId = clusterIdToCellIdIterator->first;
+    for (auto const& cluIDLCCluster : LumiCalClusterer._superClusterIdClusterInfo.at(armNow)) {
+      const int   clusterId       = cluIDLCCluster.first;
+      auto const& thisClusterInfo = cluIDLCCluster.second;
       // create a new cluster and put it on map
-      ClusterClass* thisCluster = clusterClassMap[armNow][clusterId] = new ClusterClass(
-          gmc, clusterId, armNow, clusterIdToCellIdIterator->second, cellIdToCellEngy.at(armNow).at(clusterId));
-      if (thisCluster->Engy > EngyMax) {
-        EngyMax   = thisCluster->Engy;
+      ClusterClass* thisCluster = clusterClassMap[armNow][clusterId] = new ClusterClass(gmc, clusterId, &thisClusterInfo);
+      if (thisCluster->getEnergy() > EngyMax) {
+        EngyMax   = thisCluster->getEnergy();
         EngyMaxID = clusterId;
       }
-
-      LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
-      // clang-format off
       streamlog_out(DEBUG6) << "arm =   " << armNow << "\t cluster " << clusterId << "  ...... " << std::endl
-                            << std::setw(20) << "X, Y, Z:" << std::endl
-                            << std::setw(20) << "ClusterClass" << std::fixed << std::setprecision(3)
-                            << std::setw(13) << thisCluster->clusterPosition[0]
-                            << std::setw(13) << thisCluster->clusterPosition[1]
-                            << std::setw(13) << thisCluster->clusterPosition[2] << std::endl
-                            << std::setw(20) << "ClusterInfo"
-                            << std::setw(13) << thisClusterInfo.getX()
-                            << std::setw(13) << thisClusterInfo.getY()
-                            << std::setw(13) << thisClusterInfo.getZ() << std::endl
-                            << std::setw(20) << "Energy, Theta, Phi: " << std::endl
-                            << std::setw(20) << "ClusterClass"
-                            << std::setw(13) << thisCluster->Engy
-                            << std::setw(13) << thisCluster->Theta
-                            << std::setw(13) << thisCluster->Phi << std::endl
-                            << std::setw(20) << "ClusterInfo"
-                            << std::setw(13) << thisClusterInfo.getEnergy()
-                            << std::setw(13) << thisClusterInfo.getTheta()
-                            << std::setw(13) << thisClusterInfo.getPhi()
-                            << std::endl
-                            << std::endl;
-      // clang-format on
+                            << *thisCluster << std::endl;
     }
     // set flag for highest energy cluster found in this event
     if (EngyMax > 0.0)
@@ -313,16 +287,15 @@ void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterId
   }
 
   for (int armNow = -1; armNow < 2; armNow += 2) {
-    std::vector<MCInfo>& mcParticlesVec = (armNow == -1) ? mcParticlesVecNeg : mcParticlesVecPos;
+    std::vector<SMCInfo>& mcParticlesVec = (armNow == -1) ? mcParticlesVecNeg : mcParticlesVecPos;
 
     for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
          mapIntClusterClassIt != clusterClassMap[armNow].end(); ++mapIntClusterClassIt) {
       const int     clusterId   = mapIntClusterClassIt->first;
       ClusterClass* thisCluster = mapIntClusterClassIt->second;
 
-      double RZStart = thisCluster->RZStart;
-      double xs      = RZStart * cos(thisCluster->Phi);
-      double ys      = RZStart * sin(thisCluster->Phi);
+      double xs = thisCluster->getPositionAtFront()[0];
+      double ys = thisCluster->getPositionAtFront()[1];
 
       using namespace std::placeholders;  //_1, _2
       if (mcParticlesVec.size()) {
@@ -330,66 +303,66 @@ void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterId
         // sort(mcParticlesVec.begin(), mcParticlesVec.end(),
         //      std::bind(BindThetaCompAsc, thisCluster->Theta, _1, _2));
         sort(mcParticlesVec.begin(), mcParticlesVec.end(), std::bind(PositionCompAsc, xs, ys, _1, _2));
-        streamlog_out(DEBUG4) << "Trying to match particle: " << mcParticlesVec[0].engy << std::endl;
-        double dTheta = fabs(thisCluster->Theta - mcParticlesVec[0].theta);
-        double dPos0  = sqrt((sqr(xs - mcParticlesVec[0].x) + sqr(ys - mcParticlesVec[0].y)));
-        streamlog_out(DEBUG4) << "RZStart " << RZStart << std::endl;
-        streamlog_out(DEBUG4) << "  xs, ys " << std::setw(13) << xs << std::setw(13) << ys << std::endl
-                              << "MCP x, y " << std::setw(13) << mcParticlesVec[0].x << std::setw(13)
-                              << mcParticlesVec[0].y << std::endl;
+        streamlog_out(DEBUG6) << "Trying to match particle: " << mcParticlesVec[0]->engy << std::endl;
+        double dTheta = fabs(thisCluster->getTheta() - mcParticlesVec[0]->theta);
+        double dPos0  = sqrt((sqr(xs - mcParticlesVec[0]->x()) + sqr(ys - mcParticlesVec[0]->y())));
+        streamlog_out(DEBUG6) << "RZStart " << thisCluster->getRZStart() << std::endl;
+        streamlog_out(DEBUG6) << "  xs, ys " << std::setw(13) << xs << std::setw(13) << ys << std::endl
+                              << "MCP x, y " << std::setw(13) << mcParticlesVec[0]->x() << std::setw(13)
+                              << mcParticlesVec[0]->y() << std::endl;
 
-        double dEne0 = fabs(mcParticlesVec[0].engy - thisCluster->Engy);
-        streamlog_out(DEBUG4) << " dTheta " << std::setw(13) << dTheta << " dPos0 " << std::setw(13) << dPos0 << " dEne0 "
+        double dEne0 = fabs(mcParticlesVec[0]->engy - thisCluster->getEnergy());
+        streamlog_out(DEBUG6) << " dTheta " << std::setw(13) << dTheta << " dPos0 " << std::setw(13) << dPos0 << " dEne0 "
                               << std::setw(13) << dEne0 << std::endl;
 
         thisCluster->DiffTheta = dTheta;
         if (mcParticlesVec.size() > 1) {
-          double dPos1 = sqrt((sqr(xs - mcParticlesVec[1].x) + sqr(ys - mcParticlesVec[1].y)));
-          double dEne1 = fabs(mcParticlesVec[1].engy - thisCluster->Engy);
+          double dPos1 = sqrt((sqr(xs - mcParticlesVec[1]->x()) + sqr(ys - mcParticlesVec[1]->y())));
+          double dEne1 = fabs(mcParticlesVec[1]->engy - thisCluster->getEnergy());
           if (dPos1 < gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0) {
-            thisCluster->SetStatsMC(mcParticlesVec[1].mcp);
+            thisCluster->SetStatsMC(mcParticlesVec[1]);
             thisCluster->DiffPosXY = dPos1;
             mcParticlesVec.erase(mcParticlesVec.begin() + 1);
           } else {
-            thisCluster->SetStatsMC(mcParticlesVec[0].mcp);
+            thisCluster->SetStatsMC(mcParticlesVec[0]);
             thisCluster->DiffPosXY = dPos0;
             mcParticlesVec.erase(mcParticlesVec.begin());
           }
         } else {
           thisCluster->DiffPosXY = dPos0;
           if (dPos0 < gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist]) {
-            thisCluster->SetStatsMC(mcParticlesVec[0].mcp);
+            thisCluster->SetStatsMC(mcParticlesVec[0]);
             mcParticlesVec.erase(mcParticlesVec.begin());
           }
         }
       }
 
-      if (thisCluster->Pdg != 0) {
-        double Ereco = thisCluster->Engy;
+      if (thisCluster->getPDG() != 0) {
+        double Ereco = thisCluster->getEnergy();
         // clang-format off
         streamlog_out( DEBUG6 ) << "\tParticle Out ("
                                 << thisCluster -> OutsideReason << "):   " << clusterId << std::endl
-                                << "\t\t side(arm), pdg, parentId , NumMCDaughters = "
-                                << "\t" << thisCluster -> SignMC<<"("<<armNow<<")"
-                                << "\t" << thisCluster -> Pdg
-                                << "\t" << thisCluster -> ParentId
-                                << "\t" << thisCluster -> NumMCDaughters << std::endl
+                                << "\t\t side(arm), pdg, parentIdxo , NumMCDaughters = "
+                                << "\t" << thisCluster->getSign() <<"("<<armNow<<")"
+                                << "\t" << thisCluster->getPDG()
+                                << "\t" << thisCluster->getParentId()
+                                << "\t" << thisCluster->getNumMCDaughters() << std::endl
                                 << "\t\t MCPos    X, Y, Z: "
-                                << "\t" << std::setw(13) << thisCluster -> mcpPosition[0]
-                                << "\t" << std::setw(13) << thisCluster -> mcpPosition[1]
-                                << "\t" << std::setw(13) << thisCluster -> mcpPosition[2]<< std::endl
+                                << "\t" << std::setw(13) << thisCluster->getMCPosition()[0]
+                                << "\t" << std::setw(13) << thisCluster->getMCPosition()[1]
+                                << "\t" << std::setw(13) << thisCluster->getMCPosition()[2]<< std::endl
                                 << "\t\t Cluster  X, Y, Z: "
-                                << "\t" << std::setw(13) << thisCluster -> clusterPosition[0]
-                                << "\t" << std::setw(13) << thisCluster -> clusterPosition[1]
-                                << "\t" << std::setw(13) << thisCluster -> clusterPosition[2] << std::endl
+                                << "\t" << std::setw(13) << thisCluster->getPositionAtFront()[0]
+                                << "\t" << std::setw(13) << thisCluster->getPositionAtFront()[1]
+                                << "\t" << std::setw(13) << thisCluster->getPositionAtFront()[2] << std::endl
                                 << "\t\t engy, theta, phi (mc): "
-                                <<  std::setw(13)<< thisCluster -> EngyMC
-                                << "\t"<< std::setw(13)<<thisCluster -> ThetaMC
-                                << "\t"<< std::setw(13)<<thisCluster -> PhiMC << std::endl
+                                <<  std::setw(13)<< thisCluster->getEnergyMC()
+                                << "\t"<< std::setw(13)<<thisCluster->getThetaMC()
+                                << "\t"<< std::setw(13)<<thisCluster->getPhiMC() << std::endl
                                 << "\t\t engy, theta, phi (rec):"
                                 << std::setw(13)<<Ereco
-                                << "\t"<< std::setw(13)<<thisCluster -> Theta
-                                << "\t"<< std::setw(13)<<thisCluster -> Phi
+                                << "\t"<< std::setw(13)<<thisCluster->getTheta()
+                                << "\t"<< std::setw(13)<<thisCluster->getPhi()
                                 << std::endl << std::endl;
         // clang-format on
 
@@ -418,21 +391,22 @@ void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterId
     const int numMCParticles = particles->getNumberOfElements();
     for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
       MCParticle *particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
-      MCInfo p = MCInfo::getMCParticleInfo( particle, gmc );
-      if( p.mcp == NULL ) continue;
+      auto        mcInfo   = MCInfo::getMCParticleInfo(particle, gmc);
+      if (mcInfo->mcp == NULL)
+        continue;
       const double *endPoint = particle->getEndpoint();
       const double *vx = particle->getVertex();
 
       OutputManager.TreeIntV["nEvt"]	= NumEvt;
-      OutputManager.TreeIntV["sign"]	= p.sign;
-      OutputManager.TreeIntV["pdg"]	= p.pdg;
-      OutputManager.TreeDoubleV["engy"]	= p.engy;
-      OutputManager.TreeDoubleV["theta"]= p.theta;
-      OutputManager.TreeDoubleV["phi"]	= p.phi;
+      OutputManager.TreeIntV["sign"]     = mcInfo->sign;
+      OutputManager.TreeIntV["pdg"]      = mcInfo->pdg;
+      OutputManager.TreeDoubleV["engy"]  = mcInfo->engy;
+      OutputManager.TreeDoubleV["theta"] = mcInfo->theta;
+      OutputManager.TreeDoubleV["phi"]   = mcInfo->phi;
       // position at the face of LCal (global coordinates)
-      OutputManager.TreeDoubleV["begX"]	= p.x;
-      OutputManager.TreeDoubleV["begY"]	= p.y;
-      OutputManager.TreeDoubleV["begZ"]	= double(p.sign)*LcalZstart;
+      OutputManager.TreeDoubleV["begX"] = mcInfo->x();
+      OutputManager.TreeDoubleV["begY"] = mcInfo->y();
+      OutputManager.TreeDoubleV["begZ"] = double(mcInfo->sign) * LcalZstart;
       OutputManager.TreeDoubleV["vtxX"]	= vx[0];
       OutputManager.TreeDoubleV["vtxY"]	= vx[1];
       OutputManager.TreeDoubleV["vtxZ"]	= vx[2];
