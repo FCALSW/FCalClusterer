@@ -114,6 +114,7 @@ public:
   inline double getCalibrationFactor() const { return GlobalParamD.at(Signal_to_GeV); }
 
   template <class T, class U> inline void rotateToGlobal(const T* loc, U* glob) const;
+  template <class T, class U> inline void rotateToLumiCal(const T* glob, U* loc) const;
 
 private:
   void SetGeometryGear();
@@ -132,6 +133,13 @@ template <class T, class U> void GlobalMethodsClass::rotateToGlobal(const T* loc
   glob[0]          = +m_armCosAngle.at(armNow) * loc[0] + m_armSinAngle.at(armNow) * loc[2];
   glob[1]          = loc[1];
   glob[2]          = -m_armSinAngle.at(armNow) * loc[0] + m_armCosAngle.at(armNow) * loc[2];
+}
+
+template <class T, class U> void GlobalMethodsClass::rotateToLumiCal(const T* glob, U* loc) const {
+  const int armNow = (glob[2] < 0) ? -1 : 1;
+  loc[0]           = +m_armCosAngle.at(armNow) * glob[0] - m_armSinAngle.at(armNow) * glob[2];
+  loc[1]           = glob[1];
+  loc[2]           = +m_armSinAngle.at(armNow) * glob[0] + m_armCosAngle.at(armNow) * glob[2];
 }
 
 #endif

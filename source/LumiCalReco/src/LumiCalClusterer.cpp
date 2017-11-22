@@ -61,8 +61,7 @@ LumiCalClustererClass::LumiCalClustererClass(std::string const& lumiNameNow)
       _numHitsInArm(),
       _mydecoder(),
       _gmc(),
-      _useDD4hep(false),
-      RotMat() {}
+      _useDD4hep(false) {}
 
 /* ============================================================================
    initial action before first event analysis starts:
@@ -85,10 +84,6 @@ void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
   _elementsPercentInShowerPeakLayer	= gmc.GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
   _nNearNeighbor			= gmc.GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor); // = 6; // number of near neighbors to consider
   _beamCrossingAngle                    = gmc.GlobalParamD.at(GlobalMethodsClass::BeamCrossingAngle)/2.;
-  RotMat[-1]["cos"]                     = cos( - _beamCrossingAngle );
-  RotMat[-1]["sin"]                     = sin( - _beamCrossingAngle );
-  RotMat[ 1]["cos"]                     = cos( _beamCrossingAngle );
-  RotMat[ 1]["sin"]                     = sin( _beamCrossingAngle );
 
   // the minimal energy to take into account in the initial clustering pass is
   // defined as _middleEnergyHitBoundFrac of the minimal energy that is taken into

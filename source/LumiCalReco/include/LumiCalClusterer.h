@@ -99,9 +99,6 @@ protected:
   bool _useDD4hep;
   bool _cutOnFiducialVolume=false;
 
-  // global to local rotations mtx elements
-  std::map < int , std::map< std::string, double> > RotMat;
-
   // methods:
   int	getCalHits( EVENT::LCEvent * evt,
 		    MapIntMapIntVCalHit & calHits );
