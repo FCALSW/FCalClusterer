@@ -129,9 +129,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       */
       const float* Pos = calHitIn->getPosition();
       double       locPos[3] = {0.0, 0.0, 0.0};
-      locPos[0] =  Pos[0]*RotMat[arm]["cos"] - Pos[2]*RotMat[arm]["sin"];
-      locPos[1] =  Pos[1];
-      locPos[2] =  Pos[0]*RotMat[arm]["sin"] + Pos[2]*RotMat[arm]["cos"];
+      _gmc.rotateToLumiCal(Pos, locPos);
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
         streamlog_out(DEBUG2) << std::scientific << std::setprecision(3);
