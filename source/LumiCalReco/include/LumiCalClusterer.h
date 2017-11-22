@@ -195,9 +195,6 @@ protected:
   double	distance2DPolar( double * pos1,
 				 double * pos2 );
 
-  double	thetaPhiCell( int	cellId,
-			      GlobalMethodsClass::Coordinate_t	output );
-
   LCCluster calculateEngyPosCM( VInt const& cellIdV,
 				MapIntCalHit const& calHitsCellId,
 				GlobalMethodsClass::WeightingMethod_t method );

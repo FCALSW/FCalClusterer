@@ -109,24 +109,6 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       // skip this hit if the following conditions are met
       if(layer >= _maxLayerToAnalyse || layer < 0 )	continue;
 
-      
-      /*(BP) it is not safe - in case non-zero crossing angle
-            - phi sectors numbering order changes on -ve side
-            - in some models there is layers relative phi offset  
-            - also in local system zHit is +ve always
-     
-      const double rHit = (rCell+0.5) * _rCellLength + _rMin;
-      //const double phiHit = (phiCell+0.5) * _phiCellLength;
-      const double phiHit =  phiCell * _phiCellLength + double( (layer+1)%2 )*_zLayerPhiOffset;
-
-      // compute x.y.z hit coordinates ( local )
-      const float xHit = rHit * cos(phiHit);
-      const float yHit = rHit * sin(phiHit);
-      const float zHit = _zFirstLayer + float( layer ) * _zLayerThickness;
-
-      // write x,y,z to an array
-      float hitPosV[3] = {xHit, yHit, zHit};
-      */
       const float* Pos = calHitIn->getPosition();
       double       locPos[3] = {0.0, 0.0, 0.0};
       _gmc.rotateToLumiCal(Pos, locPos);

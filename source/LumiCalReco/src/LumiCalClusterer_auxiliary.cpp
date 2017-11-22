@@ -372,36 +372,6 @@ void LumiCalClustererClass::getThetaPhiZCluster( MapIntCalHit  const& calHitsCel
   return ;
 }
 
-
-/* --------------------------------------------------------------------------
-   compute the theta/phi of a cell with a given cellId
-   -------------------------------------------------------------------------- */
-double LumiCalClustererClass::thetaPhiCell(int cellId, GlobalMethodsClass::Coordinate_t output) {
-
-  int	cellIdR, cellIdZ, cellIdPhi, arm;
-  GlobalMethodsClass::CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
-  double	rCell, zCell, thetaCell, phiCell, outputVal(-1);
-
-  if(output == GlobalMethodsClass::COTheta) {
-    rCell      = _rMin + (cellIdR + .5) * _rCellLength;
-    zCell      = fabs(_zFirstLayer) + _zLayerThickness * (cellIdZ - 1);
-    thetaCell  = atan(rCell / zCell);
-    outputVal  = thetaCell;
-  }
-  else if(output == GlobalMethodsClass::COPhi) {
-    //(BP) account for possible layer offset
-    //    phiCell   = 2*M_PI * (double(cellIdPhi) + .5) / _cellPhiMax;
-    phiCell   = (double(cellIdPhi) + .0) * _phiCellLength + double( (cellIdZ)%2 ) * _zLayerPhiOffset;
-    phiCell = ( phiCell > M_PI ) ? phiCell - 2.*M_PI : phiCell;
-    outputVal = phiCell;
-  }
-
-  return outputVal;
-
-}
-
-
-
 /* --------------------------------------------------------------------------
    get the energy around a cluster CM within a distanceToScan raduis
    -------------------------------------------------------------------------- */
