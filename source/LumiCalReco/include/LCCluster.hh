@@ -32,8 +32,10 @@ public:
   inline double getEnergy() const { return getE(); }
   inline double getTheta() const { return _theta; }
   inline double getPhi() const { return _phi; }
+  inline double getRZStart() const { return _rzStart; }
 
   inline const double * getPosition() const { return _position; }
+  inline const double * getPositionAtFront() const { return _positionAtFront; }
 
   inline void setX( double x) { _position[0] = x; CalculatePhi(); }
   inline void setY( double y) { _position[1] = y; CalculatePhi(); }
@@ -57,11 +59,12 @@ private:
 
   void CalculatePhi();
   void CalculateTheta();
-  double _position[3];
-  double _energy, _weight;
-  GlobalMethodsClass::WeightingMethod_t _method;
-  double _theta, _phi;
-  VecCalHit _caloHits;
+  double _position[3]={0.0, 0.0, 0.0};
+  double _positionAtFront[3]={0.0, 0.0, 0.0};
+  double _energy=0.0, _weight=0.0;
+  GlobalMethodsClass::WeightingMethod_t _method=GlobalMethodsClass::LogMethod;
+  double _theta=0.0, _phi=0.0, _rzStart=0.0;
+  VecCalHit _caloHits{};
 
 };
 
@@ -75,5 +78,6 @@ inline void LCCluster::CalculateTheta() {
   return;
 }
 
+using SLCCluster = std::shared_ptr<LCCluster>;
 
 #endif // LCCluster_hh

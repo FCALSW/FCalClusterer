@@ -89,11 +89,7 @@ typedef std::map < int , std::vector<int> >  MapIntVInt;
 
     void TryMarlinLumiCalClusterer(EVENT::LCEvent * evt);
 
-    void CreateClusters( std::map < int , std::map < int , std::vector<int> > > const& clusterIdToCellId,
-			 std::map < int , std::map < int , std::vector<double> > > const& cellIdToCellEngy,
-			 //			 std::map < int , std::map < int , LCCluster > > const& superClusterIdClusterInfo,
-			 std::map < int , MapIntPClusterClass > & clusterClassMapP,
-			 EVENT::LCEvent * evt);
+    void CreateClusters(std::map<int, MapIntPClusterClass>& clusterClassMapP, EVENT::LCEvent* evt);
     std::tuple<ClusterImpl*, ReconstructedParticleImpl*> getLCIOObjects(LCCluster const& clusterInfo) const;
     void writeRootInfo(EVENT::LCEvent* evt);
 
