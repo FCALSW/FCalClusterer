@@ -227,48 +227,51 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
     return;
   }
 
-  void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterIdToCellId,
-                                              MapIntMapIntVDouble const& cellIdToCellEngy,
-                                              std::map<int, MapIntPClusterClass>& clusterClassMap, EVENT::LCEvent* evt) {
-    std::vector < MCInfo > mcParticlesVecPos;
-    std::vector < MCInfo > mcParticlesVecNeg;
+void MarlinLumiCalClusterer::CreateClusters(MapIntMapIntVInt const&    clusterIdToCellId,
+                                            MapIntMapIntVDouble const& cellIdToCellEngy,
+                                            std::map<int, MapIntPClusterClass>& clusterClassMap, EVENT::LCEvent* evt) {
+  std::vector<MCInfo> mcParticlesVecPos;
+  std::vector<MCInfo> mcParticlesVecNeg;
 
-    streamlog_out(DEBUG7) << "CreateClusters: event = " << evt->getEventNumber()<< std::endl;
-    LCCollection * particles = evt->getCollection( "MCParticle" );
-    if ( particles ){
-      int numMCParticles = particles->getNumberOfElements();
-      if(numMCParticles){
-	streamlog_out(DEBUG6) << "CreateClusters: numMCParticles = " << numMCParticles << std::endl;
-      }else{
-	streamlog_out(DEBUG6) << "CreateClusters: No MCparticles in this event !" << std::endl;
-      }
-      for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
-	MCParticle * particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
-	MCInfo p = MCInfo::getMCParticleInfo( particle, gmc );
-	if( p.mcp == NULL ) continue;
-	streamlog_out(DEBUG2) << p << std::endl;
-	if ( p.sign > 0 ) mcParticlesVecPos.push_back( p );
-        else mcParticlesVecNeg.push_back( p );
+  streamlog_out(DEBUG7) << "CreateClusters: event = " << evt->getEventNumber() << std::endl;
+  LCCollection* particles = evt->getCollection("MCParticle");
+  if (particles) {
+    int numMCParticles = particles->getNumberOfElements();
+    if (numMCParticles) {
+      streamlog_out(DEBUG6) << "CreateClusters: numMCParticles = " << numMCParticles << std::endl;
+    } else {
+      streamlog_out(DEBUG6) << "CreateClusters: No MCparticles in this event !" << std::endl;
+    }
+    for (int jparticle = 0; jparticle < numMCParticles; jparticle++) {
+      MCParticle* particle = static_cast<MCParticle*>(particles->getElementAt(jparticle));
+      MCInfo      p        = MCInfo::getMCParticleInfo(particle, gmc);
+      if (p.mcp == NULL)
+        continue;
+      streamlog_out(DEBUG2) << p << std::endl;
+      if (p.sign > 0)
+        mcParticlesVecPos.push_back(p);
+      else
+        mcParticlesVecNeg.push_back(p);
+    }
+  }
+  int numOfClustersNeg = clusterIdToCellId.at(-1).size();
+  int numOfClustersPos = clusterIdToCellId.at(1).size();
+  if (numOfClustersNeg || numOfClustersPos) {
+    streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal......." << std::endl;
+    streamlog_out(DEBUG6) << "     numOfClusters arm[-1] = " << numOfClustersNeg << "\t arm[1] = " << numOfClustersPos
+                          << std::endl;
+  } else {
+    streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal: No clusters found in this event !" << std::endl;
+    return;
+  }
 
-      }
-    }
-    int numOfClustersNeg =  clusterIdToCellId.at(-1).size();
-    int numOfClustersPos =  clusterIdToCellId.at(1).size();
-    if( numOfClustersNeg || numOfClustersPos ){
-      streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal......."<< std::endl;
-      streamlog_out(DEBUG6) << "     numOfClusters arm[-1] = "<< numOfClustersNeg << "\t arm[1] = "<< numOfClustersPos << std::endl;
-    }else{
-      streamlog_out(DEBUG6) << "Initial Set Stats for LumiCal: No clusters found in this event !"<< std::endl;
-    }
-    if( numOfClustersNeg || numOfClustersPos ){ 
-      for(int armNow = -1; armNow < 2; armNow += 2) {
-	double EngyMax =  0.;
-	int  EngyMaxID = -1 ;
-	for( MapIntVInt::const_iterator clusterIdToCellIdIterator = clusterIdToCellId.at(armNow).begin();
-	     clusterIdToCellIdIterator != clusterIdToCellId.at(armNow).end();
-	       clusterIdToCellIdIterator++){
-	  const int clusterId = clusterIdToCellIdIterator->first;
-	  // create a new cluster and put it on map
+  for (int armNow = -1; armNow < 2; armNow += 2) {
+    double EngyMax   = 0.;
+    int    EngyMaxID = -1;
+    for (MapIntVInt::const_iterator clusterIdToCellIdIterator = clusterIdToCellId.at(armNow).begin();
+         clusterIdToCellIdIterator != clusterIdToCellId.at(armNow).end(); clusterIdToCellIdIterator++) {
+      const int clusterId = clusterIdToCellIdIterator->first;
+      // create a new cluster and put it on map
       ClusterClass* thisCluster = clusterClassMap[armNow][clusterId] = new ClusterClass(
           gmc, clusterId, armNow, clusterIdToCellIdIterator->second, cellIdToCellEngy.at(armNow).at(clusterId));
       if (thisCluster->Engy > EngyMax) {
@@ -277,150 +280,137 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
       }
 
       LCCluster const& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
-	  streamlog_out(DEBUG6) << "arm =   " << armNow <<"\t cluster "<< clusterId<< "  ...... " << std::endl
-				<< std::setw(20) << "X, Y, Z:" << std::endl
-				<< std::setw(20) << "ClusterClass"
-				<< std::fixed << std::setprecision(3)
-				<< std::setw(13) << thisCluster-> clusterPosition[0]
-				<< std::setw(13) << thisCluster-> clusterPosition[1]
-				<< std::setw(13) << thisCluster-> clusterPosition[2] << std::endl
-				<< std::setw(20) << "ClusterInfo"
-				<< std::setw(13) << thisClusterInfo.getX()
-				<< std::setw(13) << thisClusterInfo.getY()
-				<< std::setw(13) << thisClusterInfo.getZ() << std::endl
-				<< std::setw(20) << "Energy, Theta, Phi: " << std::endl
-				<< std::setw(20) << "ClusterClass"
-				<< std::setw(13) << thisCluster-> Engy
-				<< std::setw(13) << thisCluster-> Theta
-				<< std::setw(13) << thisCluster-> Phi  << std::endl
-				<< std::setw(20) << "ClusterInfo"
-				<< std::setw(13) << thisClusterInfo.getEnergy()
-				<< std::setw(13) << thisClusterInfo.getTheta()
-				<< std::setw(13) << thisClusterInfo.getPhi()  << std::endl
-				<< std::endl;
-
-	}
-	// set flag for highest energy cluster found in this event
-	if ( EngyMax > 0.0 ) clusterClassMap[armNow][EngyMaxID]->HighestEnergyFlag = 1;
-      }
-
-
-
-#if _CREATE_CLUSTERS_DEBUG == 1
-      if( mcParticlesVecNeg.size() || mcParticlesVecPos.size() ) {
-        streamlog_out(DEBUG5) << "Transfering MC information into ClusterClass objects ......  " << std::endl;
-        streamlog_out(DEBUG5) << "MC particles arm z-: " << mcParticlesVecNeg.size()
-                              << "\t arm z+: " << mcParticlesVecPos.size() << std::endl;
-      }else{
-        streamlog_out(DEBUG5) << "Transfering MC information into ClusterClass objects: No primary MCParticles"
-                              << " entering LumiCal found!" << std::endl;
-      }
-#endif
-    
-      if( mcParticlesVecNeg.size() || mcParticlesVecPos.size() ) {
-	for(int armNow = -1; armNow < 2; armNow += 2) {
-
-	  std::vector < MCInfo > mcParticlesVec;
-	  if ( armNow == -1 ) mcParticlesVec = mcParticlesVecNeg ;
-	  else                mcParticlesVec = mcParticlesVecPos ;
-
-	  for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
-	       mapIntClusterClassIt != clusterClassMap[armNow].end();
-	       ++mapIntClusterClassIt) {
-	    const int clusterId = mapIntClusterClassIt->first;
-	    ClusterClass* thisCluster = mapIntClusterClassIt->second;
-
-	    double RZStart = thisCluster -> RZStart;
-        double xs      = RZStart * cos(thisCluster->Phi);
-        double ys      = RZStart * sin(thisCluster->Phi);
-
-        using namespace std::placeholders;  //_1, _2
-        if (mcParticlesVec.size()) {
-          // try to match MC true particle with cluster by comparing positions at Lumical entry
-          // sort(mcParticlesVec.begin(), mcParticlesVec.end(),
-          //      std::bind(BindThetaCompAsc, thisCluster->Theta, _1, _2));
-          sort(mcParticlesVec.begin(), mcParticlesVec.end(), std::bind(PositionCompAsc, xs, ys, _1, _2));
-          streamlog_out(DEBUG4) << "Trying to match particle: " << mcParticlesVec[0].engy << std::endl;
-          double dTheta = fabs(thisCluster->Theta - mcParticlesVec[0].theta);
-          double dPos0  = sqrt((sqr(xs - mcParticlesVec[0].x) + sqr(ys - mcParticlesVec[0].y)));
-          streamlog_out(DEBUG4) << "RZStart " << RZStart << std::endl;
-          streamlog_out(DEBUG4) << "  xs, ys "
-				    << std::setw(13) << xs
-				    << std::setw(13) << ys  << std::endl
-				    << "MCP x, y "
-				    << std::setw(13) << mcParticlesVec[0].x
-				    << std::setw(13) << mcParticlesVec[0].y
-				    << std::endl;
-
-          double dEne0 = fabs(mcParticlesVec[0].engy - thisCluster->Engy);
-          streamlog_out(DEBUG4) << " dTheta " << std::setw(13) << dTheta << " dPos0 " << std::setw(13) << dPos0 << " dEne0 "
-                                << std::setw(13) << dEne0 << std::endl;
-
-          thisCluster->DiffTheta = dTheta;
-          if( mcParticlesVec.size() > 1 ) {
-		double dPos1    = sqrt( ( sqr(xs - mcParticlesVec[1].x) + sqr( ys - mcParticlesVec[1].y)));
-        double dEne1    = fabs(mcParticlesVec[1].engy - thisCluster->Engy);
-        if (dPos1 < gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0) {
-          thisCluster->SetStatsMC(mcParticlesVec[1].mcp);
-          thisCluster -> DiffPosXY = dPos1;
-		  mcParticlesVec.erase( mcParticlesVec.begin()+1 ); 
-		}else{
-		  thisCluster->SetStatsMC( mcParticlesVec[0].mcp );
-		  thisCluster -> DiffPosXY = dPos0;
-		  mcParticlesVec.erase( mcParticlesVec.begin() ); 
-		}
-	      }else{
-		thisCluster -> DiffPosXY = dPos0;
-		if( dPos0 <  gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] ){
-		  thisCluster->SetStatsMC( mcParticlesVec[0].mcp );
-		  mcParticlesVec.erase( mcParticlesVec.begin() ); 
-		}
-	      }
-	    }
-
-	    if( thisCluster -> Pdg != 0) {
-	      double Ereco = thisCluster->Engy;
-          // clang-format off
-          streamlog_out( DEBUG6 ) << "\tParticle Out ("
-		  << thisCluster -> OutsideReason << "):   " << clusterId << std::endl
-		  << "\t\t side(arm), pdg, parentId , NumMCDaughters = "
-		  << "\t" << thisCluster -> SignMC<<"("<<armNow<<")"
-		  << "\t" << thisCluster -> Pdg
-		  << "\t" << thisCluster -> ParentId
-		  << "\t" << thisCluster -> NumMCDaughters << std::endl
-		  << "\t\t MCPos    X, Y, Z: "
-		  << "\t" << std::setw(13) << thisCluster -> mcpPosition[0]
-		  << "\t" << std::setw(13) << thisCluster -> mcpPosition[1]
-		  << "\t" << std::setw(13) << thisCluster -> mcpPosition[2]<< std::endl
-		  << "\t\t Cluster  X, Y, Z: "
-		  << "\t" << std::setw(13) << thisCluster -> clusterPosition[0]
-		  << "\t" << std::setw(13) << thisCluster -> clusterPosition[1]
-		  << "\t" << std::setw(13) << thisCluster -> clusterPosition[2] << std::endl
-		  << "\t\t engy, theta, phi (mc): "
-		  <<  std::setw(13)<< thisCluster -> EngyMC
-		  << "\t"<< std::setw(13)<<thisCluster -> ThetaMC
-		  << "\t"<< std::setw(13)<<thisCluster -> PhiMC << std::endl
-		  << "\t\t engy, theta, phi (rec):"
-		  << std::setw(13)<<Ereco
-		  << "\t"<< std::setw(13)<<thisCluster -> Theta
-		  << "\t"<< std::setw(13)<<thisCluster -> Phi
-		  << std::endl << std::endl;
-          // clang-format on
-
-        } else {
-          streamlog_out(DEBUG6) << "Arm: " << armNow << "\t Cluster: " << clusterId << " does not match MC particle !\n";
-          thisCluster->PrintInfo();
-	}
-
-	  } // loop over clusters
-	} // loop over arms
-      } // if there are mcparticles
-    } // if there are clusters
-    return;
-
+      // clang-format off
+      streamlog_out(DEBUG6) << "arm =   " << armNow << "\t cluster " << clusterId << "  ...... " << std::endl
+                            << std::setw(20) << "X, Y, Z:" << std::endl
+                            << std::setw(20) << "ClusterClass" << std::fixed << std::setprecision(3)
+                            << std::setw(13) << thisCluster->clusterPosition[0]
+                            << std::setw(13) << thisCluster->clusterPosition[1]
+                            << std::setw(13) << thisCluster->clusterPosition[2] << std::endl
+                            << std::setw(20) << "ClusterInfo"
+                            << std::setw(13) << thisClusterInfo.getX()
+                            << std::setw(13) << thisClusterInfo.getY()
+                            << std::setw(13) << thisClusterInfo.getZ() << std::endl
+                            << std::setw(20) << "Energy, Theta, Phi: " << std::endl
+                            << std::setw(20) << "ClusterClass"
+                            << std::setw(13) << thisCluster->Engy
+                            << std::setw(13) << thisCluster->Theta
+                            << std::setw(13) << thisCluster->Phi << std::endl
+                            << std::setw(20) << "ClusterInfo"
+                            << std::setw(13) << thisClusterInfo.getEnergy()
+                            << std::setw(13) << thisClusterInfo.getTheta()
+                            << std::setw(13) << thisClusterInfo.getPhi()
+                            << std::endl
+                            << std::endl;
+      // clang-format on
+    }
+    // set flag for highest energy cluster found in this event
+    if (EngyMax > 0.0)
+      clusterClassMap[armNow][EngyMaxID]->HighestEnergyFlag = 1;
   }
 
-void MarlinLumiCalClusterer::storeMCParticleInfo( LCEvent *evt, int clusterInFlag ) {
+  if (mcParticlesVecNeg.size() || mcParticlesVecPos.size()) {
+    streamlog_out(DEBUG6) << "Transfering MC information into ClusterClass objects ......  " << std::endl;
+    streamlog_out(DEBUG6) << "MC particles arm z-: " << mcParticlesVecNeg.size()
+                          << "\t arm z+: " << mcParticlesVecPos.size() << std::endl;
+  } else {
+    streamlog_out(DEBUG6) << "Transfering MC information into ClusterClass objects: No primary MCParticles"
+                          << " entering LumiCal found!" << std::endl;
+    return;
+  }
+
+  for (int armNow = -1; armNow < 2; armNow += 2) {
+    std::vector<MCInfo>& mcParticlesVec = (armNow == -1) ? mcParticlesVecNeg : mcParticlesVecPos;
+
+    for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
+         mapIntClusterClassIt != clusterClassMap[armNow].end(); ++mapIntClusterClassIt) {
+      const int     clusterId   = mapIntClusterClassIt->first;
+      ClusterClass* thisCluster = mapIntClusterClassIt->second;
+
+      double RZStart = thisCluster->RZStart;
+      double xs      = RZStart * cos(thisCluster->Phi);
+      double ys      = RZStart * sin(thisCluster->Phi);
+
+      using namespace std::placeholders;  //_1, _2
+      if (mcParticlesVec.size()) {
+        // try to match MC true particle with cluster by comparing positions at Lumical entry
+        // sort(mcParticlesVec.begin(), mcParticlesVec.end(),
+        //      std::bind(BindThetaCompAsc, thisCluster->Theta, _1, _2));
+        sort(mcParticlesVec.begin(), mcParticlesVec.end(), std::bind(PositionCompAsc, xs, ys, _1, _2));
+        streamlog_out(DEBUG4) << "Trying to match particle: " << mcParticlesVec[0].engy << std::endl;
+        double dTheta = fabs(thisCluster->Theta - mcParticlesVec[0].theta);
+        double dPos0  = sqrt((sqr(xs - mcParticlesVec[0].x) + sqr(ys - mcParticlesVec[0].y)));
+        streamlog_out(DEBUG4) << "RZStart " << RZStart << std::endl;
+        streamlog_out(DEBUG4) << "  xs, ys " << std::setw(13) << xs << std::setw(13) << ys << std::endl
+                              << "MCP x, y " << std::setw(13) << mcParticlesVec[0].x << std::setw(13)
+                              << mcParticlesVec[0].y << std::endl;
+
+        double dEne0 = fabs(mcParticlesVec[0].engy - thisCluster->Engy);
+        streamlog_out(DEBUG4) << " dTheta " << std::setw(13) << dTheta << " dPos0 " << std::setw(13) << dPos0 << " dEne0 "
+                              << std::setw(13) << dEne0 << std::endl;
+
+        thisCluster->DiffTheta = dTheta;
+        if (mcParticlesVec.size() > 1) {
+          double dPos1 = sqrt((sqr(xs - mcParticlesVec[1].x) + sqr(ys - mcParticlesVec[1].y)));
+          double dEne1 = fabs(mcParticlesVec[1].engy - thisCluster->Engy);
+          if (dPos1 < gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist] && dEne1 < dEne0) {
+            thisCluster->SetStatsMC(mcParticlesVec[1].mcp);
+            thisCluster->DiffPosXY = dPos1;
+            mcParticlesVec.erase(mcParticlesVec.begin() + 1);
+          } else {
+            thisCluster->SetStatsMC(mcParticlesVec[0].mcp);
+            thisCluster->DiffPosXY = dPos0;
+            mcParticlesVec.erase(mcParticlesVec.begin());
+          }
+        } else {
+          thisCluster->DiffPosXY = dPos0;
+          if (dPos0 < gmc.GlobalParamD[GlobalMethodsClass::MinSeparationDist]) {
+            thisCluster->SetStatsMC(mcParticlesVec[0].mcp);
+            mcParticlesVec.erase(mcParticlesVec.begin());
+          }
+        }
+      }
+
+      if (thisCluster->Pdg != 0) {
+        double Ereco = thisCluster->Engy;
+        // clang-format off
+        streamlog_out( DEBUG6 ) << "\tParticle Out ("
+                                << thisCluster -> OutsideReason << "):   " << clusterId << std::endl
+                                << "\t\t side(arm), pdg, parentId , NumMCDaughters = "
+                                << "\t" << thisCluster -> SignMC<<"("<<armNow<<")"
+                                << "\t" << thisCluster -> Pdg
+                                << "\t" << thisCluster -> ParentId
+                                << "\t" << thisCluster -> NumMCDaughters << std::endl
+                                << "\t\t MCPos    X, Y, Z: "
+                                << "\t" << std::setw(13) << thisCluster -> mcpPosition[0]
+                                << "\t" << std::setw(13) << thisCluster -> mcpPosition[1]
+                                << "\t" << std::setw(13) << thisCluster -> mcpPosition[2]<< std::endl
+                                << "\t\t Cluster  X, Y, Z: "
+                                << "\t" << std::setw(13) << thisCluster -> clusterPosition[0]
+                                << "\t" << std::setw(13) << thisCluster -> clusterPosition[1]
+                                << "\t" << std::setw(13) << thisCluster -> clusterPosition[2] << std::endl
+                                << "\t\t engy, theta, phi (mc): "
+                                <<  std::setw(13)<< thisCluster -> EngyMC
+                                << "\t"<< std::setw(13)<<thisCluster -> ThetaMC
+                                << "\t"<< std::setw(13)<<thisCluster -> PhiMC << std::endl
+                                << "\t\t engy, theta, phi (rec):"
+                                << std::setw(13)<<Ereco
+                                << "\t"<< std::setw(13)<<thisCluster -> Theta
+                                << "\t"<< std::setw(13)<<thisCluster -> Phi
+                                << std::endl << std::endl;
+        // clang-format on
+
+      } else {
+        streamlog_out(DEBUG6) << "Arm: " << armNow << "\t Cluster: " << clusterId << " does not match MC particle !\n";
+        thisCluster->PrintInfo();
+      }
+
+    }  // loop over clusters
+  }    // loop over arms
+  return;
+}  // CreateClusters
+
+  void MarlinLumiCalClusterer::storeMCParticleInfo(LCEvent* evt, int clusterInFlag) {
     int mcparticleInFlag = 0;
     LCCollection * particles(NULL);
     try {
