@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 #include <iomanip>
+#include <functional>
 
 /* >> */
 
