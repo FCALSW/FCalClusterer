@@ -95,21 +95,16 @@ void BeamCal::BeamCalDraw(TPad *pad, TH2D *BeamCalEnergy, TH2F *frame){
       Color_t color=kWhite;
       //----------------------------------------
       if (m_bLogZ==1) {
-	Double_t wlmin=minenergy, wlmax=maxenergy, zc;
-	Int_t color1, color2;
-	wlmin = TMath::Log10(minenergy);
-	wlmax = TMath::Log10(maxenergy);
-	Int_t ncolors = gStyle->GetNumberOfColors();
-	Int_t ndivz   = 99;
-	Double_t scale = ndivz/(wlmax - wlmin);
-	zc = TMath::Log10(energy);
-	if (zc < wlmin) zc = wlmin;
-	if (zc > wlmax) zc = wlmax;
-	color1 = Int_t(0.01+(zc-wlmin)*scale);
-	if(color1 > 98) color1 = 98;
-	color2 = Int_t((color1+0.99)*Double_t(ncolors)/Double_t(ndivz));
-	color = gStyle->GetColorPalette(color2);
-      //----------------------------------------
+        const Double_t wlmin   = TMath::Log10(minenergy);
+        const Double_t wlmax   = TMath::Log10(maxenergy);
+        const Int_t    ncolors = gStyle->GetNumberOfColors();
+        const Int_t    ndivz   = 99;
+        const Double_t scale   = ndivz / (wlmax - wlmin);
+        const Double_t zc      = std::max(std::min(TMath::Log10(energy), wlmax), wlmin);
+        const Int_t    color1  = std::min(Int_t(0.01 + (zc - wlmin) * scale), 98);
+        const Int_t    color2  = Int_t((color1 + 0.99) * Double_t(ncolors) / Double_t(ndivz));
+        color                  = gStyle->GetColorPalette(color2);
+        //----------------------------------------
       } else {
 	Double_t zc = energy;
 	if(energy > 0) {
