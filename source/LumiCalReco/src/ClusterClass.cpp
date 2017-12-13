@@ -96,7 +96,8 @@ void ClusterClass::PrintInfo(){
 
 std::ostream& operator<<(std::ostream& o, const ClusterClass& rhs) {
   // clang-format off
-  o << std::setw(20) << "X, Y, Z:" << std::endl << std::fixed << std::setprecision(3)
+  std::stringstream p;
+  p << std::setw(20) << "X, Y, Z:" << std::endl << std::fixed << std::setprecision(3)
     << std::setw(13) << rhs.getPosition()[0]
     << std::setw(13) << rhs.getPosition()[1]
     << std::setw(13) << rhs.getPosition()[2] << std::endl
@@ -105,6 +106,7 @@ std::ostream& operator<<(std::ostream& o, const ClusterClass& rhs) {
     << std::setw(13) << rhs.getTheta()
     << std::setw(13) << rhs.getPhi() << std::endl
     << std::endl;
+  o << p.str();
   return o;
   // clang-format on
 }
