@@ -123,61 +123,54 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
      -------------------------------------------------------------------------- */
   for(int j=0; j<(int)calHitsLayer.size(); j++) {
 
-    int cellIdHit  = (int)calHitsLayer[j]->getCellID0();
-    const double engyCalHit   = calHitsLayer[j]->getEnergy();
+    int cellIdHit     = (int)calHitsLayer[j]->getCellID0();
 
     // go on to next cal hit if this hit has already been registered
     if(isConnectedToNeighbor[cellIdHit] != 0) continue;
 
-    double maxEngyNeighbor = 0.;
+    bool neighborFound = false;
+    do {
+      double maxEngyNeighbor = 0.;
+      double engyCalHit = calHitsCellId.at(cellIdHit)->getEnergy();
 
-    // get the Ids of the neighbor
-    for(int neighborIndex=0; neighborIndex < _nNearNeighbor ; neighborIndex++) {
-      // find cellId of neighbor
-      const int cellIdNeighbor = getNeighborId(cellIdHit, neighborIndex);
-      if(cellIdNeighbor == 0) continue;
-      try {
-	// if the neighbor has a cal hit...
+      // get the Ids of the neighbor
+      for (int neighborIndex = 0; neighborIndex < _nNearNeighbor; neighborIndex++) {
+        // find cellId of neighbor
+        const int cellIdNeighbor = getNeighborId(cellIdHit, neighborIndex);
+        if (cellIdNeighbor == 0)
+          continue;
+        // if the neighbor has a cal hit...
         MapIntCalHit::const_iterator neighborIt = calHitsCellId.find(cellIdNeighbor);
-        if (neighborIt != calHitsCellId.end()) {
-          auto const& neighbor = neighborIt->second;
+        if (neighborIt == calHitsCellId.end()) {
+          continue;
+        }
+        auto const& neighbor     = neighborIt->second;
+        double      engyNeighbor = neighbor->getEnergy();
+        if ((maxEngyNeighbor < engyNeighbor) && (engyNeighbor >= engyCalHit)) {
+          // register the neighbor at the cal hit
+          isConnectedToNeighbor[cellIdHit] = cellIdNeighbor;
+          // update highest-energy counter
+          maxEngyNeighbor = engyNeighbor;
+        }
 
-	  //if(tmpFlag==1) cout << "neighbor " << cellIdNeighbor
-	  //	<< " " << neighborIndex <<endl;
-	  double engyNeighbor = neighbor->getEnergy();
+      }  //For all neighbor
 
-	  //if(tmpFlag==1) cout << "\tmax/me/neighbor \t"<<maxEngyNeighbor <<"\t"
-	  //	<< engyCalHit<< "\t"<<engyNeighbor <<endl;
-	  if((maxEngyNeighbor < engyNeighbor) && (engyNeighbor >= engyCalHit)) {
-	    // register the neighbor at the cal hit
-	    isConnectedToNeighbor[cellIdHit] = cellIdNeighbor;
-	    // update highest-energy counter
-	    maxEngyNeighbor = engyNeighbor;
-	  }
-	}//if
-      } catch (std::out_of_range & e) {
-	streamlog_out( ERROR ) << "Out of range " << cellIdNeighbor
-			       << " in calHitsCellId:" <<  std::endl;
+      if (maxEngyNeighbor > 0) {
+        // check if the neighbor has already been registered
+        const int cellIdNeighbor = isConnectedToNeighbor[cellIdHit];
+
+        // modify the conditional control variable
+        if (isConnectedToNeighbor[cellIdNeighbor] != 0)
+          neighborFound = true;
+
+        // register the cal hit at the neighbor
+        neighborsConectedToMe[cellIdNeighbor].push_back(cellIdHit);
+        // in the next iteration work with the cal hit's highest-energy near neighbor
+        cellIdHit = isConnectedToNeighbor[cellIdHit];
+      } else {
+        neighborFound = true;
       }
-
-    }//For all neighbor
-
-    if(maxEngyNeighbor > 0) {
-      // check if the neighbor has already been registered
-      const int cellIdNeighbor = isConnectedToNeighbor[cellIdHit];
-      // modify the conditional control variable
-
-      //APS: Does this make sense: When the possible
-      //neighbor already has neighbors we don't quit
-      //here, actually we will always quit, because of the else statement
-      // if(isConnectedToNeighbor[cellIdNeighbor] != 0) neighborFound = true;
-
-      // register the cal hit at the neighbor
-      neighborsConectedToMe[cellIdNeighbor].push_back(cellIdHit);
-      // in the next iteration work with the cal hit's highest-energy near neighbor
-      cellIdHit = isConnectedToNeighbor[cellIdHit];
-    }
-
+    } while (not neighborFound);  // while not neighborFound
   }//for all hits in layer
 
 
