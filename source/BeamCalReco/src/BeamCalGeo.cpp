@@ -255,7 +255,7 @@ int BeamCalGeo::getPadsInRing( int ring ) const {
 
 
 int BeamCalGeo::getPadsBeforeRing( int ring ) const {
-  int nRings = 0;
+  int nRings(1);
   //  std::cout << "GetPadsBefore Ring " << ring  << std::endl;
   for (int i = 0; i < ring-1; ++i) {//we want the number of pads _before_ the ring
     nRings += getPadsInRing(i);
