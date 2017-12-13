@@ -1610,15 +1610,12 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
       superClusterMolRatio = superClusterMolRatio_Tmp;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-      cout	<<  "\t -- ACCEPTED new superCluster(s) -- " << coutDefault <<  endl << endl;
-#endif
       rejectFlag = 0;
+      streamlog_out(DEBUG5) << "\t -- ACCEPTED new superCluster(s) -- " << std::endl;
+
     } else {
-#if _MOL_RAD_CORRECT_DEBUG == 1
-      cout	<<  "\t -- REJECTED new superCluster(s) -- " << coutDefault <<  endl << endl;
-#endif
       rejectFlag = 1;
+      streamlog_out(DEBUG5) << "\t -- REJECTED new superCluster(s) -- " << std::endl;
     }
 
   } else {
@@ -1712,11 +1709,9 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
     superClusterMolRatio = totEngyInAllMol / totEngyArmAboveMin;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    cout	<< endl << "\t (-) Tot engy in arm = " << totEngyArmAboveMin
-		<< " , tot engy in all super clusters in MolRad = " << totEngyInAllMol
-		<<  "  -> their ratio = \t " << superClusterMolRatio << coutDefault << endl << endl;
-#endif
+    streamlog_out(DEBUG5) << "\t (-) Tot engy in arm = " << totEngyArmAboveMin
+                          << " , tot engy in all super clusters in MolRad = " << totEngyInAllMol << "  -> their ratio = \t "
+                          << superClusterMolRatio << std::endl;
   }
 
 
