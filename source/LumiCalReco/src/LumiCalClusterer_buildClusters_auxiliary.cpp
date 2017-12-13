@@ -589,8 +589,8 @@ int LumiCalClustererClass::initialLowEngyClusterBuild(MapIntCalHit const& calHit
   /* --------------------------------------------------------------------------
      merge the unclustered cal hits with the existing clusters
      -------------------------------------------------------------------------- */
-  MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsSmallEngyCellId.begin();
-  for(; calHitsCellIdIterator != calHitsSmallEngyCellId.end(); ++calHitsCellIdIterator){
+  for (auto calHitsCellIdIterator = calHitsSmallEngyCellId.begin(); calHitsCellIdIterator != calHitsSmallEngyCellId.end();
+       ++calHitsCellIdIterator) {
     const int cellIdHit = calHitsCellIdIterator->first;
 
     // add the small energy hits that have now been clustred to the cal hit list at calHitsCellId
