@@ -114,17 +114,18 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       _gmc.rotateToLumiCal(Pos, locPos);
 
 #if _GENERAL_CLUSTERER_DEBUG == 1
-        streamlog_out(DEBUG2) << std::scientific << std::setprecision(3);
-
-        streamlog_out(DEBUG2) << "\t Arm, CellId, Pos(x,y,z), hit energy [MeV]: "
-                              << std::setw(5) << arm
-                              << std::setw(13)
-                              << cellId << "\t ("
-                              << std::setw(13) << locPos[0] << ", "
-                              << std::setw(13) << locPos[1] << ", "
-                              << std::setw(13) << locPos[2] << "), "
-                              << 1000.*engyHit
-                              <<std::endl;
+      std::stringstream p;
+      p << std::scientific << std::setprecision(3)
+        << "\t Arm, CellId, Pos(x,y,z), hit energy [MeV]: "
+        << std::setw(5) << arm
+        << std::setw(13)
+        << cellId << "\t ("
+        << std::setw(13) << locPos[0] << ", "
+        << std::setw(13) << locPos[1] << ", "
+        << std::setw(13) << locPos[2] << "), "
+        << 1000.*engyHit
+        <<std::endl;
+      streamlog_out(DEBUG2) << p.str();
 #endif
 
         // create a new LumiCalHit

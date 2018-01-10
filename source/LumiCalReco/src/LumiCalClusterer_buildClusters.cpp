@@ -186,19 +186,21 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
 #if _CLUSTER_BUILD_DEBUG == 1
       streamlog_out(DEBUG3) << "\t layer " << layerNow <<std::endl;
       int numCells = calHitsCellId[layerNow].size();
-      std::map <int , IMPL::CalorimeterHitImpl* >::iterator calHitsCellIdIterator = calHitsCellId[layerNow].begin();
+      auto calHitsCellIdIterator = calHitsCellId[layerNow].begin();
       for(int cellNow = 0; cellNow < numCells; cellNow++, calHitsCellIdIterator++){
-	int cellId = calHitsCellIdIterator->first;
-	const IMPL::CalorimeterHitImpl* calHit = calHitsCellIdIterator->second;
-	const float* pos = calHit->getPosition();
-	streamlog_out(DEBUG3) << "\t\t CellId, pos(x,y,z), signal energy [MeV]: "
-			      << cellId << "\t ("
-			      << pos[0] << ", "
-			      << pos[1] << ", "
-			      << pos[2] << "), "
-			      << std::fixed << std::setprecision(3)
-			      << 1000.*(calHit->getEnergy())
-			      <<std::endl;
+        int               cellId = calHitsCellIdIterator->first;
+        const auto&       calHit = calHitsCellIdIterator->second;
+        const double*     pos    = calHit->getPosition();
+        std::stringstream p;
+        p << "\t\t CellId, pos(x,y,z), signal energy [MeV]: "
+          << cellId << "\t ("
+          << pos[0] << ", "
+          << pos[1] << ", "
+          << pos[2] << "), "
+          << std::fixed << std::setprecision(3)
+          << 1000.*(calHit->getEnergy())
+          <<std::endl;
+        streamlog_out(DEBUG3) << p.str();
       }
       streamlog_out(DEBUG3) <<std::endl;
 #endif
