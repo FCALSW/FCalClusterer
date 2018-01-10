@@ -37,16 +37,14 @@ bool convert(std::string input, T &value) {
  return ( ! (stream >> std::setbase(0) >> value).fail() ) && stream.eof();
 }
 
-GlobalMethodsClass :: GlobalMethodsClass() :
-  _useDD4hep(false),
-  _backwardRotationPhi(0.0),
-  GlobalParamI(),
-  GlobalParamD(),
-  GlobalParamS(),
-  _forwardCalo(NULL),
-  _backwardCalo(NULL)
-{
-}
+GlobalMethodsClass::GlobalMethodsClass()
+    : _useDD4hep(true),
+      _backwardRotationPhi(0.0),
+      GlobalParamI(),
+      GlobalParamD(),
+      GlobalParamS(),
+      _forwardCalo(nullptr),
+      _backwardCalo(nullptr) {}
 
 GlobalMethodsClass :: ~GlobalMethodsClass(){
 }
@@ -115,6 +113,7 @@ void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
     _useDD4hep=true;
   } else {
     SetGeometryGear();
+    _useDD4hep = false;
   }
 
   //------------------------------------------------------------------------ 
