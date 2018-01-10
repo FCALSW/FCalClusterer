@@ -126,41 +126,6 @@ void fillPadWithEnergy(GlobalMethodsClass& gmc, IMPL::LCCollectionVec& collectio
   expectedTheta /= weightSum;
 }
 
-std::tuple<ClusterImpl*, ReconstructedParticleImpl*> getLCIOObjects(GlobalMethodsClass const& gmc,
-                                                                    LCCluster const& thisClusterInfo) {
-  const double clusterEnergy = thisClusterInfo.getE();
-
-  ClusterImpl* cluster = new ClusterImpl;
-  cluster->setEnergy(clusterEnergy);
-
-  ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
-  const float                mass     = 0.0;
-  const float                charge   = 1e+19;
-  particle->setMass(mass);
-  particle->setCharge(charge);
-  particle->setEnergy(clusterEnergy);
-  particle->addCluster(cluster);
-
-  const float locPos[3] = {float(thisClusterInfo.getX()), float(thisClusterInfo.getY()), float(thisClusterInfo.getZ())};
-  float       gP[3]     = {0.0, 0.0, 0.0};
-  gmc.rotateToGlobal(locPos, gP);
-  cluster->setPosition(gP);
-
-  const float norm               = clusterEnergy / sqrt(gP[0] * gP[0] + gP[1] * gP[1] + gP[2] * gP[2]);
-  const float clusterMomentum[3] = {float(gP[0] * norm), float(gP[1] * norm), float(gP[2] * norm)};
-  particle->setMomentum(clusterMomentum);
-  for (auto& lumicalHit : thisClusterInfo.getCaloHits()) {
-    for (auto* hit : lumicalHit->getHits()) {
-      cluster->addHit(hit, 1.0);
-    }
-  }
-  cluster->subdetectorEnergies().resize(6);
-  //LCAL_INDEX=3 in DDPFOCreator.hh
-  cluster->subdetectorEnergies()[3] = clusterEnergy;
-
-  return std::make_tuple(cluster, particle);
-}
-
 int testLumiCal() {
   bool               failed = false;
   GlobalMethodsClass gmc;
@@ -242,7 +207,7 @@ int testLumiCal() {
 
         streamlog_out(MESSAGE) << thisClusterInfo << std::endl;
 
-        auto objectTuple(getLCIOObjects(gmc, thisClusterInfo));
+        auto objectTuple(gmc.getLCIOObjects(thisClusterInfo, 0.0, false));
         if (std::get<0>(objectTuple) == nullptr) {
           streamlog_out(ERROR) << "FAILED To reconstruct" << std::endl;
           failed = true;

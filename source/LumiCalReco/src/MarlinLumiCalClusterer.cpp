@@ -64,7 +64,7 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
         const int  clusterId       = pairIDCells.first;
         LCCluster& thisClusterInfo = LumiCalClusterer._superClusterIdClusterInfo[armNow][clusterId];
         thisClusterInfo.recalculatePositionFromHits(gmc);
-        auto objectTuple(getLCIOObjects(thisClusterInfo));
+        auto objectTuple(gmc.getLCIOObjects(thisClusterInfo, _minClusterEngy, _cutOnFiducialVolume));
         if (std::get<0>(objectTuple) == nullptr)
           continue;
 
@@ -420,52 +420,4 @@ void MarlinLumiCalClusterer::CreateClusters(std::map<int, MapIntPClusterClass>& 
     }// for jparticle
     OutputManager.HisMap2D["NumClustersIn_numMCParticlesIn"] -> Fill ( mcparticleInFlag, clusterInFlag );
 
-}
-
-std::tuple<ClusterImpl*, ReconstructedParticleImpl*> MarlinLumiCalClusterer::getLCIOObjects(
-    LCCluster const& thisClusterInfo) const {
-  double ThetaMid =
-      (gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMin) + gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMax)) / 2.;
-  double ThetaTol =
-      (gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMax) - gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMin)) / 2.;
-
-  const double clusterEnergy = thisClusterInfo.getE();
-  if (clusterEnergy < _minClusterEngy)
-    return std::make_tuple(nullptr, nullptr);
-
-  if (_cutOnFiducialVolume) {
-    const double clusterTheta = thisClusterInfo.getTheta();
-    if (fabs(clusterTheta - ThetaMid) > ThetaTol)
-      return std::make_tuple(nullptr, nullptr);
-  }
-
-  ClusterImpl* cluster = new ClusterImpl;
-  cluster->setEnergy(clusterEnergy);
-
-  ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
-  const float                mass     = 0.0;
-  const float                charge   = 1e+19;
-  particle->setMass(mass);
-  particle->setCharge(charge);
-  particle->setEnergy(clusterEnergy);
-  particle->addCluster(cluster);
-
-  const float locPos[3] = {float(thisClusterInfo.getX()), float(thisClusterInfo.getY()), float(thisClusterInfo.getZ())};
-  float       gP[3]     = {0.0, 0.0, 0.0};
-  gmc.rotateToGlobal(locPos, gP);
-  cluster->setPosition(gP);
-
-  const float norm               = clusterEnergy / sqrt(gP[0] * gP[0] + gP[1] * gP[1] + gP[2] * gP[2]);
-  const float clusterMomentum[3] = {float(gP[0] * norm), float(gP[1] * norm), float(gP[2] * norm)};
-  particle->setMomentum(clusterMomentum);
-  for (auto& lumicalHit : thisClusterInfo.getCaloHits()) {
-    for (auto* hit : lumicalHit->getHits()) {
-      cluster->addHit(hit, 1.0);
-    }
-  }
-  cluster->subdetectorEnergies().resize(6);
-  //LCAL_INDEX=3 in DDPFOCreator.hh
-  cluster->subdetectorEnergies()[3] = clusterEnergy;
-
-  return std::make_tuple(cluster, particle);
 }
