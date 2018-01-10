@@ -186,8 +186,8 @@ double GlobalMethodsClass::toSignal(double value) const { return value * getCali
 
 double GlobalMethodsClass::toGev(double value) const { return value / getCalibrationFactor(); }
 
-void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> &thetaPhiCell) {
-
+void GlobalMethodsClass::ThetaPhiCell(const int cellId,
+                                      std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const {
   // compute Z,Phi,R coordinates according to the cellId
   // returned Phi is in the range (-M_PI, M_PI )
  
@@ -195,15 +195,16 @@ void GlobalMethodsClass::ThetaPhiCell(int cellId , std::map <GlobalMethodsClass:
   CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
 
   // theta
-  double rCell      = GlobalParamD[RMin] + (cellIdR + 0.5) * GlobalParamD[RCellLength] - GlobalParamD[RCellOffset];
-  double zCell      = fabs(GlobalParamD[ZStart]) + GlobalParamD[ZLayerThickness] * (cellIdZ) +  GlobalParamD[ZLayerZOffset];
+  double rCell = GlobalParamD.at(RMin) + (cellIdR + 0.5) * GlobalParamD.at(RCellLength) - GlobalParamD.at(RCellOffset);
+  double zCell =
+      fabs(GlobalParamD.at(ZStart)) + GlobalParamD.at(ZLayerThickness) * (cellIdZ) + GlobalParamD.at(ZLayerZOffset);
   double thetaCell  = atan(rCell / zCell);
 
   // phi
   //(BP) use phiCell size and account for possible layers relative offset/stagger
   // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]) + double( cellIdZ % 2 ) * GlobalParamD[;
-  double phiCell = (double(cellIdPhi)) * GlobalParamD[PhiCellLength] +
-                   double((cellIdZ) % 2) * GlobalParamD[ZLayerPhiOffset] + GlobalParamD[PhiCellOffset];
+  double phiCell = (double(cellIdPhi)) * GlobalParamD.at(PhiCellLength) +
+                   double((cellIdZ) % 2) * GlobalParamD.at(ZLayerPhiOffset) + GlobalParamD.at(PhiCellOffset);
   phiCell = ( phiCell > M_PI ) ? phiCell-2.*M_PI : phiCell;
   // fill output container
   thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;

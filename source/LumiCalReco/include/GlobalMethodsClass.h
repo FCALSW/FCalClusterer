@@ -98,7 +98,7 @@ public:
   double toSignal(double valNow) const;
   double toGev(double valNow) const;
 
-  void	ThetaPhiCell(int cellId , std::map <GlobalMethodsClass::Coordinate_t , double> & thetaPhiCell);
+  void ThetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
 
   static void CellIdZPR(int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
   static int  CellIdZPR(int cellZ, int cellPhi, int cellR, int arm);
