@@ -170,16 +170,7 @@ void GlobalMethodsClass::SetConstants( marlin::Processor* procPTR ) {
   // IO
   GlobalParamS[LumiInColName] = _lcalRecoPars->getStringVal(  "LumiCal_Collection" );
 
-
-  // Lorentz boost params
-  const double beta = tan( GlobalParamD[BeamCrossingAngle]/2.0 );
-  GlobalParamD[BetaGamma] = beta;
-  GlobalParamD[Gamma] = sqrt( 1. + beta*beta );
-
-  m_armCosAngle[-1] = cos(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
-  m_armCosAngle[1]  = cos(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
-  m_armSinAngle[-1] = sin(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
-  m_armSinAngle[1]  = sin(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  initializeAdditionalParameters();
 }
 
 double GlobalMethodsClass::toSignal(double value) const { return value * getCalibrationFactor(); }
@@ -421,4 +412,16 @@ double GlobalMethodsClass::posWeight(double cellEngy, double totEngy, GlobalMeth
     return std::max(0.0, log(cellEngy / totEngy) + logWeightConstNow);
   }
   return -1;
+}
+
+void GlobalMethodsClass::initializeAdditionalParameters() {
+  // Lorentz boost params
+  const double beta       = tan(GlobalParamD[BeamCrossingAngle] / 2.0);
+  GlobalParamD[BetaGamma] = beta;
+  GlobalParamD[Gamma]     = sqrt(1. + beta * beta);
+
+  m_armCosAngle[-1] = cos(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armCosAngle[1]  = cos(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armSinAngle[-1] = sin(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armSinAngle[1]  = sin(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
 }

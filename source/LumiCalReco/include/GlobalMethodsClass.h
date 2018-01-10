@@ -105,6 +105,7 @@ public:
   static int  CellIdZPR(int cellId, Coordinate_t ZPR);
 
   void PrintAllParameters() const;
+  void initializeAdditionalParameters();
 
   inline bool isUsingDD4hep() const { return _useDD4hep; }
 
