@@ -22,4 +22,10 @@ IF( DD4hep_FOUND )
   INSTALL( TARGETS
     TestBeamCalReco
     RUNTIME DESTINATION bin)
+
+  ADD_EXECUTABLE(TestLumiCalReco TestLumiCalReco.cpp)
+  TARGET_LINK_LIBRARIES(TestLumiCalReco LumiCalReco)
+  INSTALL(TARGETS TestLumiCalReco
+    RUNTIME DESTINATION bin)
+
 ENDIF()
