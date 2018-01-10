@@ -20,6 +20,9 @@
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
+#include <IMPL/ClusterImpl.h>
+#include <IMPL/ReconstructedParticleImpl.h>
+
 using streamlog::MESSAGE;
 
 #include <map>
@@ -423,4 +426,51 @@ void GlobalMethodsClass::initializeAdditionalParameters() {
   m_armCosAngle[1]  = cos(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
   m_armSinAngle[-1] = sin(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
   m_armSinAngle[1]  = sin(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+}
+
+std::tuple<ClusterImpl*, ReconstructedParticleImpl*> GlobalMethodsClass::getLCIOObjects(LCCluster const& thisClusterInfo,
+                                                                                        double minClusterEnergy,
+                                                                                        bool   cutOnFiducialVolume) const {
+  double ThetaMid = (GlobalParamD.at(GlobalMethodsClass::ThetaMin) + GlobalParamD.at(GlobalMethodsClass::ThetaMax)) / 2.;
+  double ThetaTol = (GlobalParamD.at(GlobalMethodsClass::ThetaMax) - GlobalParamD.at(GlobalMethodsClass::ThetaMin)) / 2.;
+
+  const double clusterEnergy = thisClusterInfo.getE();
+  if (clusterEnergy < minClusterEnergy)
+    return std::make_tuple(nullptr, nullptr);
+
+  if (cutOnFiducialVolume) {
+    const double clusterTheta = thisClusterInfo.getTheta();
+    if (fabs(clusterTheta - ThetaMid) > ThetaTol)
+      return std::make_tuple(nullptr, nullptr);
+  }
+
+  ClusterImpl* cluster = new ClusterImpl;
+  cluster->setEnergy(clusterEnergy);
+
+  ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
+  const float                mass     = 0.0;
+  const float                charge   = 1e+19;
+  particle->setMass(mass);
+  particle->setCharge(charge);
+  particle->setEnergy(clusterEnergy);
+  particle->addCluster(cluster);
+
+  const float locPos[3] = {float(thisClusterInfo.getX()), float(thisClusterInfo.getY()), float(thisClusterInfo.getZ())};
+  float       gP[3]     = {0.0, 0.0, 0.0};
+  this->rotateToGlobal(locPos, gP);
+  cluster->setPosition(gP);
+
+  const float norm               = clusterEnergy / sqrt(gP[0] * gP[0] + gP[1] * gP[1] + gP[2] * gP[2]);
+  const float clusterMomentum[3] = {float(gP[0] * norm), float(gP[1] * norm), float(gP[2] * norm)};
+  particle->setMomentum(clusterMomentum);
+  for (auto& lumicalHit : thisClusterInfo.getCaloHits()) {
+    for (auto* hit : lumicalHit->getHits()) {
+      cluster->addHit(hit, 1.0);
+    }
+  }
+  cluster->subdetectorEnergies().resize(6);
+  //LCAL_INDEX=3 in DDPFOCreator.hh
+  cluster->subdetectorEnergies()[3] = clusterEnergy;
+
+  return std::make_tuple(cluster, particle);
 }

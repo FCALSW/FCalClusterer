@@ -21,6 +21,10 @@
 
 class TGeoHMatrix;
 
+namespace IMPL {
+  class ClusterImpl;
+  class ReconstructedParticleImpl;
+}
 
 class GlobalMethodsClass {
 private:
@@ -116,6 +120,10 @@ public:
 
   template <class T, class U> inline void rotateToGlobal(const T* loc, U* glob) const;
   template <class T, class U> inline void rotateToLumiCal(const T* glob, U* loc) const;
+
+  std::tuple<IMPL::ClusterImpl*, IMPL::ReconstructedParticleImpl*> getLCIOObjects(LCCluster const& thisClusterInfo,
+                                                                                  double minClusterEnergy,
+                                                                                  bool   cutOnFiducialVolume) const;
 
 private:
   void SetGeometryGear();
