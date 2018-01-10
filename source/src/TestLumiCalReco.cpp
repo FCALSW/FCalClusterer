@@ -20,23 +20,11 @@
 
 constexpr int N_PHI_CELLS = 64;
 
-template <class t> inline void RotateToLumiCal(const t* vector, t* rotated, double angle) {
-  if (vector[2] < 0) {
-    angle *= -1;
-  }
-  const double CosAngle = cos(double(angle) / 1000.0);
-  const double SinAngle = sin(double(angle) / 1000.0);
-  rotated[0]            = CosAngle * vector[0] - SinAngle * vector[2];
-  rotated[1]            = vector[1];
-  rotated[2]            = SinAngle * vector[0] + CosAngle * vector[2];
-}
+template <class T> double getTheta(GlobalMethodsClass const& gmc, T* p);
 
-template <class T> double getTheta(T& p);
-template <class T> double getTheta(T* p);
-
-template <> double getTheta(const double* momGlob) {
+template <> double getTheta(GlobalMethodsClass const& gmc, const double* momGlob) {
   double mom[3] = {0.0, 0.0, 0.0};
-  RotateToLumiCal(momGlob, mom, 10.0);
+  gmc.rotateToLumiCal(momGlob, mom);
   const double r     = sqrt(mom[0] * mom[0] + mom[1] * mom[1]);
   double       theta = std::atan(r / mom[2]);
   if (theta < 0)
@@ -44,15 +32,15 @@ template <> double getTheta(const double* momGlob) {
   return theta;
 }
 
-template <class T> double getTheta(T* p) {
+template <class T> double getTheta(GlobalMethodsClass const& gmc, T* p) {
   const double* momGlob = p->getMomentum();
-  return getTheta(momGlob);
+  return getTheta(gmc, momGlob);
 }
 
-template <class T> double getPhi(T* p) {
+template <class T> double getPhi(GlobalMethodsClass const& gmc, T* p) {
   const double* momGlob = p->getMomentum();
   double        mom[3]  = {0.0, 0.0, 0.0};
-  RotateToLumiCal(momGlob, mom, 10.0);
+  gmc.rotateToLumiCal(momGlob, mom);
   return std::atan2(mom[1], mom[0]);
 }
 
@@ -104,7 +92,7 @@ void fillPadWithEnergy(GlobalMethodsClass& gmc, IMPL::LCCollectionVec& collectio
         hit->setPosition(floatPos);
 
         weightSum += energy;
-        expectedTheta += energy * getTheta<const double>(globPos);
+        expectedTheta += energy * getTheta<const double>(gmc, globPos);
 
         streamlog_out(DEBUG2) << "Creating hit "
           
@@ -216,8 +204,8 @@ int testLumiCal() {
         auto* cluster = std::get<0>(objectTuple);
         auto* rp      = std::get<1>(objectTuple);
 
-        double reconstructedPhi   = getPhi(rp) * 180 / M_PI;
-        double reconstructedTheta = getTheta(rp);
+        double reconstructedPhi   = getPhi(gmc, rp) * 180 / M_PI;
+        double reconstructedTheta = getTheta(gmc, rp);
 
         if (reconstructedPhi < 0)
           reconstructedPhi += 360;
