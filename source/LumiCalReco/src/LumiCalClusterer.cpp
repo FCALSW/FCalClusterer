@@ -203,7 +203,6 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 		   superClusterCM[armNow],
 		   armNow);
 
-
     /* --------------------------------------------------------------------------
        Merge superClusters according the minDistance nad minEngy rules
        -------------------------------------------------------------------------- */
