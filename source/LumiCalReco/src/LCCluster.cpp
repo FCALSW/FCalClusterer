@@ -90,6 +90,8 @@ void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
   _phi   = atan2(yTemp, xTemp);
   _theta = thetaTemp;
 
+  if(_theta < 0) _theta += M_PI;
+
   const double r = sqrt(xTemp * xTemp + yTemp * yTemp + zTemp * zTemp);
 
   _position[0] = r * sin(_theta) * cos(_phi);
