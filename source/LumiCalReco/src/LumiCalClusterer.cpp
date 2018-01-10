@@ -204,7 +204,7 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 		   armNow);
 
     /* --------------------------------------------------------------------------
-       Merge superClusters according the minDistance nad minEngy rules
+       Merge superClusters according the minDistance and minEngy rules
        -------------------------------------------------------------------------- */
     streamlog_out(DEBUG6) << "\tRun LumiCalClustererClass::clusterMerger()" << std::endl;
     clusterMerger(		_superClusterIdToCellEngy[armNow],
