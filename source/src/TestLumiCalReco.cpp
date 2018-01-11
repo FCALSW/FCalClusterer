@@ -62,10 +62,15 @@ void fillPadWithEnergy(GlobalMethodsClass& gmc, IMPL::LCCollectionVec& collectio
         auto* hit = new IMPL::CalorimeterHitImpl();
 
         int thisPadID = thisPad;
-        if (thisPadID < 0)
-          thisPadID += N_PHI_CELLS;
-        if (thisPadID >= N_PHI_CELLS)
+        // counting sense inverted in backward direction (because of LumiCalConstruction)
+        if (sign < 0) {
+          thisPadID = N_PHI_CELLS - thisPadID;
+        }
+        //phi goes from -NPhi/2 to NPhi/2-1
+        if (thisPadID >= N_PHI_CELLS / 2)
           thisPadID -= N_PHI_CELLS;
+        if (thisPadID < -N_PHI_CELLS / 2)
+          thisPadID += N_PHI_CELLS;
 
         long cellID0 = (3 << 0) + (direction << 8) + (layer << (8 + 3));
         long cellID1 = thisR + (thisPad << 16);
@@ -82,6 +87,9 @@ void fillPadWithEnergy(GlobalMethodsClass& gmc, IMPL::LCCollectionVec& collectio
         float zCell = 3500.0 + 500.0 / 40 * layer;
 
         float phiCell = thisPadID * 2.0 * M_PI / N_PHI_CELLS;
+        if (sign < 0) {
+          phiCell *= -1.0;
+        }
 
         double locPos[3]  = {rCell * cos(phiCell), rCell * sin(phiCell), sign * zCell};
         double globPos[3] = {0.0, 0.0, 0.0};
