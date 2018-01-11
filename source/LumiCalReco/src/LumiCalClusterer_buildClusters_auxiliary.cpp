@@ -1180,9 +1180,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     superClusterRejected,
     superClusterAccepted;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-  cout	<< coutBlue << "Before Moliere corrections:" << coutDefault << endl;
-#endif
+  streamlog_out(DEBUG5) << "Before Moliere corrections:" << std::endl;
 
   double totEngyArmAboveMin = 0.;
   double totEngyInAllMol    = 0.;
@@ -1202,27 +1200,22 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     totEngyInAllMol       += superClusterEngyInMoliere[superClusterId];
     totEngyArmAboveMin    += superClusterCM[superClusterId].getE();
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    double engyPercentInMol = superClusterEngyInMoliere[superClusterId]
-      / superClusterCM[superClusterId].getE() ;
-
-    cout	<< "\t Id " << superClusterId << "  \t energy " << superClusterCM[superClusterId].getE()
-		<< "     \t pos(x,y) =  ( " << superClusterCM[superClusterId].getX()
-		<< " , " << superClusterCM[superClusterId].getY() << " )"
-		<< "     \t pos(theta,phi) =  ( " << superClusterCM[superClusterId].getTheta()
-		<< " , " << superClusterCM[superClusterId].getPhi() << " )" << endl
-		<< "\t\t engy in _moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterId]
-		<<  " \t -> totEngy in Moliere = \t " << engyPercentInMol << " %" << coutDefault << endl << endl;
-#endif
+    streamlog_out(DEBUG5) << "\t Id " << superClusterId << "  \t energy " << superClusterCM[superClusterId].getE()
+                          << "     \t pos(x,y) =  ( " << superClusterCM[superClusterId].getX() << " , "
+                          << superClusterCM[superClusterId].getY() << " )"
+                          << "     \t pos(theta,phi) =  ( " << superClusterCM[superClusterId].getTheta() << " , "
+                          << superClusterCM[superClusterId].getPhi() << " )" << std::endl
+                          << "\t\t engy in _moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterId]
+                          << " \t -> totEngy in Moliere = \t "
+                          << superClusterEngyInMoliere[superClusterId] / superClusterCM[superClusterId].getE() << " %"
+                          << std::endl;
   }
 
   superClusterMolRatio = totEngyInAllMol / totEngyArmAboveMin;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-  cout	<< "\t (-) Tot engy in arm = " << totEngyArmAboveMin
-	<< " , tot engy in all super clusters in MolRad = " << totEngyInAllMol
-	<<  "  -> their ratio = \t " << superClusterMolRatio << coutDefault << endl << endl;
-#endif
+  streamlog_out(DEBUG5) << "\t (-) Tot engy in arm = " << totEngyArmAboveMin
+                        << " , tot engy in all super clusters in MolRad = " << totEngyInAllMol << "  -> their ratio = \t "
+                        << superClusterMolRatio << std::endl;
 
   /* --------------------------------------------------------------------------
      set a global variable that warns about an unstable clustering, in
@@ -1332,9 +1325,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     /* --------------------------------------------------------------------------
        find the percentage of energy for each cluster within _moliereRadius
        -------------------------------------------------------------------------- */
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    cout	<< endl << coutBlue << "Projection clusters (initial clustering with all hits):" << coutDefault << endl;
-#endif
+    streamlog_out(DEBUG5) << "Projection clusters (initial clustering with all hits):" << std::endl;
 
     int engyInMoliereFlag = 0;
     for(MapIntLCCluster::const_iterator clusterCMIterator = clusterCM[_maxLayerToAnalyse].begin();
@@ -1351,12 +1342,11 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
       if(engyPercentInMol < engyPercentInMolFrac) engyInMoliereFlag = 1;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-      cout	<< "\tprojection " << clusterId << "  at (x,y) = (" << clusterCM[_maxLayerToAnalyse][clusterId][1]
-		<< " , " << clusterCM[_maxLayerToAnalyse][clusterId][2] << ")   \t engy in (" << molRadPercentage
-		<< " * _moliereRadius)  =   " << thisProjectionClusterEngyInMoliere
-		<<  " \t-> % totEngy = \t " << engyPercentInMol << coutDefault << endl;
-#endif
+      streamlog_out(DEBUG5) << "\tprojection " << clusterId << "  at (x,y) = ("
+                            << clusterCM[_maxLayerToAnalyse][clusterId].getX() << " , "
+                            << clusterCM[_maxLayerToAnalyse][clusterId].getY() << ")   \t engy in (" << molRadPercentage
+                            << " * _moliereRadius)  =   " << thisProjectionClusterEngyInMoliere << " \t-> % totEngy = \t "
+                            << engyPercentInMol << std::endl;
     }
 
 
@@ -1366,19 +1356,16 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
        a percentage molRadPercentage od moliere radius (each iteration the total
        energy decreases due to a higher cut on minHitEnergy).
        -------------------------------------------------------------------------- */
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    if(engyInMoliereFlag == 1)
-      cout	<< endl << coutBlue << "Optimizing ...  -  ignore hits with energy below    " << coutDefault;
-#endif
+    if (engyInMoliereFlag == 1) {
+      streamlog_out(DEBUG5) << "Optimizing ...  -  ignore hits with energy below    ";
+    }
 
     while(engyInMoliereFlag == 1){
 
       engyInMoliereFlag     = 0;
       engyHitBoundMultiply += 30;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-      cout	<< "  ->  " << middleEnergyHitBound * engyHitBoundMultiply ;
-#endif
+      streamlog_out(DEBUG5) << "  ->  " << middleEnergyHitBound * engyHitBoundMultiply;
 
       // remove hits that are of low energy
       std::vector <int> idsToErase;
@@ -1393,10 +1380,8 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       int numIdsToErase = idsToErase.size();
       int numHitsRemaining = (int)calHitsCellIdProjection.size() - numIdsToErase;
       if(numHitsRemaining < 5) {
-#if _MOL_RAD_CORRECT_DEBUG == 1
-	cout << endl <<  "  -- optimization of the projection clusters has failed ... --" << coutDefault << endl;
-#endif
-	break;
+        streamlog_out(DEBUG5) << "  -- optimization of the projection clusters has failed ... --" << std::endl;
+        break;
       }
 
       for(int hitNow = 0; hitNow < numIdsToErase; hitNow++){
@@ -1464,10 +1449,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       projectionFlag[cellIdProjection] = 0;
     }
 
-
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    cout	<< endl << endl << coutBlue << "Projection clusters (all hits):" << coutDefault << endl;
-#endif
+    streamlog_out(DEBUG5) << "Projection clusters (all hits):" << std::endl;
 
     /* --------------------------------------------------------------------------
        find the percentage of energy for each cluster within _moliereRadius
@@ -1487,19 +1469,16 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
       totEngyInAllMol += thisProjectionClusterEngyInMoliere;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-      cout	<< "\tfull-Projection " << clusterIdHit
-		<< clusterCMIterator->second<< ")   \t engy in _moliereRadius  \t=   "
-		<< thisProjectionClusterEngyInMoliere << " (possibly under-counted...)"<<endl;
-#endif
+      streamlog_out(DEBUG5) << "\tfull-Projection " << clusterIdHit << clusterCMIterator->second
+                            << ")   \t engy in _moliereRadius  \t=   " << thisProjectionClusterEngyInMoliere
+                            << " (possibly under-counted...)" << std::endl;
     }
 
     projectionClusterMolRatio = totEngyInAllMol / totEngyArmAboveMin;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    cout	<< endl << "\t (-) Tot engy in arm = " << totEngyArmAboveMin << " , tot engy in all projection clusters  in MolRad = "
-		<< totEngyInAllMol <<  "  -> their ratio = \t " << projectionClusterMolRatio << coutDefault << endl << endl;
-#endif
+    streamlog_out(DEBUG5) << "\t (-) Tot engy in arm = " << totEngyArmAboveMin
+                          << " , tot engy in all projection clusters  in MolRad = " << totEngyInAllMol
+                          << "  -> their ratio = \t " << projectionClusterMolRatio << std::endl;
   } //if rejectFlag == 1
 
 
@@ -1557,9 +1536,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     totEngyArmAboveMin = 0.;
     totEngyInAllMol    = 0.;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    cout	<< endl << coutBlue << "New superClusters:" << coutDefault << endl;
-#endif
+    streamlog_out(DEBUG5) << "New superClusters:" << std::endl;
 
     std::map < int , double > superClusterEngyInMoliere_Tmp;
 
@@ -1576,24 +1553,20 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       totEngyInAllMol       += superClusterEngyInMoliere_Tmp[superClusterId];
       totEngyArmAboveMin    += superClusterCMIterator->second.getE();
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-      double engyPercentInMol = superClusterEngyInMoliere_Tmp[superClusterId]
-	/ superClusterCM_Tmp[superClusterId][0] ;
-
-      cout << "superCluster " << superClusterId << " \tat (x,y) = (" << superClusterCM_Tmp[superClusterId][1]
-	   << " , " << superClusterCM_Tmp[superClusterId][2] << ")   \t engy in _moliereRadius  \t=   "
-	   << superClusterEngyInMoliere_Tmp[superClusterId]
-	   <<  " \t-> % totEngy = \t " << engyPercentInMol << coutDefault << endl;
-#endif
+      streamlog_out(DEBUG5) << "superCluster " << superClusterId << " \tat (x,y) = ("
+                            << superClusterCM_Tmp[superClusterId].getX() << " , "
+                            << superClusterCM_Tmp[superClusterId].getY()
+                            << ")   \t engy in _moliereRadius  \t=   " << superClusterEngyInMoliere_Tmp[superClusterId]
+                            << " \t-> % totEngy = \t "
+                            << superClusterEngyInMoliere_Tmp[superClusterId] / superClusterCM_Tmp[superClusterId].getE()
+                            << std::endl;
     }
 
     superClusterMolRatio_Tmp = totEngyInAllMol / totEngyArmAboveMin;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    cout	<< endl << "\t (-) Tot engy in arm = " << totEngyArmAboveMin
-		<< " , tot engy in all super clusters in MolRad = " << totEngyInAllMol
-		<<  "  -> their ratio = \t " << superClusterMolRatio_Tmp << coutDefault << endl << endl;
-#endif
+    streamlog_out(DEBUG5) << "\t (-) Tot engy in arm = " << totEngyArmAboveMin
+                          << " , tot engy in all super clusters in MolRad = " << totEngyInAllMol << "  -> their ratio = \t "
+                          << superClusterMolRatio_Tmp << std::endl;
 
     if(superClusterMolRatio < superClusterMolRatio_Tmp) {
       superClusterIdToCellId		= superClusterIdToCellId_Tmp;
@@ -1612,11 +1585,9 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     }
 
   } else {
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    if(projectionClusterMolRatio > 0)
-      cout	<<  " \t -- the projection is not an improvement on the SuperCluster(s) -- "
-		<< coutDefault << endl << endl;
-#endif
+    if (projectionClusterMolRatio > 0) {
+      streamlog_out(DEBUG5) << " \t -- the projection is not an improvement on the SuperCluster(s) -- " << std::endl;
+    }
     rejectFlag = 1;
   }
 

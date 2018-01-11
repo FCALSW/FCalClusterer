@@ -343,7 +343,7 @@ void MarlinLumiCalClusterer::CreateClusters(std::map<int, MapIntPClusterClass>& 
         // clang-format off
         streamlog_out( DEBUG6 ) << "\tParticle Out ("
                                 << thisCluster -> OutsideReason << "):   " << clusterId << std::endl
-                                << "\t\t side(arm), pdg, parentIdxo , NumMCDaughters = "
+                                << "\t\t side(arm), pdg, parentId , NumMCDaughters = "
                                 << "\t" << thisCluster->getSign() <<"("<<armNow<<")"
                                 << "\t" << thisCluster->getPDG()
                                 << "\t" << thisCluster->getParentId()

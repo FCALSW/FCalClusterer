@@ -194,8 +194,8 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
        Construct clusters for each arm
        -------------------------------------------------------------------------- */
     streamlog_out(DEBUG6) << "\tRun LumiCalClustererClass::buildClusters()" << std::endl;
-    streamlog_out(DEBUG5) << "\tEnergy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
-			  << "\tNumber of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << std::endl;
+    streamlog_out(DEBUG5) << "\tEnergy deposit: " << _totEngyArm[armNow] << "\tNumber of hits: " << _numHitsInArm[armNow]
+                          << std::endl;
     buildClusters( calHits[armNow],
 		   calHitsCellIdGlobal[armNow],
 		   _superClusterIdToCellId[armNow],

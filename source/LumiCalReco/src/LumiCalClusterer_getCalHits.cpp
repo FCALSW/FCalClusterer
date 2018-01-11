@@ -113,20 +113,24 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       double       locPos[3] = {0.0, 0.0, 0.0};
       _gmc.rotateToLumiCal(Pos, locPos);
 
-#if _GENERAL_CLUSTERER_DEBUG == 1
-      std::stringstream p;
-      p << std::scientific << std::setprecision(3)
-        << "\t Arm, CellId, Pos(x,y,z), hit energy [MeV]: "
-        << std::setw(5) << arm
-        << std::setw(13)
-        << cellId << "\t ("
-        << std::setw(13) << locPos[0] << ", "
-        << std::setw(13) << locPos[1] << ", "
-        << std::setw(13) << locPos[2] << "), "
-        << 1000.*engyHit
-        <<std::endl;
-      streamlog_out(DEBUG2) << p.str();
-#endif
+      streamlog_message(DEBUG2,
+                        std::stringstream p;
+                        p << std::scientific << std::setprecision(3)
+                        << "\t Arm, CellId, Pos(x,y,z), hit energy [MeV]: "
+                        << std::setw(5) << arm
+                        << std::setw(13)
+                        << cellId << "\t ("
+                        << std::setw(13) << locPos[0] << ", "
+                        << std::setw(13) << locPos[1] << ", "
+                        << std::setw(13) << locPos[2] << "), "
+                        << 1000.*engyHit
+                        << "Layer/Phi/R/Arm"
+                        << std::setw(5) << layer
+                        << std::setw(5) << phiCell
+                        << std::setw(5) << rCell
+                        << std::setw(5) << arm
+                        <<std::endl; ,
+                        p.str(););
 
         // create a new LumiCalHit
         auto calHitNew = std::make_shared<LumiCalHit>();
@@ -144,10 +148,8 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
         _totEngyArm[arm] += engyHit;
     }//for all simHits
 
-#if _GENERAL_CLUSTERER_DEBUG == 1
-    streamlog_out( MESSAGE4 ) << std::endl  << "Energy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
-			   << "Number of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << "\n\n";
-#endif
+    streamlog_out(DEBUG4) << "Energy deposit: "<< _totEngyArm[-1] << "\t" << _totEngyArm[1] <<"\n"
+                          << "Number of hits: "<< _numHitsInArm[-1] << "\t" << _numHitsInArm[1] << std::endl;
 
     if (((_numHitsInArm[-1] < _clusterMinNumHits) || (_totEngyArm[-1] < _minClusterEngyGeV)) &&
         ((_numHitsInArm[1] < _clusterMinNumHits) || (_totEngyArm[1] < _minClusterEngyGeV))) {

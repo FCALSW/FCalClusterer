@@ -285,7 +285,7 @@ int main() {
   streamlog::out.addLevelName<marlin::SILENT>();
 
   streamlog::logscope scope(streamlog::out);
-  scope.setLevel("MESSAGE");
+  scope.setLevel("DEBUG5");
 
   try {
     testLumiCal();

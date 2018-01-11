@@ -169,9 +169,7 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
   /* --------------------------------------------------------------------------
      form initial clusters for the shower-peak layers
      -------------------------------------------------------------------------- */
-#if _CLUSTER_BUILD_DEBUG == 1
-  streamlog_out(DEBUG3) <<  "run initialClusterBuild and initialLowEngyClusterBuild:" << std::endl;
-#endif
+  streamlog_out(DEBUG6) << "run initialClusterBuild and initialLowEngyClusterBuild:" << std::endl;
 
   // set the control vector for the initialClusterBuild clustering options
   initialClusterControlVar[0] = 1;  // mergeOneHitClusters
@@ -182,28 +180,24 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
   for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) 
     if(isShowerPeakLayer[layerNow] == 1) {
       // run the initial clustering algorithm for the high energy hits
-      // 
-#if _CLUSTER_BUILD_DEBUG == 1
-      streamlog_out(DEBUG3) << "\t layer " << layerNow <<std::endl;
-      int numCells = calHitsCellId[layerNow].size();
-      auto calHitsCellIdIterator = calHitsCellId[layerNow].begin();
-      for(int cellNow = 0; cellNow < numCells; cellNow++, calHitsCellIdIterator++){
-        int               cellId = calHitsCellIdIterator->first;
-        const auto&       calHit = calHitsCellIdIterator->second;
-        const double*     pos    = calHit->getPosition();
-        std::stringstream p;
-        p << "\t\t CellId, pos(x,y,z), signal energy [MeV]: "
-          << cellId << "\t ("
-          << pos[0] << ", "
-          << pos[1] << ", "
-          << pos[2] << "), "
-          << std::fixed << std::setprecision(3)
-          << 1000.*(calHit->getEnergy())
-          <<std::endl;
-        streamlog_out(DEBUG3) << p.str();
-      }
-      streamlog_out(DEBUG3) <<std::endl;
-#endif
+      streamlog_message(DEBUG2,
+                        std::stringstream p;
+                        p << "\t layer " << layerNow <<std::endl;
+                        for (auto const& callHitCellID: calHitsCellId[layerNow]){
+                          int               cellId = callHitCellID.first;
+                          const auto&       calHit = callHitCellID.second;
+                          const double*     pos    = calHit->getPosition();
+                          p << "\t\t CellId, pos(x,y,z), signal energy [MeV]: "
+                            << cellId << "\t ("
+                            << pos[0] << ", "
+                            << pos[1] << ", "
+                            << pos[2] << "), "
+                            << std::fixed << std::setprecision(3)
+                            << 1000.*(calHit->getEnergy())
+                            <<std::endl;
+                        }
+                        p << std::endl;,
+                        p.str(););
       initialClusterBuild( calHitsCellId[layerNow],          // <--
 			   cellIdToClusterId[layerNow],      // -->
 			   clusterIdToCellId[layerNow],      // -->
@@ -231,15 +225,11 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
      -------------------------------------------------------------------------- */
   MapIntInt numClustersCounter;
   // find the number of clusters in the majority of layers
-#if _CLUSTER_BUILD_DEBUG == 1
-      streamlog_out(DEBUG3) <<  "Searching number of clusters in the majority of layers..." << std::endl;
-#endif
+  streamlog_out(DEBUG5) << "Searching number of clusters in the majority of layers..." << std::endl;
   for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) {
     if(isShowerPeakLayer[layerNow] == 1) {
       const int numClusters = clusterCM[layerNow].size();
-#if _CLUSTER_BUILD_DEBUG == 1
-      streamlog_out(DEBUG3) <<  "\t -> layer " << layerNow <<"\t global clusters "<< numClusters << std::endl;
-#endif
+      streamlog_out(DEBUG5) << "\t -> layer " << layerNow << "\t global clusters " << numClusters << std::endl;
       numClustersCounter[numClusters]++;
     }
   }
@@ -248,12 +238,9 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
     std::max_element( numClustersCounter.begin(), numClustersCounter.end(), compareByValue<std::pair<int, int> >);
   int numClustersMajority = maxCluster->first;
 
-#if _CLUSTER_BUILD_DEBUG == 1
-   int numLayersWithClustersMajority = maxCluster->second;
-  streamlog_out(DEBUG3) <<  "\t -> Found that there are "<< numLayersWithClustersMajority <<" ShowerPeakLayers \n"
-			<<  "\t with "<< numClustersMajority
-			<< " global clusters" << std::endl <<std::endl;
-#endif
+  streamlog_out(DEBUG5) << "\t -> Found that there are " << maxCluster->second << " ShowerPeakLayers \n"
+                        << "\t with " << numClustersMajority << " global clusters" << std::endl
+                        << std::endl;
   numClustersCounter.clear();
 
 
