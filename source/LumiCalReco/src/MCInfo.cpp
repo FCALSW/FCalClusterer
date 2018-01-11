@@ -38,18 +38,21 @@ SMCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle* particle, GlobalMethodsClas
   const double *vx = particle->getVertex();
 
   // particle position at LCal face ( local )
-  double begX = vx[0] + double(sign)*LcalZstart*tan(pxloc/(pp[2]));
-  double begY = vx[1] + double(sign)*LcalZstart*tan(pp[1]/(pp[2]));
+  double begX = vx[0] + double(sign) * LcalZstart * (pxloc / pp[2]);
+  double begY = vx[1] + double(sign) * LcalZstart * (pp[1] / pp[2]);
   double rt = sqrt( begX*begX  + begY*begY );
   if( rt < Rmin || Rmax < rt  ) return mcp; //<--- within geo acceptance ?
 
   //  polar angle ( local )
   double theta = atan( sqrt( pxloc*pxloc + pp[1]*pp[1] ) / fabs(pp[2]));
   if( fabs(theta) < thmin  || thmax < fabs(theta)  ) return mcp; //<--- within theta range ?
+  if (pp[2] < 0) {
+    theta = M_PI - fabs(theta);
+  }
 
   const double phi = atan2( begY, begX );
 
-  mcp        = std::make_shared<MCInfo>(particle, engy, theta, phi, begX, begY, LcalZstart, pdg, sign);
+  mcp        = std::make_shared<MCInfo>(particle, engy, theta, phi, begX, begY, sign * LcalZstart, pdg, sign);
   mcp->pp[0] = pp[0];
   mcp->pp[1] = pp[1];
   mcp->pp[2] = pp[2];
@@ -75,8 +78,12 @@ SMCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle* particle, GlobalMethodsClas
   // correction for the polar angle for cases where the particle does not
   // come from the IP (according to a projection on the face of LumiCal)
   if (fabs(mcp->m_vtxZ) > _VERY_SMALL_NUMBER) {
-    double MCr = tan(mcp->theta) * (gmc.GlobalParamD[GlobalMethodsClass::ZStart] - fabs(mcp->m_vtxZ));
-    mcp->theta = atan(MCr / gmc.GlobalParamD[GlobalMethodsClass::ZStart]);
+    double MCr      = tan(mcp->theta) * (sign * gmc.GlobalParamD[GlobalMethodsClass::ZStart] - fabs(mcp->m_vtxZ));
+    double newTheta = atan(fabs(MCr / (sign * gmc.GlobalParamD[GlobalMethodsClass::ZStart])));
+    if (pp[2] < 0) {
+      newTheta = M_PI - fabs(newTheta);
+    }
+    mcp->theta = newTheta;
   }
 
   return mcp;

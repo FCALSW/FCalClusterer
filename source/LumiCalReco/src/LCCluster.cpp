@@ -91,16 +91,18 @@ void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
   _theta = thetaTemp;
 
   if(_theta < 0) _theta += M_PI;
+  const double sign = zTemp < 0 ? -1.0 : 1.0;
 
   const double r = sqrt(xTemp * xTemp + yTemp * yTemp + zTemp * zTemp);
+  const double zStart = sign * gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
 
   _position[0] = r * sin(_theta) * cos(_phi);
   _position[1] = r * sin(_theta) * sin(_phi);
   _position[2] = r * cos(_theta);
 
   //cluster position at front-face of LumiCal
-  _rzStart            = atan(fabs(_theta)) * gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
+  _rzStart            = tan(_theta) * zStart;
   _positionAtFront[0] = _rzStart * cos(_phi);
   _positionAtFront[1] = _rzStart * sin(_phi);
-  _positionAtFront[2] = gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
+  _positionAtFront[2] = zStart;
 }
