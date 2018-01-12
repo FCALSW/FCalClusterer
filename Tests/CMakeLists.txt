@@ -16,7 +16,7 @@ IF( DD4hep_FOUND )
     ${CMAKE_SOURCE_DIR}/bin/TestLumiCalReco
     )
   SET_TESTS_PROPERTIES( t_${test_name} PROPERTIES
-    FAIL_REGULAR_EXPRESSION  "Phi not correctly reconstructed|Theta not correctly reconstructed"
+    FAIL_REGULAR_EXPRESSION  "Phi not correctly reconstructed|Theta not correctly reconstructed|Wrong number of"
     )
 
 ENDIF()

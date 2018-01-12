@@ -195,8 +195,10 @@ int testLumiCal() {
                                << "\t Number of clusters: " << lcc._superClusterIdToCellId[armNow].size() << std::endl;
       }
 
+      if (lcc._superClusterIdToCellId[directionID].size() != 1) {
+        streamlog_out(ERROR) << "ERROR: Wrong number of reconstructed clusters" << std::endl;
+      }
       for (auto const& pairIDCells : lcc._superClusterIdToCellId[directionID]) {
-        streamlog_out(MESSAGE) << "Got some clusterInfo" << std::endl;
         const int  clusterId       = pairIDCells.first;
         LCCluster& thisClusterInfo = lcc._superClusterIdClusterInfo[directionID][clusterId];
         thisClusterInfo.recalculatePositionFromHits(gmc);
@@ -293,7 +295,7 @@ int main() {
   streamlog::out.addLevelName<marlin::SILENT>();
 
   streamlog::logscope scope(streamlog::out);
-  scope.setLevel("DEBUG5");
+  scope.setLevel("MESSAGE");
 
   try {
     testLumiCal();
