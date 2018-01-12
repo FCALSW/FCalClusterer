@@ -78,7 +78,7 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 	arm = (( arm == 0 ) ? -1 : 1);
 
 	if( arm < 0 ) {
-	  //for rotation around the X-axis, so that the phiCell increases counter-clockwise for z<0
+	  //for rotation around the Y-axis, so that the phiCell increases counter-clockwise for z<0
 	  phiCell = _cellPhiMax - phiCell;
 	  phiCell += _cellPhiMax/2;
 	  if(phiCell >= _cellPhiMax) phiCell -= _cellPhiMax;
@@ -87,18 +87,20 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
       } else {
 	arm =(*_mydecoder)( calHitIn )["barrel"]; // from 1 and 2
 	if( arm == 2 ) arm = -1;
-	phiCell = (*_mydecoder)( calHitIn )["phi"]; // goes from -phiMax/2 to +phiMax/2
 
+	phiCell = (*_mydecoder)( calHitIn )["phi"]; // goes from -phiMax/2 to +phiMax/2-1
 	if( arm < 0 ) {
-	  //for rotation around the X-axis, so that the phiCell increases counter-clockwise for z<0
-	  if( phiCell > 0) phiCell =  int(_cellPhiMax/2) - phiCell;
-	  if( phiCell < 0) phiCell = -int(_cellPhiMax/2) - phiCell;
-	  //LumiCall is (or not, if we fix it) rotated by pi around Z for negative side
-	  phiCell += int(_gmc._backwardRotationPhi/(2.0*M_PI)*_cellPhiMax+0.5);
+	  //for rotation around the Y-axis, so that the phiCell increases counter-clockwise for z<0
+          phiCell *= -1;
+          //This is not needed any more because we no currently do not calculate pad positions from IDs any longer
+          // now it is just important that we have the correct phiID range
+	  //LumiCal is (or not, if we fix it) rotated by pi around Z for negative side
+	  //phiCell += int(_gmc._backwardRotationPhi/(2.0*M_PI)*_cellPhiMax+0.5);
 	}
-
+        //limit to range 0 to _cellPhiMax-1
 	if(phiCell >= _cellPhiMax) phiCell -= _cellPhiMax;
-	if(phiCell < 0 ) phiCell += _cellPhiMax; // need to put into positive range only
+	if(phiCell < 0 ) phiCell += _cellPhiMax;
+
 	rCell = (*_mydecoder)( calHitIn )["r"];
 	layer = (*_mydecoder)( calHitIn )["layer"]; // counts from 0
       }
