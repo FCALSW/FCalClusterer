@@ -9,6 +9,7 @@
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/LCEventImpl.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -25,24 +26,31 @@ int testLumiCal() {
     return 1;
   }
 
-  std::vector<int>    testCases    = {0, 8, 16, 24, 32, 40, 48, 56};  //pads for eight directions
-  std::vector<double> expectedPhis = {
+  const int                 deltaPad(5);
+  const double              deltaPhi(double(deltaPad) / double(N_PHI_CELLS) * 360.0);
+  const std::vector<int>    testCases    = {0, 8, 16, 24, 32, 40, 48, 56};  //pads for eight directions
+  const std::vector<double> expectedPhis = {
       0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0,  //backward
       0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 315.0,  //forward
   };
-
   int counter = 0;
   for (int directionID = -1; directionID <= 1; directionID += 2) {
     // //double expectedTheta = (100.00 + 200.0/40*11.5)/3500.0;
     // if(directionID < 0) expectedTheta = M_PI - expectedTheta;
     for (auto padIDToFill : testCases) {
       streamlog_out(MESSAGE) << "**********************************************************************" << std::endl;
-      auto              expectedPhi   = expectedPhis[counter++];
-      double            expectedTheta = 0.0;  //filled later
-      IMPL::LCEventImpl myEvt;
-      auto*             col = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
+      const double        expectedPhi_1(expectedPhis[counter++]);
+      const double        expectedPhi_2(expectedPhi_1 + deltaPhi);
+      std::vector<double> expectedPhi{expectedPhi_1, expectedPhi_2};
+      std::vector<double> expectedTheta(2, 0.0);  //filled later
+      IMPL::LCEventImpl   myEvt;
+      auto*               col = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
       col->parameters().setValue(LCIO::CellIDEncoding, "system:8,barrel:3,layer:8,slice:8,r:32:-16,phi:-16");
-      fillLumiCal(gmc, col, padIDToFill, directionID == -1 ? 2 : directionID, expectedTheta);
+      HitMap hits;
+      fillLumiCal(gmc, hits, padIDToFill, directionID == -1 ? 2 : directionID, expectedTheta[0]);
+      fillLumiCal(gmc, hits, padIDToFill + deltaPad, directionID == -1 ? 2 : directionID, expectedTheta[1], 20);
+      fillCollection(hits, col);
+
       myEvt.addCollection(col, "lumiCollection");
 
       lcc.processEvent(&myEvt);
@@ -52,16 +60,23 @@ int testLumiCal() {
                                << "\t Number of clusters: " << lcc._superClusterIdToCellId[armNow].size() << std::endl;
       }
 
-      if (lcc._superClusterIdToCellId[directionID].size() != 1) {
+      if (lcc._superClusterIdToCellId[directionID].size() != 2) {
         streamlog_out(ERROR) << "ERROR: Wrong number of reconstructed clusters" << std::endl;
         failed = true;
       }
+
       for (auto const& pairIDCells : lcc._superClusterIdToCellId[directionID]) {
         const int  clusterId       = pairIDCells.first;
         LCCluster& thisClusterInfo = lcc._superClusterIdClusterInfo[directionID][clusterId];
         thisClusterInfo.recalculatePositionFromHits(gmc);
         streamlog_out(MESSAGE) << thisClusterInfo << std::endl;
-        failed = not checkReconstructedObject(gmc, thisClusterInfo, expectedPhi, expectedTheta);
+        bool thisSucceeds = checkReconstructedObject(gmc, thisClusterInfo, expectedPhi[0], expectedTheta[0]) or
+                            checkReconstructedObject(gmc, thisClusterInfo, expectedPhi[1], expectedTheta[1]);
+        if (not thisSucceeds) {
+          streamlog_out(ERROR) << "ERROR: something is wrong here" << std::endl;
+
+          failed = true;
+        }
       }
       streamlog_out(MESSAGE) << "**********************************************************************" << std::endl;
     }
