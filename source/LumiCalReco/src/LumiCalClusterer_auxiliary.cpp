@@ -495,13 +495,28 @@ void LumiCalClustererClass::dumpClusters( MapIntLCCluster const& clusterCM ) {
        clusterCMIterator != clusterCM.end();
        ++clusterCMIterator ) {
     int clusterId = clusterCMIterator->first;
-    streamlog_out(DEBUG5) << "\t\t cluster Id, pos(x,y,z), engy(weight): "
-			  << clusterId << "\t ("
-			  << clusterCMIterator->second.getX() << " , "
-			  << clusterCMIterator->second.getY() << " , "
-			  << clusterCMIterator->second.getZ() << ") \t "
-			  << clusterCMIterator->second.getE() <<" ( "
-			  << clusterCMIterator->second.getWeight() <<" ) " <<std::endl;
+    streamlog_out(DEBUG5) << "\t\t cluster Id, pos(x,y,z), engy(weight, nHits): " << clusterId << "\t ("
+                          << clusterCMIterator->second.getX() << " , " << clusterCMIterator->second.getY() << " , "
+                          << clusterCMIterator->second.getZ() << ") \t " << clusterCMIterator->second.getE() << " ( "
+                          << clusterCMIterator->second.getWeight() << ", " << clusterCMIterator->second.getCaloHits().size()
+                          << " ) " << std::endl;
   }
 
+}
+
+std::string LumiCalClustererClass::printClusters(const int armNow, MapIntMapIntLCCluster const& superClusterCM) const {
+  std::stringstream p;
+  for (auto const& superClusterCMIterator : superClusterCM.at(armNow)) {
+    p << "  Arm:" << std::setw(4) << armNow << "  Id:" << std::setw(4) << superClusterCMIterator.first
+      << superClusterCMIterator.second << std::endl;
+  }
+  return p.str();
+}
+
+std::string LumiCalClustererClass::printClusters(MapIntLCCluster const& superClusterCM) const {
+  std::stringstream p;
+  for (auto const& superClusterCMIterator : superClusterCM) {
+    p << "  Id:" << std::setw(4) << superClusterCMIterator.first << superClusterCMIterator.second << std::endl;
+  }
+  return p.str();
 }

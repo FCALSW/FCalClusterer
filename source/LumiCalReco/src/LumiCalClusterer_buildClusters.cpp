@@ -180,9 +180,9 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
   for(int layerNow = 0; layerNow < _maxLayerToAnalyse; layerNow++) 
     if(isShowerPeakLayer[layerNow] == 1) {
       // run the initial clustering algorithm for the high energy hits
+      streamlog_out(DEBUG5) << "\t layer " << layerNow << std::endl;
       streamlog_message(DEBUG2,
                         std::stringstream p;
-                        p << "\t layer " << layerNow <<std::endl;
                         for (auto const& callHitCellID: calHitsCellId[layerNow]){
                           int               cellId = callHitCellID.first;
                           const auto&       calHit = callHitCellID.second;
@@ -577,10 +577,9 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
      a superCluster according to its distance from it (stored as virtual clusters
      in virtualClusterCM).
      -------------------------------------------------------------------------- */
-#if _CLUSTER_BUILD_DEBUG == 1
-  streamlog_out(DEBUG3) <<std::endl <<  "Build superClusters" << std::endl <<std::endl;
-#endif
 
+  streamlog_out(DEBUG6) << std::endl << "Building superClusters" << std::endl << std::endl;
+  streamlog_out(DEBUG6) << printClusters(superClusterCM);
   int   buildSuperClustersFlag = buildSuperClusters(    calHitsCellIdGlobal,
 							calHitsCellId,
 							clusterIdToCellId,
@@ -600,9 +599,9 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
 
 
 #if _MOLIERE_RADIUS_CORRECTIONS == 1
-#if _CLUSTER_BUILD_DEBUG == 1 || _MOL_RAD_CORRECT_DEBUG == 1
-  streamlog_out(DEBUG3) <<std::endl <<  "RUN engyInMoliereCorrections() ..." << std::endl <<std::endl;
-#endif
+
+  streamlog_out(DEBUG6) << std::endl << "RUN engyInMoliereCorrections() ..." << std::endl;
+  streamlog_out(DEBUG6) << printClusters(superClusterCM);
 
   int engyInMoliereFlag = engyInMoliereCorrections( calHitsCellIdGlobal,
 						    calHits,
@@ -616,8 +615,14 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
 						    middleEnergyHitBound,
 						    detectorArm );
 
-  if(engyInMoliereFlag == 0)
+  if (engyInMoliereFlag == 0) {
+    streamlog_out(DEBUG6) << "Ran engyInMoliereCorrections ... not successful " << std::endl;
+    streamlog_out(DEBUG6) << printClusters(superClusterCM);
+
     return 0;
+  }
+  streamlog_out(DEBUG6) << "Ran engyInMoliereCorrections ... successful " << std::endl;
+  streamlog_out(DEBUG6) << printClusters(superClusterCM);
 
 #endif  // #if _MOLIERE_RADIUS_CORRECTIONS == 1
 
@@ -659,25 +664,17 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
   /* --------------------------------------------------------------------------
      verbosity
      -------------------------------------------------------------------------- */
-#if _GENERAL_CLUSTERER_DEBUG == 1
-  streamlog_out(DEBUG3) << "\tClusters:" << std::endl;
 
-  superClusterCMIterator = superClusterCM.begin();
-  numSuperClusters       = superClusterCM.size();
-  for(int superClusterNow = 0; superClusterNow < numSuperClusters; superClusterNow++, superClusterCMIterator++) {
-    const int superClusterId = (int)(*superClusterCMIterator).first;
-
-    streamlog_out(DEBUG3) << "\t Id "  << superClusterId
-			  << "  \t energy " << superClusterCM[superClusterId].getEnergy()
-			  << "     \t pos(x,y) =  ( " << superClusterCM[superClusterId].getX()
-			  << " , " << superClusterCM[superClusterId].getY() << " )"
-			  << "     \t pos(theta,phi) =  ( " << superClusterCM[superClusterId].getTheta()
-			  << " , " << superClusterCM[superClusterId].getPhi() << " )"
-			  << std::endl;
-  }
-
-  streamlog_out(DEBUG3) <<  std::endl;
-#endif
+  streamlog_message(
+      DEBUG5, std::stringstream p; p << "\tCreated SuperClusters:" << std::endl; for (auto const& superCluster
+                                                                                      : superClusterCM) {
+        const int   superClusterId = superCluster.first;
+        auto const& cluster        = superCluster.second;
+        p << "\t Id " << superClusterId << cluster << "  \t energy " << cluster.getEnergy() << "     \t pos(x,y) =  ( "
+          << cluster.getX() << " , " << cluster.getY() << " )"
+          << "     \t pos(theta,phi) =  ( " << cluster.getTheta() << " , " << cluster.getPhi() << " )" << std::endl;
+      };
+      , p.str(););
 
   return 1;
 }

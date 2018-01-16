@@ -238,6 +238,8 @@ protected:
 
   void dumpClusters( MapIntLCCluster const& clusterCM );
 
+  std::string printClusters(const int armNow, MapIntMapIntLCCluster const& superClusterCM) const;
+  std::string printClusters(MapIntLCCluster const& superClusterCM) const;
 };
 
 #endif // LumiCalClusterer_h

@@ -207,6 +207,7 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
        Merge superClusters according the minDistance and minEngy rules
        -------------------------------------------------------------------------- */
     streamlog_out(DEBUG6) << "\tRun LumiCalClustererClass::clusterMerger()" << std::endl;
+    streamlog_out(DEBUG6) << printClusters(armNow, superClusterCM);
     clusterMerger(		_superClusterIdToCellEngy[armNow],
 				_superClusterIdToCellId[armNow],
 				superClusterCM[armNow],
@@ -217,6 +218,7 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
        Perform fiducial volume cuts
        -------------------------------------------------------------------------- */
     streamlog_out(DEBUG6) << "\tRun LumiCalClustererClass::fiducialVolumeCuts()" << std::endl;
+    streamlog_out(DEBUG6) << printClusters(armNow, superClusterCM);
     fiducialVolumeCuts(		_superClusterIdToCellId[armNow],
 				_superClusterIdToCellEngy[armNow],
 				superClusterCM[armNow] );
@@ -228,10 +230,14 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
 #if _CLUSTER_MIXING_ENERGY_CORRECTIONS == 1
     if(superClusterCM[armNow].size() == 2) {
       streamlog_out(DEBUG6) << "Run LumiCalClustererClass::energyCorrections()" << std::endl;
+      streamlog_out(DEBUG6) << printClusters(armNow, superClusterCM);
       energyCorrections( _superClusterIdToCellId[armNow],
 			 _superClusterIdToCellEngy[armNow],
 			 superClusterCM[armNow],
 			 calHitsCellIdGlobal[armNow] );
+
+      streamlog_out(DEBUG6) << "After LumiCalClustererClass::energyCorrections()" << std::endl;
+      streamlog_out(DEBUG6) << printClusters(armNow, superClusterCM);
      }
 #endif
 
