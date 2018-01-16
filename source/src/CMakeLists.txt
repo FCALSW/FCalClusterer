@@ -9,6 +9,7 @@
 
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/LumiCalReco/include )
 INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/BeamCalReco/include )
+INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/Utilities/include )
 
 ADD_EXECUTABLE (ReconstructBecas ReconstructBecas.cpp)
 TARGET_LINK_LIBRARIES ( ReconstructBecas BeamCalReco )
@@ -19,13 +20,13 @@ TARGET_LINK_LIBRARIES ( DrawBeamCals BeamCalReco )
 IF( DD4hep_FOUND )
   ADD_EXECUTABLE (TestBeamCalReco TestBeamCalReco.cpp)
   TARGET_LINK_LIBRARIES ( TestBeamCalReco BeamCalReco )
-  INSTALL( TARGETS
-    TestBeamCalReco
-    RUNTIME DESTINATION bin)
 
   ADD_EXECUTABLE(TestLumiCalReco TestLumiCalReco.cpp)
   TARGET_LINK_LIBRARIES(TestLumiCalReco LumiCalReco)
-  INSTALL(TARGETS TestLumiCalReco
-    RUNTIME DESTINATION bin)
 
+  ADD_EXECUTABLE(TestLumi2Clu TestLumi2Clu.cpp)
+  TARGET_LINK_LIBRARIES(TestLumi2Clu LumiCalReco)
+
+  INSTALL(TARGETS TestLumiCalReco TestBeamCalReco TestLumi2Clu
+    RUNTIME DESTINATION bin)
 ENDIF()

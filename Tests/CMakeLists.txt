@@ -19,4 +19,15 @@ IF( DD4hep_FOUND )
     FAIL_REGULAR_EXPRESSION  "Phi not correctly reconstructed|Theta not correctly reconstructed|Wrong number of"
     )
 
+
+
+  SET( test_name "TestLumi2Clu" )
+  ADD_TEST( NAME t_${test_name}
+    COMMAND
+    ${CMAKE_SOURCE_DIR}/bin/TestLumi2Clu
+    )
+  SET_TESTS_PROPERTIES( t_${test_name} PROPERTIES
+    FAIL_REGULAR_EXPRESSION  "Phi not correctly reconstructed|Theta not correctly reconstructed|Wrong number of"
+    )
+
 ENDIF()
