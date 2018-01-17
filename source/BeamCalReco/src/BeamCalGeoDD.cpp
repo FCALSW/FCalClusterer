@@ -60,41 +60,16 @@ BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector): m_BeamCal(theDe
   streamlog_out(MESSAGE) << "Segmentation Type" << m_segmentation.type()  << std::endl;
   streamlog_out(MESSAGE) <<"FieldDef: " << m_segmentation.segmentation()->fieldDescription()  << std::endl;
 
-  if (m_segmentation.type() != "PolarGridRPhi2" ){
+  if (m_segmentation.type() == "PolarGridRPhi2") {
+    readPolarGridRPhi2();
+  } else if (m_segmentation.type() == "PolarGridRPhi") {
+    readPolarGridRPhi();
+  } else {
     streamlog_out(ERROR) << "Cannot use this segmentation type" 
 			 << "(" << m_segmentation.type() << ")"
 			 <<  "for BeamCalReco at the moment"  << std::endl;
     throw std::runtime_error( "BeamCalReco: Incompatible segmentation type" );
   }
-
-  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
-  ParVec* rPar = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_r_values"));
-  ParVec* pPar = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_phi_values"));
-  std::vector<double> rValues = rPar->typedValue();
-  std::vector<double> pValues = pPar->typedValue();
-
-  m_rings = rValues.size()-1;
-  m_radSegmentation = rValues;
-  m_phiSegmentation = pValues;
-
-  //DeadAngle Calculations
-  typedef dd4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
-  ParDou* oPPar = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
-  double offsetPhi = oPPar->typedValue();
-  m_deadAngle = 2.0 * ( M_PI + offsetPhi/dd4hep::radian );
-
-  for (int i = 0; i < m_rings;++i) {
-    const int NUMBER_OF_SENSOR_SEGMENTS = 8;
-    m_nPhiSegments.push_back(int((2*M_PI-m_deadAngle)/m_phiSegmentation[i]+0.5)/NUMBER_OF_SENSOR_SEGMENTS);
-    m_radSegmentation[i] = m_radSegmentation[i]/dd4hep::mm;
-
-  }
-  // the outer radius needs to be fixed as well
-  m_radSegmentation[m_rings] = m_radSegmentation[m_rings]/dd4hep::mm;
-
-
-  m_padsPerRing.resize(m_rings+1);
-  m_padsBeforeRing.resize(m_rings+1);
 
   setCrossingAngle();
 
@@ -286,3 +261,34 @@ void BeamCalGeoDD::setCrossingAngle() {
   }
   throw std::runtime_error( "Cannot obtain crossing angle from this BeamCal, update lcgeo?" );
 }
+
+void BeamCalGeoDD::readPolarGridRPhi2() {
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter<std::vector<double>> ParVec;
+  ParVec*             rPar    = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_r_values"));
+  ParVec*             pPar    = static_cast<ParVec*>(m_segmentation.segmentation()->parameter("grid_phi_values"));
+  std::vector<double> rValues = rPar->typedValue();
+  std::vector<double> pValues = pPar->typedValue();
+
+  m_rings           = rValues.size() - 1;
+  m_radSegmentation = rValues;
+  m_phiSegmentation = pValues;
+
+  //DeadAngle Calculations
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter<double> ParDou;
+  ParDou* oPPar     = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
+  double  offsetPhi = oPPar->typedValue();
+  m_deadAngle       = 2.0 * (M_PI + offsetPhi / dd4hep::radian);
+
+  for (int i = 0; i < m_rings; ++i) {
+    const int NUMBER_OF_SENSOR_SEGMENTS = 8;
+    m_nPhiSegments.push_back(int((2 * M_PI - m_deadAngle) / m_phiSegmentation[i] + 0.5) / NUMBER_OF_SENSOR_SEGMENTS);
+    m_radSegmentation[i] = m_radSegmentation[i] / dd4hep::mm;
+  }
+  // the outer radius needs to be fixed as well
+  m_radSegmentation[m_rings] = m_radSegmentation[m_rings] / dd4hep::mm;
+
+  m_padsPerRing.resize(m_rings + 1);
+  m_padsBeforeRing.resize(m_rings + 1);
+}
+
+void BeamCalGeoDD::readPolarGridRPhi() {}

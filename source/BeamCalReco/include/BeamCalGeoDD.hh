@@ -78,6 +78,9 @@ private:
   void setFirstFullRing();
   void setCutOut();
 
+  void readPolarGridRPhi2();
+  void readPolarGridRPhi();
+  
 };
 
 
