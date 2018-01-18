@@ -10,6 +10,7 @@ SET( BeamCalReco_SOURCES
   src/BeamCalBkgParam.cpp
   src/BeamCalBkgGauss.cpp
   src/BeamCalBkgAverage.cpp
+  src/BeamCalBkgEmpty.cpp
   src/BeamCalFitShower.cpp
   src/BeamCalPadGeometry.cpp
   src/BCPadEnergies.cpp
