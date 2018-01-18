@@ -43,6 +43,9 @@ class BeamCalClusterReco : public marlin::Processor {
   
   BeamCalClusterReco() ;
 
+  BeamCalClusterReco(const BeamCalClusterReco&) = delete;
+  BeamCalClusterReco& operator=(const BeamCalClusterReco&) = delete;
+
   /** Called at the begin of the job before anything is read.
    * Use to initialize the processor, e.g. book histograms.
    */
@@ -125,9 +128,7 @@ private:
   std::string m_BCalClusterColName;
   std::string m_BCalRPColName;
   std::string m_EfficiencyFileName;
-
-  BeamCalClusterReco(const BeamCalClusterReco&);
-  BeamCalClusterReco& operator=(const BeamCalClusterReco&);
+  std::string m_detectorName = "";
 
   ///Creates the BeamCalGeometry either from DD4hep if compiled with DD4hep and
   ///the geometry is available or from GearFile in all other cases

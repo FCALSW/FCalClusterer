@@ -18,8 +18,9 @@ class BeamCalInfo;
 #include <vector>
 #include <algorithm>
 
-BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector): m_BeamCal(theDetector.detector("BeamCal")),
-                                                                 m_segmentation(theDetector.readout("BeamCalCollection").segmentation()),
+BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector, std::string const& detectorName,
+                           std::string const& colName): m_BeamCal(theDetector.detector(detectorName)),
+                                                                 m_segmentation(theDetector.readout(colName).segmentation()),
                                                                  m_innerRadius(0.0),
                                                                  m_outerRadius(0.0),
                                                                  m_layers(0),
@@ -57,7 +58,7 @@ BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector): m_BeamCal(theDe
     m_layerDistanceToIP.push_back((theLayer.distance+theLayer.inner_thickness)/dd4hep::mm);
   }
 
-  streamlog_out(MESSAGE) << "Segmentation Type" << m_segmentation.type()  << std::endl;
+  streamlog_out(MESSAGE) << "Segmentation Type: " << m_segmentation.type() << std::endl;
   streamlog_out(MESSAGE) <<"FieldDef: " << m_segmentation.segmentation()->fieldDescription()  << std::endl;
 
   if (m_segmentation.type() == "PolarGridRPhi2") {
@@ -65,9 +66,9 @@ BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector): m_BeamCal(theDe
   } else if (m_segmentation.type() == "PolarGridRPhi") {
     readPolarGridRPhi();
   } else {
-    streamlog_out(ERROR) << "Cannot use this segmentation type" 
-			 << "(" << m_segmentation.type() << ")"
-			 <<  "for BeamCalReco at the moment"  << std::endl;
+    streamlog_out(ERROR) << "Cannot use this segmentation type: "
+                         << "(" << m_segmentation.type() << ")"
+                         << "for BeamCalReco at the moment" << std::endl;
     throw std::runtime_error( "BeamCalReco: Incompatible segmentation type" );
   }
 
@@ -197,6 +198,8 @@ inline double BeamCalGeoDD::getDeadAngle() const {
   return m_deadAngle;
 }
 
+double BeamCalGeoDD::getPhiOffset() const { return m_phiOffset; }
+
 inline double BeamCalGeoDD::getCrossingAngle() const {
   return m_crossingAngle;
 }
@@ -284,6 +287,10 @@ void BeamCalGeoDD::readPolarGridRPhi2() {
     m_nPhiSegments.push_back(int((2 * M_PI - m_deadAngle) / m_phiSegmentation[i] + 0.5) / NUMBER_OF_SENSOR_SEGMENTS);
     m_radSegmentation[i] = m_radSegmentation[i] / dd4hep::mm;
   }
+
+  // fill the phi offset structure: all pads start at the top of the cutout
+  m_phiOffset = 180.0 / M_PI * 0.5 * getFullKeyHoleCutoutAngle();
+
   // the outer radius needs to be fixed as well
   m_radSegmentation[m_rings] = m_radSegmentation[m_rings] / dd4hep::mm;
 
@@ -291,4 +298,36 @@ void BeamCalGeoDD::readPolarGridRPhi2() {
   m_padsBeforeRing.resize(m_rings + 1);
 }
 
-void BeamCalGeoDD::readPolarGridRPhi() {}
+void BeamCalGeoDD::readPolarGridRPhi() {
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter<double> ParDou;
+  ParDou* rPar  = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("grid_size_r"));
+  ParDou* pPar  = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("grid_size_phi"));
+  double  rSize = rPar->typedValue() / dd4hep::mm;
+  double  pSize = pPar->typedValue() / dd4hep::radian;
+
+  m_rings = int((m_outerRadius - m_innerRadius) / rSize + 0.5);
+  m_radSegmentation.resize(m_rings + 1);  //inner and outer radius are part of this
+  int n = -1;
+  std::generate(m_radSegmentation.begin(), m_radSegmentation.end(), [n, this, rSize]() mutable {
+    ++n;
+    return m_innerRadius + rSize * n;
+  });
+  m_phiSegmentation = std::vector<double>(m_rings, pSize);
+
+  //short cut dead-angle calculations, because the LumiCal doesn't have one, and
+  //this segmentation shouldn't be used if there is a dead angle
+  m_deadAngle    = 0.0;
+  m_symmetryFold = 1;
+
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter<double> ParDou;
+  ParDou* oPPar = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_phi"));
+  //implict assumption that offset is 180 degrees in BeamCalGeo::getPadPhi,
+  //half pad size is also already accounted for, and it is in degrees
+  m_phiOffset = (oPPar->typedValue() / dd4hep::deg - 0.5 * pSize * 180 / M_PI) - 180;
+  for (int i = 0; i < m_rings; ++i) {
+    m_nPhiSegments.push_back(int((2 * M_PI) / m_phiSegmentation[i] + 0.5) / m_symmetryFold);
+  }
+
+  m_padsPerRing.resize(m_rings + 1);
+  m_padsBeforeRing.resize(m_rings + 1);
+}

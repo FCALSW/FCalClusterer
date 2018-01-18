@@ -38,6 +38,7 @@ public:
 
   virtual int                   getFirstFullRing()   const;
   virtual double                getFullKeyHoleCutoutAngle() const = 0;
+  virtual double                getPhiOffset() const = 0;
   virtual int                   getPadsBeforeRing( int ring ) const;
   virtual double                getCrossingAngle()   const = 0;
 
@@ -57,6 +58,9 @@ public:
 
   double getPadPhi(int ring, int pad) const;
   double getPadPhi(int globalPandIndex) const;
+
+
+  friend std::ostream& operator<<(std::ostream& o, BeamCalGeo const& bcg);
 
 protected:
 
