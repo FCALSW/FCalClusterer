@@ -8,7 +8,8 @@
 class BeamCalGeoDD : public BeamCalGeo {     
 
 public:
-  BeamCalGeoDD( dd4hep::Detector const& theDetector );
+  BeamCalGeoDD( dd4hep::Detector const& theDetector, std::string const& detectorName="BeamCal",
+                std::string const& colName="BeamCalCollection");
   BeamCalGeoDD();
 
 
@@ -33,6 +34,7 @@ public:
 
   virtual double                getLayerZDistanceToIP(const int lr) const;
   virtual double                getDeadAngle()       const;
+  virtual double                getPhiOffset()       const;
 
   virtual int                   getFirstFullRing()   const;
   virtual double                getFullKeyHoleCutoutAngle() const ;
@@ -40,7 +42,7 @@ public:
   virtual double                getCrossingAngle()   const;
 
   //we have 8 full segments
-  virtual int getSymmetryFold() const { return 8; }
+  virtual int getSymmetryFold() const { return m_symmetryFold; }
 
   virtual int getPadsInRing( int ring ) const;
 
@@ -60,6 +62,10 @@ private:
   std::vector<double>   m_layerDistanceToIP;
   double		m_beamCalZPosition;
   double                m_deadAngle;
+  double	        m_phiOffset;
+
+  //hard coded
+  int                   m_symmetryFold = 8;
 
   //calculated
   std::vector<int>	m_padsPerRing;

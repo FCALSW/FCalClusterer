@@ -24,6 +24,7 @@ BeamCalGeoCached::BeamCalGeoCached(gear::GearMgr* gearMgr): m_BCPs(gearMgr->getB
   m_firstFullRing(0),
   m_beamCalZPosition(m_BCPs.getExtent()[2]+100.0), //add distance from graphite shield
   m_deadAngle(2.0 * ( m_BCPs.getDoubleVal("cylinder_starting_phi") - M_PI )),
+  m_phiOffset(180.0 / M_PI * 0.5 * m_deadAngle),
   m_crossingAngle(m_BCPs.getDoubleVal("beam_crossing_angle")),
   m_padsPerRing(m_rings+1),
   m_padsBeforeRing(m_rings+1),
@@ -164,6 +165,7 @@ double BeamCalGeoCached::getDeadAngle() const {
   return getDeadAngle();
 }
 
+ double BeamCalGeoCached::getPhiOffset() const { return m_phiOffset; }
 
  double BeamCalGeoCached::getCrossingAngle() const {
   return m_crossingAngle;

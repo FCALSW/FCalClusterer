@@ -17,7 +17,9 @@ namespace ProcessorUtilities {
 
   ///Creates the BeamCalGeometry either from DD4hep if compiled with DD4hep and
   ///the geometry is available or from GearFile in all other cases
-  inline BeamCalGeo* getBeamCalGeo(bool& usingDD4HEP, std::string const& detectorName="BeamCal") {
+  inline BeamCalGeo* getBeamCalGeo(bool& usingDD4HEP,
+                                   std::string const& detectorName="BeamCal",
+                                   std::string const& collectionName="BeamCalCollection") {
 
 #ifdef FCAL_WITH_DD4HEP
     dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
@@ -26,7 +28,7 @@ namespace ProcessorUtilities {
       if (beamcal.isValid()){
 	streamlog_out(DEBUG) << "Creating DD4hep Based geometry" << std::endl;
 	usingDD4HEP = true;
-	return new BeamCalGeoDD(theDetector);
+	return new BeamCalGeoDD(theDetector, detectorName, collectionName);
       }
     } catch( std::runtime_error &e ) {
       streamlog_out(ERROR) << " Failed to created BeamCalGeometry from DD4hep: "

@@ -29,6 +29,7 @@ public:
   virtual double                getBCZDistanceToIP() const;
   virtual double                getLayerZDistanceToIP(const int lr) const;
   virtual double                getDeadAngle()       const;
+  virtual double                getPhiOffset()       const;
 
   virtual int                   getFirstFullRing()   const;
   virtual double                getFullKeyHoleCutoutAngle() const ;
@@ -56,6 +57,7 @@ private:
   int                   m_firstFullRing;
   double		m_beamCalZPosition;
   double                m_deadAngle;
+  double	        m_phiOffset;
   double                m_crossingAngle;
   //calculated
   std::vector<int>	m_padsPerRing;

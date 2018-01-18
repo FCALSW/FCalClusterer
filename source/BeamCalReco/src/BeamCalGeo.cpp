@@ -1,10 +1,10 @@
 #include "BeamCalGeo.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
-#include <algorithm>
-
 
 //Return the double[6] pointer with innerRadius, Outerradius, Phi1 and Phi2, middle radius, middle phi
 void BeamCalGeo::getPadExtents(int cylinder, int sector, double *extents) const {
@@ -118,13 +118,13 @@ double BeamCalGeo::getPadPhi(int ring, int pad) const {
   const double RadToDeg = 180.0 / M_PI;
   double phi = 0;
   if( ring < getFirstFullRing()) {
-    phi +=  RadToDeg * getFullKeyHoleCutoutAngle()/2.0;
+    phi += getPhiOffset();
     double deltaPhi = (360.0 - RadToDeg * getFullKeyHoleCutoutAngle())/double(getPadsInRing(ring));
-    phi +=  deltaPhi * double(pad) + deltaPhi/2.0;
+    phi += deltaPhi * (0.5 + double(pad));
   } else {
-      double deltaPhi = 360.0 / double(getPadsInRing(ring));
+    double deltaPhi = 360.0 / double(getPadsInRing(ring));
     //Pads still start at the top of the cutout! which is negative -180 + half cutoutangle
-    phi +=  RadToDeg * getFullKeyHoleCutoutAngle()/2.0 + deltaPhi * double(pad) + deltaPhi/2.0;
+    phi += getPhiOffset() + deltaPhi * (0.5 + double(pad));
   }
 
   phi  += 180.0;
@@ -363,4 +363,25 @@ double BeamCalGeo::getPadsDistance(int padIndex1, int padIndex2) const {
   double dy = e1[4]*sin(e1[5]*DEGRAD) - e2[4]*sin(e2[5]*DEGRAD);
   double d = sqrt(dx*dx+dy*dy);
   return d;
+}
+
+std::ostream& operator<<(std::ostream& o, const BeamCalGeo& bcg) {
+  o << "Radii"
+    << std::setw(13)  << bcg.getBCInnerRadius()
+    << std::setw(13)  << bcg.getBCOuterRadius()
+    <<  " Radial Segmentation:\n";
+  for (double r : bcg.getRadSegmentation()) {
+    o << std::setw(13) << r;
+  }
+  o << "\nNRings" << std::setw(13)  << bcg.getBCRings() << "   nRadValues " << bcg.getRadSegmentation().size()
+    << "\nFirstFullRing" << std::setw(15)  << bcg.getFirstFullRing()
+    << " CutOutRadius [mm]" << std::setw(15)  << bcg.getCutout()
+    << " KeyHoleCutoutAngle [rad]" << std::setw(15)  << bcg.getFullKeyHoleCutoutAngle()
+    << "\nPhi Offset [Deg] " << std::setw(15) << bcg.getPhiOffset()
+    << "\nPhi Segments";
+  for (int i : bcg.getNSegments()) {
+    o << std::setw(5) << i;
+  }
+  o << std::endl;
+  return o;
 }
