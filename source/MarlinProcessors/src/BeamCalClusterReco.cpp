@@ -13,6 +13,7 @@
 #include "BeamCalBkgPregen.hh"
 #include "BeamCalBkgGauss.hh"
 #include "BeamCalBkgAverage.hh"
+#include "BeamCalBkgEmpty.hh"
 #include "BeamCalFitShower.hh"
 
 //LCIO
@@ -145,10 +146,14 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 			   m_BCalClusterColName ,
 			   std::string("BCalClusters") ) ;
 
-registerProcessorParameter ("BackgroundMethod",
-			      "How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged]",
-			      m_bgMethodName,
-			      std::string("Gaussian") ) ;
+  registerProcessorParameter("DetectorName", "The Name of the Detector the reconstruction is for",
+                             m_detectorName, std::string("BeamCal"));
+
+  registerProcessorParameter("DetectorStartingLayerID", "The ID of the first layer of the detector BeamCal 1: LumiCal: 0",
+                             m_startingLayer, m_startingLayer);
+
+  registerProcessorParameter("BackgroundMethod", "How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged, Empty]",
+                             m_bgMethodName, std::string("Gaussian") ) ;
 
 std::vector<std::string> defaultFile;
 defaultFile.push_back("BeamCal.root");
@@ -276,6 +281,8 @@ void BeamCalClusterReco::init() {
     m_BCbackground = new BeamCalBkgParam(m_bgMethodName, m_BCG);
   } else if( string("Averaged")     == m_bgMethodName) {
     m_BCbackground = new BeamCalBkgAverage(m_bgMethodName, m_BCG);
+  } else if (string("Empty") == m_bgMethodName) {
+    m_BCbackground = new BeamCalBkgEmpty(m_bgMethodName, m_BCG);
   } else {
     streamlog_out(ERROR) <<"== Error From BeamCalBackground == "
 			 << "Unknown BeamCal method of background esitmation \""
