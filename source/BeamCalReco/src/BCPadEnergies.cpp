@@ -539,7 +539,7 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveSigma(const BCPadEnergies
 BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& testPads, const PadIndexList& myPadIndices, const BCPCuts& ) const {
   BeamCalCluster BCCluster;
   double phi(0.0), ringAverage(0.0), totalEnergy(0.0);
-  double thetaAverage(0.0);
+  double         thetaAverage(0.0), zAverage(0.0);
 
   //Averaging an azimuthal angle is done via sine and cosine
   double sinStore(0.0), cosStore(0.0);
@@ -559,6 +559,7 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     cosStore += energy * cos( thisPhi );
     thetaAverage += m_BCG.getThetaFromRing( layer, ring ) * energy;
 
+    zAverage += m_BCG.getLayerZDistanceToIP(layer) * energy;
   }
   if(totalEnergy > 0.0) {
     phi =  atan2(sinStore/totalEnergy,  cosStore/totalEnergy) * 180.0 / M_PI ;
@@ -567,10 +568,12 @@ BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& te
     ringAverage /= totalEnergy;
     thetaAverage /= totalEnergy;
 
+    zAverage /= totalEnergy;
     BCCluster.setPhi(phi);
     BCCluster.setRing(ringAverage);
     //    BCCluster.setTheta( m_BCG.getThetaFromRing( ringAverage ) * 1000 );
     BCCluster.setTheta( thetaAverage * 1000 );
+    BCCluster.setZ(zAverage);
   }
 
   // correct the reconstructed Phi for the "Right" side

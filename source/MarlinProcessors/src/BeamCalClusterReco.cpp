@@ -428,7 +428,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 
     const float mass = 0.0;
     const float charge = 1e+19;
-    const float mmBeamCalDistance( m_BCG->getLayerZDistanceToIP(m_startLookingInLayer) );
+    const float mmBeamCalDistance((*it)->getZ() / cos(thetaCluster));
 
 #pragma message "make sure rotation to labframe works on both sides and we are not rotating something weird"
     //which side the Cluster is on
@@ -678,13 +678,13 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 
       double theta(it->getTheta());
       double phi  (it->getPhi());
-
+      double z(it->getZ());
       streamlog_out(MESSAGE2) << " found something "
 			      << std::setw(10) << theta
 			      << std::setw(10) << phi
 	;//ending the streamlog!
 
-      recoVec.push_back(new BCRecoObject(isRealParticle, true, theta, phi, it->getEnergy(), it->getNPads(),
+      recoVec.push_back(new BCRecoObject(isRealParticle, true, theta, phi, z, it->getEnergy(), it->getNPads(),
                                          signalPads.getSide(), it->getPads()));
 
     }//if we have enough pads and energy in the clusters
@@ -786,14 +786,14 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
 
   // Extract fitted showers untill nothing left above some threshold
   while(1){
-    double theta(0.), phi(0.), en_shwr(0.), chi2_shwr(0.);
+    double theta(0.), phi(0.), en_shwr(0.), chi2_shwr(0.), z(m_BCG->getLayerZDistanceToIP(m_startLookingInLayer));
     std::map<int, double> padIDsInCluster;
     double shwr_prob = shower_fitter.fitShower(theta, phi, en_shwr, chi2_shwr, padIDsInCluster);
     if (shwr_prob < 0. ) break;
     // if the shower energy is above threshold, create reco object
     if (en_shwr > m_requiredClusterEnergy.at(0) ) {
       // fill the recoVec entry
-      recoVec.push_back(new BCRecoObject(isRealParticle, true, theta, phi, en_shwr, m_NShowerCountingLayers,
+      recoVec.push_back(new BCRecoObject(isRealParticle, true, theta, phi, z, en_shwr, m_NShowerCountingLayers,
                                          signalPads.getSide(), padIDsInCluster));
 
       // print the log message
