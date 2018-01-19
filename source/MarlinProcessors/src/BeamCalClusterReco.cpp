@@ -760,7 +760,14 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
     for (int il = m_startLookingInLayer; il< m_BCG->getBCLayers(); il++){
       te_signal_sum += te_signal[il];
       te_bg_sum += te_bg[il];
-      chi2+= pow((te_signal[il] - te_bg[il])/te_sigma[il],2);
+      if(te_sigma[il] > 0) {
+        chi2 += pow((te_signal[il] - te_bg[il])/te_sigma[il],2);
+      } else if(te_signal[il] > 0) {
+        chi2 += 10;
+      }
+      if(te_signal[il] > 0){
+        padIDs[it+il*m_BCG->getPadsPerLayer()] = te_signal[il];
+      }
     }
 
     // calculate sums for this tower in counting layers

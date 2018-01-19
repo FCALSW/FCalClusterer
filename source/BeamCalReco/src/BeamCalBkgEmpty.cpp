@@ -17,6 +17,9 @@ void BeamCalBkgEmpty::init(vector<string>&, const int) {
   m_BeamCalErrorsLeft   = new BCPadEnergies(m_BCG);
   m_BeamCalErrorsRight  = new BCPadEnergies(m_BCG);
 
+  // calculate st.dev. of tower energies
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kLeft);
+  this->BeamCalBkg::setTowerErrors(BCPadEnergies::kRight);
   return;
 }
 
