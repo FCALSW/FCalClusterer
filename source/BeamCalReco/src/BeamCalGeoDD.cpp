@@ -302,15 +302,18 @@ void BeamCalGeoDD::readPolarGridRPhi() {
   typedef dd4hep::DDSegmentation::TypedSegmentationParameter<double> ParDou;
   ParDou* rPar  = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("grid_size_r"));
   ParDou* pPar  = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("grid_size_phi"));
+  ParDou* oRPar = static_cast<ParDou*>(m_segmentation.segmentation()->parameter("offset_r"));
   double  rSize = rPar->typedValue() / dd4hep::mm;
+  // rOff is the center of the first ring
+  double  rOff  = oRPar->typedValue() / dd4hep::mm;
   double  pSize = pPar->typedValue() / dd4hep::radian;
 
   m_rings = int((m_outerRadius - m_innerRadius) / rSize + 0.5);
   m_radSegmentation.resize(m_rings + 1);  //inner and outer radius are part of this
   int n = -1;
-  std::generate(m_radSegmentation.begin(), m_radSegmentation.end(), [n, this, rSize]() mutable {
+  std::generate(m_radSegmentation.begin(), m_radSegmentation.end(), [n, this, rSize, rOff]() mutable {
     ++n;
-    return m_innerRadius + rSize * n;
+    return rOff + rSize * (n - 0.5);
   });
   m_phiSegmentation = std::vector<double>(m_rings, pSize);
 
