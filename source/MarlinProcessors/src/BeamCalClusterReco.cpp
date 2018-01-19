@@ -118,7 +118,6 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
                                            m_usingDD4HEP(false)
 {
 
-// modify processor description
   _description = "BeamCalClusterReco reproduces the beamstrahlung background for a given number of " \
     "bunch-crossings NumberOfBX and puts the signal hits from the "	\
     "lcio input file on top of that, and then clustering is attempted." ;
@@ -218,10 +217,13 @@ registerProcessorParameter ("NShowerCountingLayers",
 			      m_NShowerCountingLayers,
 			      int(3) ) ;
 
-registerProcessorParameter ("LinearCalibrationFactor",
-			      "Multiply deposit energy by this factor to account for samplif fraction",
-			      m_calibrationFactor,
-			      double(1.0) ) ;
+  registerProcessorParameter("LinearCalibrationFactor",
+                             "Multiply deposit energy by this factor to account for sampling fraction", m_calibrationFactor,
+                             double(1.0));
+
+  registerProcessorParameter("LogWeightingConstant",
+                             "Weighting constant to use in logarithmic weighting of hits, if negative energy weighting is used",
+                             m_logWeightingConstant, m_logWeightingConstant);
 
 registerProcessorParameter ("UseChi2Selection",
 			      "Use Chi2 selection criteria to detect high energy electron in the signal.",
@@ -297,13 +299,8 @@ void BeamCalClusterReco::init() {
   }
 
   //Fill BCPCuts object with cuts from the processor parameters
-  m_bcpCuts = new BCPCuts(m_startingRings,
-			  m_requiredRemainingEnergy, m_requiredClusterEnergy,
-			  m_minimumTowerSize,
-			  m_startLookingInLayer,
-			  m_NShowerCountingLayers,
-			  m_usePadCuts,
-			  m_sigmaCut);
+  m_bcpCuts = new BCPCuts(m_startingRings, m_requiredRemainingEnergy, m_requiredClusterEnergy, m_minimumTowerSize,
+                          m_startLookingInLayer, m_NShowerCountingLayers, m_usePadCuts, m_sigmaCut, m_logWeightingConstant);
 
   m_BCbackground->setBCPCuts(m_bcpCuts);
   m_BCbackground->init(m_files, m_nBXtoOverlay);

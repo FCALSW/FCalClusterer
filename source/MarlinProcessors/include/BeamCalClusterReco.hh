@@ -98,6 +98,7 @@ class BeamCalClusterReco : public marlin::Processor {
   double m_sigmaCut;
   double m_TowerChi2ndfLimit;
   double m_calibrationFactor;
+  double m_logWeightingConstant=-1.0;
 
   std::vector<float> m_startingRings;
   std::vector<float> m_requiredRemainingEnergy;
