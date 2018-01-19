@@ -1049,7 +1049,7 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
 void BeamCalClusterReco::readSignalHits(LCEvent* evt, LCCollection* colBCal, BCPadEnergies& padEnergiesLeft,
                                         BCPadEnergies& padEnergiesRight, double& depositedEnergy, double& maxDeposit,
                                         int& maxLayer) {
-  if (not colBCal) {
+  if (not colBCal or colBCal->getNumberOfElements() == 0) {
     return;
   }
   m_caloHitMap.clear();
