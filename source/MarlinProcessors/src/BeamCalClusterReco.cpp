@@ -136,8 +136,9 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 			  m_colNameBCal ,
 			  std::string("BeamCalCollection") ) ;
 
- registerOutputCollection(LCIO::CALORIMETERHIT, "BeamCal_Hits", "Collection of CalorimtersHits from the BeamCalCal",
-                          m_hitsOutColName, m_hitsOutColName);
+  registerOutputCollection(LCIO::CALORIMETERHIT, "BeamCalHitsOutCollection",
+                           "Collection of CalorimeterHits from the BeamCal,only created when input are SimCalorimeterHits",
+                           m_hitsOutColName, m_hitsOutColName);
 
  registerOutputCollection( LCIO::RECONSTRUCTEDPARTICLE,
 			   "RecoParticleCollectionname" ,
