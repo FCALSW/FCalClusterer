@@ -536,42 +536,52 @@ BCPadEnergies::PadIndexList BCPadEnergies::getPadsAboveSigma(const BCPadEnergies
 /// Gets a list of padEnergies testPads, and a list of indices which make up the cluster myPadIndices
 /// Sums up all the energy of this cluster, calculates the average position of the cluster
 /// Could be static except for m_BCG, should be m_BCG function
-BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& testPads, const PadIndexList& myPadIndices, const BCPCuts& ) const {
+BeamCalCluster BCPadEnergies::getClusterFromAcceptedPads(const BCPadEnergies& testPads, const PadIndexList& myPadIndices,
+                                                         const BCPCuts& cuts) const {
   BeamCalCluster BCCluster;
-  double phi(0.0), ringAverage(0.0), totalEnergy(0.0);
-  double         thetaAverage(0.0), zAverage(0.0);
 
   //Averaging an azimuthal angle is done via sine and cosine
   double sinStore(0.0), cosStore(0.0);
+  double phi(0.0), ringAverage(0.0), thetaAverage(0.0), zAverage(0.0), totalEnergy(0.0), totalWeight(0.0);
+
+  //get total cluster energy needed for log-weighting
+  for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
+    totalEnergy += testPads.getEnergy(*it);
+  }
+
+  const double logWeight       = cuts.getLogWeighting();
+  const double firstRingRadius = m_BCG.getPadMiddleR(0, 0);
 
   //now take all the indices and add them to a cluster
-  for (PadIndexList::const_iterator it = myPadIndices.begin(); it != myPadIndices.end(); ++it) {
+  for (auto padID : myPadIndices) {
     //Threshold was applied to get the padIndices
-    const double energy(testPads.getEnergy(*it));
-    const int ring = m_BCG.getRing(*it);
-    const int layer = m_BCG.getLayer(*it);
-    const double thisPhi = m_BCG.getPadPhi(*it)* M_PI / 180.0; //Degrees to Radian
-    BCCluster.addPad(*it, energy);
-    //    phi+= thisPhi*energy;
-    ringAverage += double( ring ) * energy;
-    totalEnergy += energy;
-    sinStore += energy * sin( thisPhi );
-    cosStore += energy * cos( thisPhi );
-    thetaAverage += m_BCG.getThetaFromRing( layer, ring ) * energy;
-
-    zAverage += m_BCG.getLayerZDistanceToIP(layer) * energy;
+    const double energy  = testPads.getEnergy(padID);
+    const int    ring    = m_BCG.getRing(padID);
+    const int    layer   = m_BCG.getLayer(padID);
+    const double thisPhi = m_BCG.getPadPhi(padID) * M_PI / 180.0;  //Degrees to Radian
+    BCCluster.addPad(padID, energy);
+    const double weight =
+        (logWeight < 0) ? energy : std::max(0.0,
+                                            (logWeight + std::log(testPads.getEnergy(padID) / totalEnergy)) *
+                                                firstRingRadius / m_BCG.getPadMiddleR(ring, 0));
+    if (not(weight > 0.0)) {
+      continue;
+    }
+    totalWeight += weight;
+    ringAverage += double(ring) * weight;
+    sinStore += weight * sin(thisPhi);
+    cosStore += weight * cos(thisPhi);
+    thetaAverage += m_BCG.getThetaFromRing(layer, ring) * weight;
+    zAverage += m_BCG.getLayerZDistanceToIP(layer) * weight;
   }
-  if(totalEnergy > 0.0) {
-    phi =  atan2(sinStore/totalEnergy,  cosStore/totalEnergy) * 180.0 / M_PI ;
+  if (totalWeight > 0.0) {
+    phi = atan2(sinStore / totalWeight, cosStore / totalWeight) * 180.0 / M_PI;
     if(phi < 0) phi += 360;
-    //    phi /= totalEnergy;
-    ringAverage /= totalEnergy;
-    thetaAverage /= totalEnergy;
-
-    zAverage /= totalEnergy;
+    ringAverage /= totalWeight;
+    thetaAverage /= totalWeight;
+    zAverage /= totalWeight;
     BCCluster.setPhi(phi);
     BCCluster.setRing(ringAverage);
-    //    BCCluster.setTheta( m_BCG.getThetaFromRing( ringAverage ) * 1000 );
     BCCluster.setTheta( thetaAverage * 1000 );
     BCCluster.setZ(zAverage);
   }
