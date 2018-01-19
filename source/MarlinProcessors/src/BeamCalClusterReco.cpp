@@ -280,6 +280,8 @@ void BeamCalClusterReco::init() {
 
   m_BCG = ProcessorUtilities::getBeamCalGeo(m_usingDD4HEP, m_detectorName, m_colNameBCal);
 
+  streamlog_out(DEBUG6) << "Geometry:\n" << *m_BCG;
+
   // select which background we have
   if(      string("Pregenerated") == m_bgMethodName ) {
     m_BCbackground = new BeamCalBkgPregen(m_bgMethodName, m_BCG);

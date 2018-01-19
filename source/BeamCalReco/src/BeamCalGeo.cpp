@@ -366,13 +366,16 @@ double BeamCalGeo::getPadsDistance(int padIndex1, int padIndex2) const {
 }
 
 std::ostream& operator<<(std::ostream& o, const BeamCalGeo& bcg) {
-  o << "Radii"
-    << std::setw(13)  << bcg.getBCInnerRadius()
-    << std::setw(13)  << bcg.getBCOuterRadius()
-    <<  " Radial Segmentation:\n";
+  o << "Radii" << std::setw(13) << bcg.getBCInnerRadius() << std::setw(13) << bcg.getBCOuterRadius()
+    << "\nRadial Segmentation:\n";
   for (double r : bcg.getRadSegmentation()) {
-    o << std::setw(13) << r;
+    o << std::setw(10) << r;
   }
+  o << "\nZDistances";
+  for (int i = 0; i < bcg.getBCLayers(); ++i) {
+    o << std::setw(13) << bcg.getLayerZDistanceToIP(i);
+  }
+
   o << "\nNRings" << std::setw(13)  << bcg.getBCRings() << "   nRadValues " << bcg.getRadSegmentation().size()
     << "\nFirstFullRing" << std::setw(15)  << bcg.getFirstFullRing()
     << " CutOutRadius [mm]" << std::setw(15)  << bcg.getCutout()
@@ -382,6 +385,15 @@ std::ostream& operator<<(std::ostream& o, const BeamCalGeo& bcg) {
   for (int i : bcg.getNSegments()) {
     o << std::setw(5) << i;
   }
+  o << "\nTheta Segments:\n";
+  for (int l = 0; l < bcg.getBCLayers(); ++l) {
+    o << "Layer: " << l << ": ";
+    for (int i = 0; i < bcg.getBCRings(); ++i) {
+      o << std::setw(10) << bcg.getThetaFromRing(l, i);
+    }
+    o << std::endl;
+  }
+
   o << std::endl;
   return o;
 }
