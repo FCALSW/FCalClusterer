@@ -6,6 +6,7 @@
 #include <gear/LayerLayout.h>
 #include <gear/CalorimeterParameters.h>
 
+#include <EVENT/CalorimeterHit.h>
 #include <EVENT/SimCalorimeterHit.h>
 #include <UTIL/CellIDDecoder.h>
 
@@ -76,9 +77,32 @@ namespace BCUtil{
     }
   }
 
-  void DecodeCellID(lcio::CellIDDecoder<lcio::SimCalorimeterHit> &mydecoder, const lcio::SimCalorimeterHit* hit, 
-		    int& side, int& layer, int& cylinder, int& sector, bool dd4hep=false);
- 
+  template<class T, class U>
+  void DecodeCellID(T &mydecoder, const U* hit, int& side, int& layer, int& cylinder, int& sector, bool usingDD4HEP=false){
+    if (usingDD4HEP) {
+      try{
+        side     = mydecoder( hit )[ "barrel" ] - 1; // 1 and 2 originally, change to 0 and 1
+        cylinder = mydecoder( hit )["r"] ;
+        sector   = mydecoder( hit )["phi"] ;
+        layer    = mydecoder( hit )["layer"]; // starting at 0
+      } catch (Exception &e) {
+        std::cout << "Exception in BCUtil with DD4hep:" << e.what()  << std::endl;
+      }
+    } else {
+      try{
+        side     = mydecoder( hit )[ "S-1" ] ;
+        cylinder = mydecoder( hit )["I"] ;
+        sector   = mydecoder( hit )["J"] ;
+        layer    = mydecoder( hit )["K"] ;
+      } catch (Exception &e) {
+        std::cout << "Exception in BCUtil without DD4hep:" << e.what()  << std::endl;
+      }
+
+    }
+  return;
+  }//DecodeCellID
+
+
   // inline const gear::CalorimeterParameters& BCPs() { return marlin::Global::GEAR->getBeamCalParameters(); }
 
   // //Wrappters around Gear Interface:
