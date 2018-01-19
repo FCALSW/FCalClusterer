@@ -121,6 +121,9 @@ void BeamCalBkg::setTowerErrors(const BCPadEnergies::BeamCalSide_t bc_side)
       te_var->back() += pow( BC_errors->getEnergy(jp), 2);
     }
     te_var->back() = sqrt(te_var->back());
+    if (te_var->back() == 0.0) {
+      te_var->back() = 0.00001;
+    }
   }
 
 } // setTowerErrors
