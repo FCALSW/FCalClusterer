@@ -17,14 +17,17 @@
 #include "BeamCalFitShower.hh"
 
 //LCIO
+#include <EVENT/CalorimeterHit.h>
 #include <EVENT/LCCollection.h>
 #include <EVENT/MCParticle.h>
 #include <EVENT/ReconstructedParticle.h>
 #include <EVENT/SimCalorimeterHit.h>
-#include <UTIL/CellIDDecoder.h>
-#include <IMPL/LCCollectionVec.h>
-#include <IMPL/ReconstructedParticleImpl.h>
+#include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/ClusterImpl.h>
+#include <IMPL/LCCollectionVec.h>
+#include <IMPL/LCFlagImpl.h>
+#include <IMPL/ReconstructedParticleImpl.h>
+#include <UTIL/CellIDDecoder.h>
 
 // ----- include for verbosity dependent logging ---------
 #include <streamlog/loglevels.h>
@@ -133,6 +136,9 @@ BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
 			  "Name of BeamCal Collection"  ,
 			  m_colNameBCal ,
 			  std::string("BeamCalCollection") ) ;
+
+ registerOutputCollection(LCIO::CALORIMETERHIT, "BeamCal_Hits", "Collection of CalorimtersHits from the BeamCalCal",
+                          m_hitsOutColName, m_hitsOutColName);
 
  registerOutputCollection( LCIO::RECONSTRUCTEDPARTICLE,
 			   "RecoParticleCollectionname" ,
@@ -375,38 +381,8 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   int maxLayer(0);
 
   // add the energy in the event to the background/average energy
-  if(colBCal) {
-    CellIDDecoder<SimCalorimeterHit> mydecoder(colBCal);
-    int nHits = colBCal->getNumberOfElements();
-    for(int i=0; i < nHits; i++) {
-      SimCalorimeterHit *bcalhit = static_cast<SimCalorimeterHit*>(colBCal->getElementAt(i));
-      int side, layer, ring, sector;
-      BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, ring, sector, m_usingDD4HEP);
-      const float energy = bcalhit->getEnergy();
-      depositedEnergy += energy;
-
-      if(maxDeposit < energy) {
-	maxDeposit = energy;
-	maxLayer = layer;
-      }
-
-      try{
-	if(side == BCPadEnergies::kLeft) {
-	  padEnergiesLeft.addEnergy(layer, ring, sector, energy);
-	} else if(side == BCPadEnergies::kRight) {
-	  padEnergiesRight.addEnergy(layer, ring, sector, energy);
-	}
-      } catch (std::out_of_range &e){
-
-	streamlog_out(DEBUG1) << "Filling from signal: " << e.what()
-			      << std::setw(10) << layer
-			      << std::setw(10) << ring
-			      << std::setw(10) << sector
-			      << std::endl;
-      }
-
-    }//for all entries in the collection
-  }//if there were hits from the signal
+  readSignalHits(evt, colBCal, padEnergiesLeft, padEnergiesRight, depositedEnergy, maxDeposit, maxLayer);
+  streamlog_out(DEBUG6) << "Done Reading calorimeter hits" << std::endl;
 
   // Run the clustering
   std::vector<BCRecoObject*> LeftSide,  RightSide;
@@ -440,6 +416,9 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 
   LCCollectionVec* BCalClusterCol = new LCCollectionVec(LCIO::CLUSTER);
   LCCollectionVec* BCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
+  IMPL::LCFlagImpl lcFlagImpl;
+  lcFlagImpl.setBit(LCIO::CLBIT_HITS);
+  BCalClusterCol->setFlag(lcFlagImpl.getFlag());
 
   for (std::vector<BCRecoObject*>::iterator it = LeftSide.begin(); it != LeftSide.end(); ++it) {
 
@@ -474,6 +453,9 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     ClusterImpl* cluster = new ClusterImpl;
     cluster->setEnergy( energyCluster );
     cluster->setPosition( position );
+    for (auto const& hitID : (*it)->getClusterPads()) {
+      cluster->addHit(m_caloHitMap[(*it)->getSide()][hitID.first], 1.0);
+    }
 
     ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
     particle->setMass( mass ) ;
@@ -703,7 +685,8 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClusters(const BCPadEnergies&
 			      << std::setw(10) << phi
 	;//ending the streamlog!
 
-      recoVec.push_back( new BCRecoObject(isRealParticle, true, theta, phi, it->getEnergy(), it->getNPads(), signalPads.getSide() ) );
+      recoVec.push_back(new BCRecoObject(isRealParticle, true, theta, phi, it->getEnergy(), it->getNPads(),
+                                         signalPads.getSide(), it->getPads()));
 
     }//if we have enough pads and energy in the clusters
 
@@ -733,7 +716,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
 							    const BCPadEnergies& backgroundSigma,
 							    const TString& title) 
 {
-//  using BeamCalFitShower::EdepProfile_t;
+  streamlog_out(DEBUG6) << "Looking for clusters with chi2 method" << std::endl;
 
   std::vector<BCRecoObject*> recoVec;
   const bool isRealParticle = false; //always false here, decide later
@@ -744,6 +727,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
   int ndf(m_BCG->getBCLayers());
   // loop over towers
   for (int it = 0; it < m_BCG->getPadsPerLayer(); it++){
+    std::map<int, double> padIDs;
     // get tower energies, average, sigma
     signalPads.getTowerEnergies(it, te_signal);
     backgroundPads.getTowerEnergies(it, te_bg);
@@ -785,6 +769,7 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
     ep->totalEdep = te_signal_sum;
     ep->bkgEdep = te_bg_sum;
     ep->bkgSigma = tot_te_sigma;
+    ep->padIDs        = padIDs;
     //std::cout << it<< "\t" <<chi2 << "\t" <<te_signal_sum-te_bg_sum<< std::endl;
 
     edep_prof.push_back(ep);
@@ -803,14 +788,14 @@ std::vector<BCRecoObject*> BeamCalClusterReco::FindClustersChi2(const BCPadEnerg
   // Extract fitted showers untill nothing left above some threshold
   while(1){
     double theta(0.), phi(0.), en_shwr(0.), chi2_shwr(0.);
-    double shwr_prob = shower_fitter.fitShower(theta, phi, en_shwr, chi2_shwr);
+    std::map<int, double> padIDsInCluster;
+    double shwr_prob = shower_fitter.fitShower(theta, phi, en_shwr, chi2_shwr, padIDsInCluster);
     if (shwr_prob < 0. ) break;
     // if the shower energy is above threshold, create reco object
     if (en_shwr > m_requiredClusterEnergy.at(0) ) {
       // fill the recoVec entry
-      recoVec.push_back( new BCRecoObject(isRealParticle, true, 
-        theta, phi, en_shwr, m_NShowerCountingLayers, 
-	signalPads.getSide() ) );
+      recoVec.push_back(new BCRecoObject(isRealParticle, true, theta, phi, en_shwr, m_NShowerCountingLayers,
+                                         signalPads.getSide(), padIDsInCluster));
 
       // print the log message
       streamlog_out(MESSAGE2) << title;
@@ -1061,3 +1046,79 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
 
   return;
 }//FindOriginalMCParticle
+
+void BeamCalClusterReco::readSignalHits(LCEvent* evt, LCCollection* colBCal, BCPadEnergies& padEnergiesLeft,
+                                        BCPadEnergies& padEnergiesRight, double& depositedEnergy, double& maxDeposit,
+                                        int& maxLayer) {
+  if (not colBCal) {
+    return;
+  }
+  m_caloHitMap.clear();
+  m_caloHitMap.emplace(std::piecewise_construct, std::forward_as_tuple(BCPadEnergies::kLeft),
+                       std::forward_as_tuple(m_BCG->getPadsPerBeamCal(), nullptr));
+  m_caloHitMap.emplace(std::piecewise_construct, std::forward_as_tuple(BCPadEnergies::kRight),
+                       std::forward_as_tuple(m_BCG->getPadsPerBeamCal(), nullptr));
+
+  // figure out if we have a CalorimeterHit or SimCalorimeterHit collection,
+  // and create CalorimeterHit collection if necessary
+  if (dynamic_cast<EVENT::SimCalorimeterHit*>(colBCal->getElementAt(0)) != nullptr) {
+    colBCal = createCaloHitCollection(colBCal);
+    evt->addCollection(colBCal, m_hitsOutColName.c_str());
+  }
+
+  streamlog_out(DEBUG6) << "Reading calorimeter hits" << std::endl;
+
+  CellIDDecoder<CalorimeterHit> mydecoder(colBCal);
+  int                           nHits = colBCal->getNumberOfElements();
+  for (int i = 0; i < nHits; i++) {
+    CalorimeterHit* bcalhit = static_cast<CalorimeterHit*>(colBCal->getElementAt(i));
+    int             side, layer, ring, sector;
+    BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, ring, sector, m_usingDD4HEP);
+    const float energy = bcalhit->getEnergy();
+    depositedEnergy += energy;
+    if (maxDeposit < energy) {
+      maxDeposit = energy;
+      maxLayer   = layer;
+    }
+
+    if (sector < 0) {
+      sector += m_BCG->getPadsInRing(ring);
+    }
+
+    try {
+      int padID = -2;
+      if (side == BCPadEnergies::kLeft) {
+        padID = padEnergiesLeft.addEnergy(layer, ring, sector, energy);
+      } else if (side == BCPadEnergies::kRight) {
+        padID = padEnergiesRight.addEnergy(layer, ring, sector, energy);
+      }
+      m_caloHitMap[side][padID] = bcalhit;
+    } catch (std::out_of_range& e) {
+      streamlog_out(DEBUG1) << "Filling from signal: " << e.what() << std::setw(10) << layer << std::setw(10) << ring
+                            << std::setw(10) << sector << std::endl;
+    }
+
+  }  //for all entries in the collection
+}
+
+LCCollection* BeamCalClusterReco::createCaloHitCollection(LCCollection* simCaloHitCollection) const {
+  streamlog_out(DEBUG7) << "Creating the CalorimeterHit collection with dummy digitization" << std::endl;
+
+  auto caloHitCollection = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
+  caloHitCollection->parameters().setValue(LCIO::CellIDEncoding,
+                                           simCaloHitCollection->getParameters().getStringVal(LCIO::CellIDEncoding));
+  caloHitCollection->setFlag(simCaloHitCollection->getFlag());
+  for (int i = 0; i < simCaloHitCollection->getNumberOfElements(); ++i) {
+    auto simHit = static_cast<EVENT::SimCalorimeterHit*>(simCaloHitCollection->getElementAt(i));
+    auto calHit = new CalorimeterHitImpl();
+
+    calHit->setCellID0(simHit->getCellID0());
+    calHit->setCellID1(simHit->getCellID1());
+    calHit->setEnergy(simHit->getEnergy());
+    calHit->setPosition(simHit->getPosition());
+
+    caloHitCollection->addElement(calHit);
+  }
+
+  return caloHitCollection;
+}

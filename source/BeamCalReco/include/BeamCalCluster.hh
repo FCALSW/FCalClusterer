@@ -35,6 +35,7 @@ public:
   inline int getPadIndexInLayer() const { return m_padIndexInLayer; }
 
   inline int getNPads() const { return m_clusterPads.size(); }
+  inline std::map<int, double> const& getPads() const { return m_clusterPads; }
   inline double getEnergy() const { return m_energy; }
 
   void addPad(int padIndex, double energy);

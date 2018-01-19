@@ -12,6 +12,8 @@
 #include "BeamCalGeoCached.hh"
 #include "BCRootUtilities.hh"
 
+#include <streamlog/streamlog.h>
+
 // ROOT
 #include "TMath.h"
 #include "Minuit2/Minuit2Minimizer.h"
@@ -79,8 +81,8 @@ BeamCalFitShower::operator=(const BeamCalFitShower&fs)
   return *this;
 }
 
-double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, double &chi2)
-{
+double BeamCalFitShower::fitShower(double& theta, double& phi, double& en_shwr, double& chi2,
+                                   std::map<int, double>& padIDsInCluster) {
   BCUtil::IgnoreRootError ire{};
 
   // select spot pads around most likely shower
@@ -178,6 +180,13 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
   //phi = 143.219;
   en_shwr = accumulate(m_spotEint.begin(), m_spotEint.end(), 0.0);
 
+  // get the padIDs from the projectedPadIds
+  for (int padID : pad_list) {
+    for (auto const& pair : m_vep[padID]->padIDs) {
+      padIDsInCluster[pair.first] = pair.second;
+    }
+  }
+
 		/*
   		vector<EdepProfile_t*>::iterator it_sp;
   		std::cout << "SPOTPADS edp:\t" ;
@@ -205,6 +214,8 @@ double BeamCalFitShower::fitShower(double &theta, double &phi, double &en_shwr, 
 
 int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
 {
+  streamlog_out(DEBUG5) << "Looking for spot pads" << std::endl;
+
   const double DEGRAD = M_PI/180.;
 
   // find tower with largest tower chi2, provided it is > 5000.
@@ -225,8 +236,10 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
     //std::cout << max_en<< "\t" << std::endl;
 
   // no pads with high enough chi2 found:
-  if ( it_center == m_vep.begin() ) return -1;
-
+  if (it_center == m_vep.begin()) {
+    streamlog_out(DEBUG5) << "No spot pads found" << std::endl;
+    return -1;
+  }
   // create entry for central pad
   double pext[6]; // tsk-tsk-tsk
   m_BCG->getPadExtentsById((*it_center)->id, pext);
@@ -263,8 +276,8 @@ int BeamCalFitShower::selectSpotPads(vector<int> &pad_ids)
   		}
   		std::cout  << std::endl;
 		*/
-  
-  
+
+  streamlog_out(DEBUG5) << "Found spot pads with size " << m_spotPads.size() << std::endl;
   return m_spotPads.size();
 }
 

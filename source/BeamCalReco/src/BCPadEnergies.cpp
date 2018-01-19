@@ -252,9 +252,10 @@ void BCPadEnergies::addEnergiesWithCheck(const BCPadEnergies &bcp, const BCPadEn
   }
 }//addEnergiesWithCheck
 
-
-void BCPadEnergies::addEnergy(int layer, int ring, int pad, double energy){
-  m_PadEnergies[ m_BCG.getPadIndex(layer, ring, pad) ] += energy;
+int BCPadEnergies::addEnergy(int layer, int ring, int pad, double energy) {
+  const int padID = m_BCG.getPadIndex(layer, ring, pad);
+  m_PadEnergies[padID] += energy;
+  return padID;
 }
 
 void BCPadEnergies::addEnergy(int padIndex, double energy){

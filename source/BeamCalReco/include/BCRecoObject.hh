@@ -1,13 +1,14 @@
 #ifndef BCRECOOBJECT_HH
 #define BCRECOOBJECT_HH 1
 
+#include <map>
 
 class BCRecoObject{
 
 public:
   BCRecoObject (bool BshouldHaveCluster, bool BhasRightCluster, 
 		double thetaCluster, double phiCluster, 
-		double energy, int nPads, int side): 
+		double energy, int nPads, int side, std::map<int, double> const& clusterPads):
     m_shouldHaveCluster(BshouldHaveCluster),
     m_hasRightCluster(BhasRightCluster),
     m_hasWrongCluster(not m_hasRightCluster),
@@ -16,7 +17,8 @@ public:
     m_energy(energy),
     m_nPads(nPads),
     m_side(side),
-    m_omc(-1)
+    m_omc(-1),
+    m_clusterPads(clusterPads)
   {}
 
   BCRecoObject (): m_shouldHaveCluster(false), 
@@ -57,6 +59,11 @@ private:
   int m_nPads;
   int m_side;
   int m_omc;
+  std::map<int, double> m_clusterPads{};
+
+public:
+  auto getClusterPads() const -> decltype(m_clusterPads) { return m_clusterPads; }
+
 };
 
 #endif

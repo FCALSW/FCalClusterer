@@ -20,12 +20,13 @@ class BeamCalPadGeometry;
 * @brief Segment parameters for profile of the calorimeter energy deposition
 */
 typedef struct {
-  int id; 
-  double towerChi2;
-  double totalEdep;
-  double bkgEdep;
-  double bkgSigma;
-  BeamCalPadGeometry *padGeom;
+  int id=0;
+  double towerChi2=0;
+  double totalEdep=0;
+  double bkgEdep=0;
+  double bkgSigma=0;
+  BeamCalPadGeometry *padGeom=nullptr;
+  std::map<int, double> padIDs{};
 } EdepProfile_t;
 
 
@@ -70,7 +71,7 @@ class BeamCalFitShower {
   *
   * @return probability value that we have an actuall shower
   */
-  double fitShower(double &theta, double &phi, double &en_shwr, double &chi2);
+  double fitShower(double &theta, double &phi, double &en_shwr, double &chi2, std::map<int, double>& padIDsInCluster);
 
   double operator()(const double *par);
   //double showerChi2(double *par);
