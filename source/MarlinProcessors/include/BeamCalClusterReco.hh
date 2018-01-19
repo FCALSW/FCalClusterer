@@ -1,11 +1,12 @@
 #ifndef BeamCalClusterReco_h
 #define BeamCalClusterReco_h 1
 
-#include <string>
-#include <vector>
-
 #include <lcio.h>
 #include <marlin/Processor.h>
+
+#include <string>
+#include <vector>
+#include <map>
 
 class TChain;
 class TEfficiency;
@@ -20,6 +21,10 @@ class BCRecoObject;
 class BeamCal;
 class BeamCalGeo;
 class BeamCalBkg;
+
+namespace EVENT {
+  class CalorimeterHit;
+}
 
 class BeamCalClusterReco : public marlin::Processor {
   
@@ -75,6 +80,7 @@ class BeamCalClusterReco : public marlin::Processor {
   std::string m_colNameMC;
   std::string m_colNameBCal;
   std::string m_bgMethodName;
+  std::string m_hitsOutColName="BeamCal_Hits";
   std::vector<std::string> m_files;
 
   int m_nEvt ;
@@ -114,6 +120,9 @@ private:
 
   void findOriginalMCParticles(LCEvent *evt);
   void fillEfficiencyObjects(const std::vector<BCRecoObject*>& RecoedObjects);
+  void readSignalHits(LCEvent* evt, LCCollection* colBCal, BCPadEnergies& padEnergiesLeft, BCPadEnergies& padEnergiesRight,
+                      double& depositedEnergy, double& maxDeposit, int& maxLayer);
+  LCCollection* createCaloHitCollection(LCCollection* simCaloHitCollection) const;
 
   void printBeamCalEventDisplay(BCPadEnergies& padEnergies_left, BCPadEnergies& padEnergies_right,
 				int maxLayer, double maxDeposit, double depositedEnergy,
@@ -134,6 +143,7 @@ private:
   ///the geometry is available or from GearFile in all other cases
   BeamCalGeo* getBeamCalGeo();
   bool m_usingDD4HEP;
+  std::map<int, std::vector<EVENT::CalorimeterHit*>> m_caloHitMap{};
 } ;
 
 

@@ -38,7 +38,7 @@ public:
   void subtractEnergiesWithCheck(const BCPadEnergies &bcp, const BCPadEnergies &sigma);
   void addEnergiesWithCheck(const BCPadEnergies &bcp, const BCPadEnergies &sigma);
 
-  void addEnergy(int layer, int ring, int pad, double energy);
+  int addEnergy(int layer, int ring, int pad, double energy);
   void addEnergy(int padIndex, double energy);
 
   void resetEnergies();
