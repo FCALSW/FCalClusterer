@@ -7,13 +7,14 @@ class BCRecoObject{
 
 public:
   BCRecoObject (bool BshouldHaveCluster, bool BhasRightCluster, 
-		double thetaCluster, double phiCluster, 
+		double thetaCluster, double phiCluster, double z,
 		double energy, int nPads, int side, std::map<int, double> const& clusterPads):
     m_shouldHaveCluster(BshouldHaveCluster),
     m_hasRightCluster(BhasRightCluster),
     m_hasWrongCluster(not m_hasRightCluster),
     m_thetamrad(thetaCluster),
     m_phi(phiCluster),
+    m_z(z),
     m_energy(energy),
     m_nPads(nPads),
     m_side(side),
@@ -38,6 +39,7 @@ public:
   inline double getThetaRad() const { return m_thetamrad/1000; }
   inline double getThetaMrad() const { return m_thetamrad; }
   inline double getPhi () const { return m_phi; }
+  inline double getZ () const { return m_z; }
   inline int getNPads() const { return m_nPads; }
   inline double getEnergy() const { return m_energy; }
   inline int    getSide() const { return m_side; }
@@ -55,6 +57,7 @@ private:
   bool m_hasWrongCluster;
   double m_thetamrad;
   double m_phi;
+  double m_z=0;
   double m_energy;
   int m_nPads;
   int m_side;
