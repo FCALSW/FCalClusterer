@@ -1,0 +1,34 @@
+/ddg4/Gun/Particle e-
+/ddg4/Gun/Energy 100*GeV
+/ddg4/Gun/direction (-27, 0, -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (-19, 19, -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (0, 27,  -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (19, 19, -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (27, 0,  -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (19, -19, -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (0, -27, -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (-19, -19, -1000)
+/run/beamOn 1
+/ddg4/Gun/direction (-27, 0, 1000)
+/run/beamOn 1
+/ddg4/Gun/direction (-19, 19, 1000)
+/run/beamOn 1
+/ddg4/Gun/direction (0, 27,  1000)
+/run/beamOn 1
+/ddg4/Gun/direction (19, 19, 1000)
+/run/beamOn 1
+/ddg4/Gun/direction (27, 0,  1000)
+/run/beamOn 1
+/ddg4/Gun/direction (19, -19, 1000)
+/run/beamOn 1
+/ddg4/Gun/direction (0, -27, 1000)
+/run/beamOn 1
+/ddg4/Gun/direction (-19, -19, 1000)
+/run/beamOn 1

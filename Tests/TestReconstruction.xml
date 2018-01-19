@@ -1,0 +1,201 @@
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+  <execute>
+    <processor name="InitDD4hep"/>
+    <processor name="MLCC"/>
+    <processor name="LumiCalReco"/>
+    <processor name="BeamCalReco"/>
+    <processor name="LCIOoutput" />
+  </execute>
+  <global>
+    <parameter name="LCIOInputFiles">
+      Electrons_DD4hep.slcio
+    </parameter>
+    <!-- limit the number of processed records (run+evt): -->
+    <parameter name="MaxRecordNumber" value="10" />
+    <parameter name="SkipNEvents" value="0" />
+    <parameter name="SupressCheck" value="false" />
+    <parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> MESSAGE </parameter>
+    <parameter name="RandomSeed" value="1234567890" />
+  </global>
+
+  <processor name="InitDD4hep" type="InitializeDD4hep">
+    <!--InitializeDD4hep reads a compact xml file and initializes the DD4hep::LCDD object-->
+    <!--Name of the DD4hep compact xml file to load-->
+    <parameter name="DD4hepXMLFile" type="string"> </parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+  </processor>
+
+  <processor name="MLCC" type="MarlinLumiCalClusterer">
+    <!--whatever...-->
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <parameter name="Verbosity" type="string"> MESSAGE </parameter>
+    <!--Collection Containing the Hits in the LumiCal-->
+    <parameter name="LumiCal_Collection" type="string" lcioInType="SimCalorimeterHit"> LumiCalCollection </parameter>
+    <!--Collection of Cluster found in the LumiCal-->
+    <parameter name="LumiCal_Clusters" type="string" lcioOutType="Cluster">LumiCalClusters_2 </parameter>
+    <!--Collection of Reconstructed Particles found in the LumiCal-->
+    <parameter name="LumiCal_RecoParticles" type="string" lcioOutType="ReconstructedParticle">LumiCalRecoParticles_2 </parameter>
+    <!-- Number of events to skip at the begining of the LCIO file-->
+    <parameter name="SkipNEvents" type="int">0 </parameter>
+    <!-- Number of event to work with-->
+    <parameter name="MaxRecordNumber" type="int">10 </parameter>
+    <!--Name of output directory-->
+    <parameter name="OutDirName" type="string">rootOut </parameter>
+    <!--Name of output ROOT file ( without suffix)-->
+    <parameter name="OutRootFileName" type="string"> lcalOutput </parameter>
+    <!-- Place for ROOT tree memory(1) or disk (0) -->
+    <parameter name="MemoryResidentTree" type="int">0 </parameter>
+    <!-- Number of events in memory resident ROOT tree.-->
+    <parameter name="NumEventsTree" type="int">500 </parameter>
+    <!--  Clustering/Geometry Parameters -->
+    <!-- Minimal number of hits in cluster-->
+    <parameter name="ClusterMinNumHits" type="int">15 </parameter>
+    <!-- fraction of number of hits in one arm found in one layer to consider this layer as the ShowerPeak layer-->
+    <parameter name="ElementsPercentInShowerPeakLayer" type="double">0.03 </parameter>
+    <!-- Sets minimum for logarithmic energy weights-->
+    <parameter name="LogWeigthConstant" type="double"> 6.1 </parameter>
+    <!-- BP: see explanation in LumiCalClusterer.cpp-->
+    <parameter name="MiddleEnergyHitBoundFrac" type="double"> 0.01 </parameter>
+    <!-- Sets minimum energy deposit for cluster to be accepted [GeV]-->
+    <parameter name="MinClusterEngy" type="double"> 2.0 </parameter>
+    <!-- Calibration factor - converts cluster energy to primary
+	 particle energy ( E_cluster = EnrgyCalibConst*E_primary default value for LCal ILD )-->
+    <!-- <parameter name="EnergyCalibConst" type="double"> 0.0121423 </parameter> -->
+    <parameter name="EnergyCalibConst" type="double"> 0.0121393073723151 </parameter>
+    <!-- Hit energy cut - minimum hit energy required [Gev] -->
+    <parameter  name="MinHitEnergy"  type="double"> 20e-06 </parameter>
+    <!-- Moliere radius, controls clusters separation distance [mm]-->
+    <parameter name="MoliereRadius" type="double"> 14 </parameter>
+    <!--Number of neighbor hits to consider -->
+    <parameter name="NumOfNearNeighbor" type="int"> 6 </parameter>
+    <!-- Choose cluster hit position weights LogMthod=-1 or simple EnergyMethod=1 -->
+    <parameter name="WeightingMethod" type="string"> LogMethod </parameter>
+    <!-- Layers relative phi offset (default for model ILD_o1_05,must go to gear sometimes)  [deg]-->
+    <parameter name="ZLayerPhiOffset" type="double"> 0.0 </parameter>
+  </processor>
+
+
+  <processor name="LumiCalReco" type="BeamCalClusterReco">
+    <!--BeamCalClusterReco reproduces the beamstrahlung background for a given number of bunch-crossings NumberOfBX and puts the signal hits from the lcio input file on top of that, and then clustering is attempted.-->
+    <!--How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged, Empty]-->
+    <parameter name="BackgroundMethod" type="string">Empty </parameter>
+    <parameter name="DetectorName" type="string">LumiCal </parameter>
+    <!--Name of BeamCal Collection-->
+    <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit">LumiCalCollection</parameter>
+    <parameter name="BeamCalHitsOutCollection" type="string" lcioInType="SimCalorimeterHit">LumiCal_Hits</parameter>
+    <!--Name of the Reconstructed Cluster collection-->
+    <parameter name="RecoClusterCollectionname" type="string" lcioOutType="Cluster">LumiCalClusters </parameter>
+    <!--Name of the Reconstructed Particle collection-->
+    <parameter name="RecoParticleCollectionname" type="string" lcioOutType="ReconstructedParticle">LumiCalRecoParticles </parameter>
+    <!--MCParticle Collection Name, only needed and used to estimate efficiencies-->
+    <parameter name="MCParticleCollectionName" type="string" lcioInType="MCParticle">MCParticle </parameter>
+    <!--Multiply deposit energy by this factor to account for sampling fraction-->
+    <parameter name="LinearCalibrationFactor" type="double"> 82.377 </parameter>
+    <parameter name="LogWeightingConstant" type="double"> 6.1 </parameter>
+    <!--Number of Bunch Crossings of Background-->
+    <parameter name="NumberOfBX" type="int"> 0 </parameter>
+    <!--Flag to create the TEfficiency for fast tagging library-->
+    <parameter name="CreateEfficiencyFile" type="bool">false </parameter>
+    <!--The name of the rootFile which will contain the TEfficiency objects-->
+    <parameter name="EfficiencyFilename" type="string">TaggingEfficiency.root </parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <!-- <parameter name="Verbosity" type="string">WARNING </parameter> -->
+    <!--Number of Event that should be printed to PDF File-->
+    <parameter name="PrintThisEvent" type="int">-1 </parameter>
+
+    <parameter name="InputFileBackgrounds" type="StringVec"> </parameter>
+    <!--Rings from which onwards the outside Thresholds are used-->
+    <parameter name="StartingRing" type="FloatVec">0.0 </parameter>
+    <!--Energy in a Cluster to consider it an electron-->
+    <parameter name="ETCluster" type="FloatVec"> 0.001 </parameter>
+    <!--Energy in a Pad, after subtraction of background required to consider it for signal-->
+    <parameter name="ETPad" type="FloatVec"> 20e-06 </parameter>
+    <!--Layer (inclusive) from which on we start looking for signal clusters-->
+    <parameter name="StartLookingInLayer" type="int">1 </parameter>
+    <!--Use the cuts for the pads specified in ETPad. If false, the standard deviation of each pad times the SigmaCut Factor is used, the first entry in ETPad is used as a minimum energy to consider a pad at all-->
+    <parameter name="UseConstPadCuts" type="bool">false </parameter>
+    <!--If not using ConstPadCuts, each pad SigmaCut*standardDeviation is considered for clusters-->
+    <parameter name="SigmaCut" type="double">1 </parameter>
+    <!--Minimum number of pads in a single tower to be considered for signal-->
+    <parameter name="MinimumTowerSize" type="int">4 </parameter>
+    <!--How many layers are used for shower fitting-->
+    <parameter name="NShowerCountingLayers" type="int">30 </parameter>
+    <!--Limit on square norm of tower eqnergy chi2/ndf, where chi2 = (E_dep - E_bg)^2/sig^2. Reasonable value for pregenerated bkg is 5., for parametrised is 2.-->
+    <parameter name="TowerChi2ndfLimit" type="double">5 </parameter>
+    <!--Use Chi2 selection criteria to detect high energy electron in the signal.-->
+    <parameter name="UseChi2Selection" type="bool">false </parameter>
+  </processor>
+
+
+  <processor name="BeamCalReco" type="BeamCalClusterReco">
+    <!--BeamCalClusterReco reproduces the beamstrahlung background for a given number of bunch-crossings NumberOfBX and puts the signal hits from the lcio input file on top of that, and then clustering is attempted.-->
+    <!--How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged]-->
+    <parameter name="BackgroundMethod" type="string">Empty </parameter>
+    <!--Name of BeamCal Collection-->
+    <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit">BeamCalCollection </parameter>
+    <!--Name of the Reconstructed Cluster collection-->
+    <parameter name="RecoClusterCollectionname" type="string" lcioOutType="Cluster">BeamCalClusters </parameter>
+    <!--Name of the Reconstructed Particle collection-->
+    <parameter name="RecoParticleCollectionname" type="string" lcioOutType="ReconstructedParticle">BeamCalRecoParticles </parameter>
+    <!--MCParticle Collection Name, only needed and used to estimate efficiencies-->
+    <parameter name="MCParticleCollectionName" type="string" lcioInType="MCParticle">MCParticle </parameter>
+    <!--Multiply deposit energy by this factor to account for sampling fraction-->
+    <parameter name="LinearCalibrationFactor" type="double">116.44 </parameter>
+    <!--Number of Bunch Crossings of Background-->
+    <parameter name="NumberOfBX" type="int"> 0 </parameter>
+    <!--Flag to create the TEfficiency for fast tagging library-->
+    <parameter name="CreateEfficiencyFile" type="bool">false </parameter>
+    <!--The name of the rootFile which will contain the TEfficiency objects-->
+    <parameter name="EfficiencyFilename" type="string">TaggingEfficiency.root </parameter>
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <parameter name="Verbosity" type="string">DEBUG3 </parameter>
+    <!--Number of Event that should be printed to PDF File-->
+    <parameter name="PrintThisEvent" type="int">-1 </parameter>
+    <parameter name="InputFileBackgrounds" type="StringVec"> </parameter>
+    <!--Rings from which onwards the outside Thresholds are used-->
+    <parameter name="StartingRing" type="FloatVec">0.0  </parameter>
+    <!--Energy in a Cluster to consider it an electron-->
+    <parameter name="ETCluster" type="FloatVec">   0.1 </parameter>
+    <!--Energy in a Pad, after subtraction of background required to consider it for signal-->
+    <parameter name="ETPad" type="FloatVec">       0.0001 </parameter>
+    <!--Layer (inclusive) from which on we start looking for signal clusters-->
+    <parameter name="StartLookingInLayer" type="int">10 </parameter>
+    <!--Use the cuts for the pads specified in ETPad. If false, the standard deviation of each pad times the SigmaCut Factor is used, the first entry in ETPad is used as a minimum energy to consider a pad at all-->
+    <parameter name="UseConstPadCuts" type="bool">true </parameter>
+    <!--If not using ConstPadCuts, each pad SigmaCut*standardDeviation is considered for clusters-->
+    <parameter name="SigmaCut" type="double">1 </parameter>
+    <!--Minimum number of pads in a single tower to be considered for signal-->
+    <parameter name="MinimumTowerSize" type="int">4 </parameter>
+    <!--How many layers are used for shower fitting-->
+    <parameter name="NShowerCountingLayers" type="int">3 </parameter>
+    <!--Limit on square norm of tower energy chi2/ndf, where chi2 = (E_dep - E_bg)^2/sig^2. Reasonable value for pregenerated bkg is 5., for parametrised is 2.-->
+    <parameter name="TowerChi2ndfLimit" type="double">5 </parameter>
+    <!--Use Chi2 selection criteria to detect high energy electron in the signal.-->
+    <parameter name="UseChi2Selection" type="bool">false </parameter>
+  </processor>
+
+
+  
+  <processor name="LCIOoutput" type="LCIOOutputProcessor">
+    <!--Writes the current event to the specified LCIO outputfile. Needs to be the last ActiveProcessor.-->
+    <!--drops the named collections from the event-->
+    <!--parameter name="DropCollectionNames" type="StringVec">TPCHits HCalHits  </parameter-->
+    <!--drops all collections of the given type from the event-->
+    <parameter name="DropCollectionTypes" type="StringVec"> SimTrackerHit SimCalorimeterHit  </parameter>
+    <!-- write complete objects in subset collections to the file (i.e. ignore subset flag)-->
+    <!--parameter name="FullSubsetCollections" type="StringVec">MCParticlesSkimmed  </parameter-->
+    <!--force keep of the named collections - overrules DropCollectionTypes (and DropCollectionNames)-->
+    <parameter name="KeepCollectionNames" type="StringVec">LumiCalHits LumiCalCollection </parameter>
+    <!-- name of output file -->
+    <parameter name="LCIOOutputFile" type="string"> bcreco.slcio </parameter>
+    <!--write mode for output file:  WRITE_APPEND or WRITE_NEW-->
+    <parameter name="LCIOWriteMode" type="string"> WRITE_NEW </parameter>
+    <!--will split output file if size in kB exceeds given value - doesn't work with APPEND and NEW-->
+    <!--parameter name="SplitFileSizekB" type="int">1992294 </parameter-->
+    <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+    <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+  </processor>
+
+
+</marlin>
