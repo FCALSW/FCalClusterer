@@ -8,37 +8,15 @@
 //Return the double[6] pointer with innerRadius, Outerradius, Phi1 and Phi2, middle radius, middle phi
 void BeamCalGeo::getPadExtents(int cylinder, int sector, double *extents) const {
 
-  const double RADTODEG = 180./M_PI;
-
   double radius1, radius2;
   radius1 = this->getRadSegmentation()[cylinder];
   radius2 = this->getRadSegmentation()[cylinder+1];
 
-  const int padsInThisRing = this->getPadsInRing(cylinder);
-
-  double phi_b1, phi_b2;
-  const int padsInPartialRing = getSymmetryFold()*(this->getNSegments()[cylinder]);
-  const double degreesDeadAngle  (this->getDeadAngle()*RADTODEG);
-  const double angleInRing (360.0 - degreesDeadAngle);
-  const double deltaPhi = angleInRing/double(padsInPartialRing);
-  if( sector < padsInPartialRing ) {
-    phi_b1 = sector* deltaPhi;
-    phi_b2 =(sector+1)*deltaPhi;
-    //Opening angle is on the negative x
-    phi_b1 += 180 + degreesDeadAngle/2;
-    phi_b2 += 180 + degreesDeadAngle/2;
-  } else {
-    int additionalSegments = padsInThisRing - padsInPartialRing;
-    const double deltaPhi2 = degreesDeadAngle/additionalSegments;
-    phi_b1 = angleInRing/2+(sector-padsInPartialRing)*deltaPhi2;
-    phi_b2 = angleInRing/2+(sector+1-padsInPartialRing)*deltaPhi2;
-  }
-
   extents[0] = radius1;
   extents[1] = radius2;
 
-  extents[2] = phi_b1;
-  extents[3] = phi_b2;
+  extents[2] = getPadPhi(cylinder, sector) - 360.0 / double(getPadsInRing(cylinder));
+  extents[3] = getPadPhi(cylinder, sector+1) - 360.0 / double(getPadsInRing(cylinder));
   extents[4] = (extents[0] + extents[1])/2;
 
   //this bit takes care of pads at the edge of 360 to 0
@@ -64,9 +42,17 @@ void BeamCalGeo::getPadExtents(int cylinder, int sector, double *extents) const 
     extents[5] -= 360.0;
   }
 
-  // if( extents[5] < 0 ) {
-  //   extents[5] += 360.0;
-  // }
+  if( extents[2] <= 0.0 ) {
+    extents[2] += 360.0;
+  }
+
+  if( extents[3] <= 0.0 ) {
+    extents[3] += 360.0;
+  }
+
+  if( extents[5] <= 0.0 ) {
+    extents[5] += 360.0;
+  }
 
 }//GetPadExtents
 
