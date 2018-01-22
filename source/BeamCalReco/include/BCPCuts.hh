@@ -25,6 +25,7 @@ public:
     m_useConstPadCuts( false ),
     m_padSigmaCut( 0.0 ),
     m_logWeighting(-1)
+    ,m_maxPadDistance(60)
   {
   }
 
@@ -35,7 +36,7 @@ public:
 	   int startLayer,
 	   int countingLayers,
 	   bool usePadCuts,
-	   double sigmaCut, double logWeighting):
+	   double sigmaCut, double logWeighting, double maxPadDistance):
     m_startingRings(rings),
     m_requiredRemainingEnergy(pads),
     m_requiredClusterEnergy(clusters),
@@ -45,6 +46,7 @@ public:
     m_useConstPadCuts(usePadCuts),
     m_padSigmaCut( sigmaCut ),
     m_logWeighting(logWeighting)
+    ,m_maxPadDistance(maxPadDistance)
   {}
 
   bool isPadAboveThreshold(int padRing, double padEnergy) const;
@@ -64,6 +66,7 @@ public:
   BCPCuts& setLogWeighting(double logWeighting) { m_logWeighting = logWeighting; return *this; }
 
   inline float getMinPadEnergy() const { return m_requiredRemainingEnergy[0]; }
+  inline double getMaxPadDistance() const { return m_maxPadDistance; }
 
 private:
 
@@ -78,6 +81,7 @@ private:
 
   double m_padSigmaCut;
   double m_logWeighting;
+  double m_maxPadDistance;
 };
 
 #endif
