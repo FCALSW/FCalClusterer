@@ -94,7 +94,7 @@ BeamCalClusterReco::BeamCalClusterReco()
       m_nEvt(0),
       m_specialEvent(-1),
       m_nBXtoOverlay(0),
-      m_eventSide(-1),
+      m_eventSide(0),
       m_minimumTowerSize(0),
       m_startLookingInLayer(0),
       m_NShowerCountingLayers(0),
@@ -890,11 +890,11 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   bc.SetLogz(1);
   bc.SetBeamCalHisto(padEnergies,"tempLeft");
 
-  double ymax = 0.5 * double(m_nBXtoOverlay);
+  double ymax     = 0.5 * double(m_nBXtoOverlay);
+  double maxRange = m_BCG->getBCOuterRadius()+10;
 
   for (int layer = startLayer; layer < startLayer + 4; ++layer) {
-
-    TH2F frame("frame",Form("BeamCal Layer %i", layer), 160, -160, 160, 160, -160, 160);
+    TH2F frame("frame",Form("BeamCal Layer %i", layer), maxRange, -maxRange, maxRange, maxRange, -maxRange, maxRange);
 
     const int pad1 = ( layer - startLayer ) + 1;
     const int pad2 = ( layer - startLayer ) + 5;
