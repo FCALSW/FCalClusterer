@@ -80,9 +80,13 @@
     <!--BeamCalClusterReco reproduces the beamstrahlung background for a given number of bunch-crossings NumberOfBX and puts the signal hits from the lcio input file on top of that, and then clustering is attempted.-->
     <!--How to estimate background [Gaussian, Parametrised, Pregenerated, Averaged, Empty]-->
     <parameter name="BackgroundMethod" type="string">Empty </parameter>
+    <!--The Name of the Detector the reconstruction is for-->
     <parameter name="DetectorName" type="string">LumiCal </parameter>
+    <!--The ID of the first layer of the detector BeamCal 1: LumiCal: 0-->
+    <parameter name="DetectorStartingLayerID" type="int">0 </parameter>
     <!--Name of BeamCal Collection-->
     <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit">LumiCalCollection</parameter>
+    <!--Collection of CalorimeterHits from the BeamCal,only created when input are SimCalorimeterHits-->
     <parameter name="BeamCalHitsOutCollection" type="string" lcioInType="SimCalorimeterHit">LumiCal_Hits</parameter>
     <!--Name of the Reconstructed Cluster collection-->
     <parameter name="RecoClusterCollectionname" type="string" lcioOutType="Cluster">LumiCalClusters </parameter>
@@ -92,7 +96,10 @@
     <parameter name="MCParticleCollectionName" type="string" lcioInType="MCParticle">MCParticle </parameter>
     <!--Multiply deposit energy by this factor to account for sampling fraction-->
     <parameter name="LinearCalibrationFactor" type="double"> 82.377 </parameter>
+    <!--Weighting constant to use in logarithmic weighting of hits, if negative energy weighting is used-->
     <parameter name="LogWeightingConstant" type="double"> 6.1 </parameter>
+    <!--Maximum Distance between primary tower and neighbours to put into one cluster-->
+    <parameter name="MaxPadDistance" type="double">60 </parameter>
     <!--Number of Bunch Crossings of Background-->
     <parameter name="NumberOfBX" type="int"> 0 </parameter>
     <!--Flag to create the TEfficiency for fast tagging library-->
@@ -103,7 +110,7 @@
     <!-- <parameter name="Verbosity" type="string">WARNING </parameter> -->
     <!--Number of Event that should be printed to PDF File-->
     <parameter name="PrintThisEvent" type="int">-1 </parameter>
-
+    <!--Root Inputfile(s)-->
     <parameter name="InputFileBackgrounds" type="StringVec"> </parameter>
     <!--Rings from which onwards the outside Thresholds are used-->
     <parameter name="StartingRing" type="FloatVec">0.0 </parameter>
