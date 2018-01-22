@@ -51,6 +51,8 @@ class BeamCalBkg {
   BeamCalBkg(const string &bg_method_name, const BeamCalGeo* BCG);
   virtual ~BeamCalBkg();
 
+  static BeamCalBkg* Factory(std::string const& backgroundMethod, BeamCalGeo const* BCG);
+
  public: 
   enum BackgroundMethod_t { kPregenerated, kParametrised, kAveraged };
 

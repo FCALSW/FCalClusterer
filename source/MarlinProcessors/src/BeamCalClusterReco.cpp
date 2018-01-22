@@ -9,11 +9,6 @@
 #include "BCUtilities.hh"
 #include "BeamCalGeoCached.hh"
 #include "BeamCalBkg.hh"
-#include "BeamCalBkgParam.hh"
-#include "BeamCalBkgPregen.hh"
-#include "BeamCalBkgGauss.hh"
-#include "BeamCalBkgAverage.hh"
-#include "BeamCalBkgEmpty.hh"
 #include "BeamCalFitShower.hh"
 
 //LCIO
@@ -283,23 +278,7 @@ void BeamCalClusterReco::init() {
 
   streamlog_out(DEBUG6) << "Geometry:\n" << *m_BCG;
 
-  // select which background we have
-  if(      string("Pregenerated") == m_bgMethodName ) {
-    m_BCbackground = new BeamCalBkgPregen(m_bgMethodName, m_BCG);
-  } else if( string("Gaussian") == m_bgMethodName ) {
-    m_BCbackground = new BeamCalBkgGauss(m_bgMethodName, m_BCG);
-  } else if( string("Parametrised") == m_bgMethodName ) {
-    m_BCbackground = new BeamCalBkgParam(m_bgMethodName, m_BCG);
-  } else if( string("Averaged")     == m_bgMethodName) {
-    m_BCbackground = new BeamCalBkgAverage(m_bgMethodName, m_BCG);
-  } else if (string("Empty") == m_bgMethodName) {
-    m_BCbackground = new BeamCalBkgEmpty(m_bgMethodName, m_BCG);
-  } else {
-    streamlog_out(ERROR) <<"== Error From BeamCalBackground == "
-			 << "Unknown BeamCal method of background esitmation \""
-			 << m_bgMethodName << "\"" << std::endl;
-    throw std::runtime_error("Unknown BeamCal background method");
-  }
+  m_BCbackground = BeamCalBkg::Factory(m_bgMethodName, m_BCG);
 
   //Fill BCPCuts object with cuts from the processor parameters
   m_bcpCuts = new BCPCuts(m_startingRings, m_requiredRemainingEnergy, m_requiredClusterEnergy, m_minimumTowerSize,
