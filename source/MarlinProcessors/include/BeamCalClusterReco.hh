@@ -144,6 +144,7 @@ private:
   ///the geometry is available or from GearFile in all other cases
   BeamCalGeo* getBeamCalGeo();
   bool m_usingDD4HEP;
+  int m_startingLayer=1;
   std::map<int, std::vector<EVENT::CalorimeterHit*>> m_caloHitMap{};
 } ;
 

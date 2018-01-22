@@ -62,7 +62,7 @@ private:
   std::vector<double>   m_layerDistanceToIP;
   double		m_beamCalZPosition;
   double                m_deadAngle;
-  double	        m_phiOffset;
+  double	        m_phiOffset=0.0;
 
   //hard coded
   int                   m_symmetryFold = 8;

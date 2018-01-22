@@ -1073,7 +1073,7 @@ void BeamCalClusterReco::readSignalHits(LCEvent* evt, LCCollection* colBCal, BCP
   for (int i = 0; i < nHits; i++) {
     CalorimeterHit* bcalhit = static_cast<CalorimeterHit*>(colBCal->getElementAt(i));
     int             side, layer, ring, sector;
-    BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, ring, sector, m_usingDD4HEP);
+    BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, ring, sector, m_usingDD4HEP, m_startingLayer);
     const float energy = bcalhit->getEnergy() / m_calibrationFactor;
     depositedEnergy += energy;
     if (maxDeposit < energy) {
