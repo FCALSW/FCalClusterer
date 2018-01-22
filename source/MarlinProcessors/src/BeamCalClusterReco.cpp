@@ -221,6 +221,9 @@ registerProcessorParameter ("NShowerCountingLayers",
                              "Weighting constant to use in logarithmic weighting of hits, if negative energy weighting is used",
                              m_logWeightingConstant, m_logWeightingConstant);
 
+  registerProcessorParameter("MaxPadDistance", "Maximum Distance between primary tower and neighbours to put into one cluster",
+                             m_maxPadDistance, m_maxPadDistance);
+
 registerProcessorParameter ("UseChi2Selection",
 			      "Use Chi2 selection criteria to detect high energy electron in the signal.",
 			      m_useChi2Selection,
@@ -282,7 +285,8 @@ void BeamCalClusterReco::init() {
 
   //Fill BCPCuts object with cuts from the processor parameters
   m_bcpCuts = new BCPCuts(m_startingRings, m_requiredRemainingEnergy, m_requiredClusterEnergy, m_minimumTowerSize,
-                          m_startLookingInLayer, m_NShowerCountingLayers, m_usePadCuts, m_sigmaCut, m_logWeightingConstant);
+                          m_startLookingInLayer, m_NShowerCountingLayers, m_usePadCuts, m_sigmaCut, m_logWeightingConstant,
+                          m_maxPadDistance);
 
   m_BCbackground->setBCPCuts(m_bcpCuts);
   m_BCbackground->init(m_files, m_nBXtoOverlay);

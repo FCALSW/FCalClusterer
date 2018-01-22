@@ -441,6 +441,7 @@ void BCPadEnergies::clusterNextToNearestNeighbourTowers( const BCPadEnergies::Pa
     BCPadEnergies::TowerIndexList::iterator largestTower = std::max_element( allTowersInBeamCal.begin(),
 									     allTowersInBeamCal.end(),
 									     value_comparer);
+    auto const primaryTower = largestTower;
 
     if (DetailedPrintout) {
       std::cout << "Largest Tower PadID " << largestTower->first << " : " << std::setw(3) << largestTower->second
@@ -469,7 +470,7 @@ void BCPadEnergies::clusterNextToNearestNeighbourTowers( const BCPadEnergies::Pa
 	if ( towersInThisCluster.find(it->first) != towersInThisCluster.end() ) continue;
 
 	const bool isNeighbour = this->m_BCG.arePadsNeighbours(largestTower->first, it->first);
-	if ( isNeighbour ) {
+	if (isNeighbour and m_BCG.getPadsDistance(primaryTower->first, it->first) <= cuts.getMaxPadDistance()) {
 	  if ( DetailedPrintout ) {
 	    std::cout << "Found a neighbor " << std::setw(6) << it->first << " : " << std::setw(3) << it->second
 		      << this->streamPad(it->first)
