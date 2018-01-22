@@ -78,13 +78,13 @@ namespace BCUtil{
   }
 
   template<class T, class U>
-  void DecodeCellID(T &mydecoder, const U* hit, int& side, int& layer, int& cylinder, int& sector, bool usingDD4HEP=false){
+  void DecodeCellID(T &mydecoder, const U* hit, int& side, int& layer, int& cylinder, int& sector, bool usingDD4HEP=false, int startingLayer=1){
     if (usingDD4HEP) {
       try{
         side     = mydecoder( hit )[ "barrel" ] - 1; // 1 and 2 originally, change to 0 and 1
         cylinder = mydecoder( hit )["r"] ;
         sector   = mydecoder( hit )["phi"] ;
-        layer    = mydecoder( hit )["layer"]; // starting at 0
+        layer    = mydecoder( hit )["layer"] - startingLayer; // starting at 1 for BeamCal at 0 for LumiCal
       } catch (Exception &e) {
         std::cout << "Exception in BCUtil with DD4hep:" << e.what()  << std::endl;
       }
