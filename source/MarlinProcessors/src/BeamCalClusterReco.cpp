@@ -894,7 +894,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   double maxRange = m_BCG->getBCOuterRadius()+10;
 
   for (int layer = startLayer; layer < startLayer + 4; ++layer) {
-    TH2F frame("frame",Form("BeamCal Layer %i", layer), maxRange, -maxRange, maxRange, maxRange, -maxRange, maxRange);
+    TH2F frame("frame",Form("%s Layer %i", m_detectorName.c_str(), layer), maxRange, -maxRange, maxRange, maxRange, -maxRange, maxRange);
 
     const int pad1 = ( layer - startLayer ) + 1;
     const int pad2 = ( layer - startLayer ) + 5;
@@ -910,7 +910,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
     DrawElectronMarkers( RecoedObjects );
 
     {
-      TCanvas tCanv("temp1",Form("BeamCal Layer %i", layer));
+      TCanvas tCanv("temp1",Form("%s Layer %i", m_detectorName.c_str(), layer), 800, 800);
       tCanv.cd();
       bc.BeamCalDraw((TPad*)tCanv.GetPad(0), &frame, layer);
       tCanv.SaveAs(Form("SpecialEvent_Pad%i.eps", pad1));
