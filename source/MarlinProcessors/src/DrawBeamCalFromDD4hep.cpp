@@ -100,7 +100,7 @@ DrawBeamCalFromDD4hep::DrawBeamCalFromDD4hep() : Processor("DrawBeamCalFromDD4he
   registerInputCollection( LCIO::SIMCALORIMETERHIT,
 			   "BeamCalCollectionName" ,
 			   "Name of BeamCal Collection"  ,
-			   m_colNameBCal ,
+			   m_colNameBCal,
 			   std::string("BeamCalCollection") ) ;
 
   registerProcessorParameter ("OutputFileBackground",
@@ -127,47 +127,12 @@ void DrawBeamCalFromDD4hep::init() {
   m_tree->Branch("z",&m_z);
   m_tree->Branch("e",&m_energy);
 
-
   dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
   
   m_BeamCal = theDetector.detector("BeamCal");
-
-  //  dd4hep::PlacedVolume place = m_BeamCal.placement();
-  dd4hep::Position local(4.0, 0.0, 0.0);
-  dd4hep::Position global(0.0, 0.0, 0.0);
-  m_BeamCal.child("BeamCal01").nominal().localToWorld(local, global);
-  std::cout << global  << std::endl;
-  std::cout << local  << std::endl;
-  dd4hep::DetElement::Children children = m_BeamCal.children();
-  std::cout << children.size()  << std::endl;
-
-  for (dd4hep::DetElement::Children::iterator it = children.begin(); it != children.end(); ++it) {
-    std::cout << it->first  << std::endl;
-  }
- 
-  m_BeamCal.child("BeamCal01").nominal().worldTransformation().Print();
-
-  dd4hep::Detector::HandleMap readouts = theDetector.readouts();
-  for (dd4hep::Detector::HandleMap::iterator it = readouts.begin(); it != readouts.end(); ++it) {
-    std::cout << it->first  << std::endl;
-  }
-
-  dd4hep::Readout myReadout = theDetector.readout("BeamCalHits");
+  dd4hep::Readout myReadout = theDetector.readout(m_colNameBCal);
   m_seg = myReadout.segmentation();
-  std::cout << m_seg.type()  << std::endl;
-  std::cout <<"FieldDef: " << m_seg.segmentation()->fieldDescription()  << std::endl;
-
-  dd4hep::DDSegmentation::Parameters pars = m_seg.parameters();
-  for (dd4hep::DDSegmentation::Parameters::iterator it = pars.begin(); it != pars.end(); ++it) {
-    std::cout << (*it)->toString()
-      //	      << " " << (*it)->value()  
-	      << std::endl;
-  }
-
-  dd4hep::DDSegmentation::CellID cid = m_seg.cellID(local, global, 0);
-  
-  std::cout << "CellID:" <<  cid  << std::endl;
-  std::cout <<  "Some position: " << m_seg.position(cid)  << std::endl;
+  return;
 
 }//init
 
