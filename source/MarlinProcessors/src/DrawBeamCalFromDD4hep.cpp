@@ -314,6 +314,11 @@ void DrawBeamCalFromDD4hep::drawCartesianGridXY() {
 
 void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
 
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
+  gStyle->SetTitleSize(0.05, "xyz");
+  gStyle->SetLabelSize(0.05, "xyz");
+
   TCanvas c1("rphi2", "rphi2", 800, 800);
   TH2D dummy("dummy", "dummy", 20, 0, 20, 200, 0, 200); //16 bits to get colours from pal->GetValueColor
   TH2D g("g", "g;x [cm]; y [cm]", 200, -20, 20, 200, -20, 20); //16 bits to get colours from pal->GetValueColor
