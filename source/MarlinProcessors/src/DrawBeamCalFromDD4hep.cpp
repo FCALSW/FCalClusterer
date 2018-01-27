@@ -53,8 +53,7 @@ DrawBeamCalFromDD4hep aDrawBeamCalFromDD4hep;
 // #pragma GCC diagnostic ignored "-Wshadow"
 
 
-int getColor(double energy) {
-	Double_t minenergy=1e-3, maxenergy=1e2;
+int getColor(double energy, double minenergy=1e-3, double maxenergy=1e2) {
 	Int_t color1, color2, color;
 	double wlmin = TMath::Log10(minenergy);
 	double wlmax = TMath::Log10(maxenergy);
@@ -321,7 +320,7 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
 
   TCanvas c1("rphi2", "rphi2", 800, 800);
   TH2D dummy("dummy", "dummy", 20, 0, 20, 200, 0, 200); //16 bits to get colours from pal->GetValueColor
-  TH2D g("g", "g;x [cm]; y [cm]", 200, -20, 20, 200, -20, 20); //16 bits to get colours from pal->GetValueColor
+  TH2D g("g", "g;x [cm]; y [cm]; E_{dep} (GeV)", 200, -20, 20, 200, -20, 20); //16 bits to get colours from pal->GetValueColor
   typedef dd4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
   typedef dd4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
   ParVec* rPar = static_cast<ParVec*>(m_seg.segmentation()->parameter("grid_r_values"));
@@ -355,7 +354,14 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
 
   TCanvas c2("Segmentation", "Segmentation", 800, 800);
   c2.cd();
-  g.Draw("AXIS");
+  g.Draw("AXIS colz");
+
+  double emin=1.e4;
+  double emax=0;
+  for (auto ehit : hitEnergies) {
+    if (ehit.second < emin) emin = ehit.second;
+    if (ehit.second > emax) emax = ehit.second;
+  }
 
   for (MapIdVal::iterator it = hitEnergies.begin(); it != hitEnergies.end(); ++it) {
     unsigned int cellid = it->first;
@@ -383,10 +389,10 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
       << std::setw(14) << pO*TMath::RadToDeg()
       << std::setw(14) << energy
       << std::endl;
-    tc->SetLineColor( getColor(energy) );
+    tc->SetLineColor( getColor(energy, emin, emax) );
     tc->SetLineWidth(0);
     //    tc->SetFillColor( pal->GetValueColor(energy) );
-    tc->SetFillColor( getColor(energy) );
+    tc->SetFillColor( getColor(energy, emin, emax) );
 
     tc->Draw();
   }
