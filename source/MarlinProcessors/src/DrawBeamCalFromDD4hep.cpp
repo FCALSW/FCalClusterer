@@ -389,10 +389,11 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
       << std::setw(14) << pO*TMath::RadToDeg()
       << std::setw(14) << energy
       << std::endl;
-    tc->SetLineColor( getColor(energy, emin, emax) );
+    double area = (rO*rO-rI*rI)*abs(pO-pI)/2;
+    tc->SetLineColor( getColor(energy/area, emin, emax) );
     tc->SetLineWidth(0);
     //    tc->SetFillColor( pal->GetValueColor(energy) );
-    tc->SetFillColor( getColor(energy, emin, emax) );
+    tc->SetFillColor( getColor(energy/area, emin, emax) );
 
     tc->Draw();
   }
