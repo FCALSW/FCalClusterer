@@ -374,7 +374,7 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     double area = (rO*rO-rI*rI)*pValues[rBin]/2 ;
     double edensity = ehit.second / area;
 
-    if (edensity < emin) {
+    if (edensity < emin && rBin == rValues.size()-2) {
       emin = edensity;
       idmin = cellid;
     }
@@ -386,8 +386,8 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     hitEDensities[cellid] = edensity;
   }
 
-  double eHi = TMath::Power(emax, 0.98)*TMath::Power(emin, 0.02);
-  double eLo = TMath::Power(emax, 0.1)*TMath::Power(emin, 0.9);
+  double eHi = emax; // TMath::Power(emax, 0.98)*TMath::Power(emin, 0.02);
+  double eLo = emin; // TMath::Power(emax, 0.1)*TMath::Power(emin, 0.9);
 
   TCrown *tcmin = NULL;
   TCrown *tcmax = NULL;
