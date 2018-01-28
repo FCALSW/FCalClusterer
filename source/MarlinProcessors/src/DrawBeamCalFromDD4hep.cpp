@@ -354,11 +354,13 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
 
   TCanvas c2("Segmentation", "Segmentation", 800, 800);
   c2.cd();
-  g.Draw("AXIS colz");
+  g.Draw("AXIS");
 
   MapIdVal hitEDensities;
   double emin=1.e100;
   double emax=0;
+  unsigned idmin = 0;
+  unsigned idmax = 0;
 
   for (auto ehit : hitEnergies) {
 
@@ -369,14 +371,26 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     const double rI = rValues[rBin];
     const double rO = rValues[rBin+1];
 
-    double area = (rO*rO-rI*rI)*pValues[rBin]/2;
+    double area = (rO*rO-rI*rI)*pValues[rBin]/2 ;
     double edensity = ehit.second / area;
 
-    if (edensity < emin) emin = edensity;
-    if (edensity > emax) emax = edensity;
+    if (edensity < emin) {
+      emin = edensity;
+      idmin = cellid;
+    }
+    if (edensity > emax) {
+      emax = edensity;
+      idmax = cellid;
+    }
 
     hitEDensities[cellid] = edensity;
   }
+
+  double eHi = TMath::Power(emax, 0.98)*TMath::Power(emin, 0.02);
+  double eLo = TMath::Power(emax, 0.1)*TMath::Power(emin, 0.9);
+
+  TCrown *tcmin = NULL;
+  TCrown *tcmax = NULL;
 
   for (auto ehit : hitEDensities) {
     unsigned int cellid = ehit.first;
@@ -404,13 +418,26 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
       << std::setw(14) << pO*TMath::RadToDeg()
       << std::setw(14) << edensity
       << std::endl;
-    tc->SetLineColor( getColor(edensity, emin, emax) );
+    tc->SetLineColor( getColor(edensity, eLo, eHi) );
     tc->SetLineWidth(0);
     //    tc->SetFillColor( pal->GetValueColor(energy) );
-    tc->SetFillColor( getColor(edensity, emin, emax) );
+    tc->SetFillColor( getColor(edensity, eLo, eHi) );
+
+    if (cellid == idmin) tcmin = tc;
+    if (cellid == idmax) tcmax = tc;
 
     tc->Draw();
   }
+
+  TLegend *leg = new TLegend(0.25, 0.8, 0.45, 0.9);
+ // leg->SetNColumns(2);
+  leg->SetBorderSize(0);
+  leg->SetFillStyle(0);
+  leg->SetTextSize(0.04);
+  leg->SetTextFont(42);
+  leg->AddEntry(tcmax, Form("E_{dep}/A > %.2g GeV/cm^{2}", eHi / (dd4hep::GeV / dd4hep::cm2) ), "f");
+  leg->AddEntry(tcmin, Form("E_{dep}/A < %.2g GeV/cm^{2}", eLo / (dd4hep::GeV / dd4hep::cm2) ), "f");
+  leg->Draw();
 
   c2.SaveAs("Segmentation.eps");
 
