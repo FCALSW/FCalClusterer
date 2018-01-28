@@ -356,16 +356,31 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   c2.cd();
   g.Draw("AXIS colz");
 
-  double emin=1.e4;
+  MapIdVal hitEDensities;
+  double emin=1.e100;
   double emax=0;
+
   for (auto ehit : hitEnergies) {
-    if (ehit.second < emin) emin = ehit.second;
-    if (ehit.second > emax) emax = ehit.second;
+
+    unsigned int cellid = ehit.first;
+    auto const& decoder = *m_seg.segmentation()->decoder();
+    auto llCellID = decoder.toLong(0, cellid);
+    int rBin = decoder.get(llCellID, "r");
+    const double rI = rValues[rBin];
+    const double rO = rValues[rBin+1];
+
+    double area = (rO*rO-rI*rI)*pValues[rBin]/2;
+    double edensity = ehit.second / area;
+
+    if (edensity < emin) emin = edensity;
+    if (edensity > emax) emax = edensity;
+
+    hitEDensities[cellid] = edensity;
   }
 
-  for (MapIdVal::iterator it = hitEnergies.begin(); it != hitEnergies.end(); ++it) {
-    unsigned int cellid = it->first;
-    double energy = it->second;
+  for (auto ehit : hitEDensities) {
+    unsigned int cellid = ehit.first;
+    double edensity = ehit.second;
     auto const& decoder = *m_seg.segmentation()->decoder();
     auto llCellID = decoder.toLong(0, cellid);
     int rBin = decoder.get(llCellID, "r");
@@ -380,20 +395,19 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     if (rBin == 3 && pBin > 47) continue;
 
     TCrown *tc = new TCrown(0,0, rI, rO, pI*TMath::RadToDeg(), pO*TMath::RadToDeg());
-    std::cout 
+    streamlog_out(DEBUG)
       << std::setw(6) << rBin
       << std::setw(6) << pBin
       << std::setw(14) << rI
       << std::setw(14) << rO
       << std::setw(14) << pI*TMath::RadToDeg()
       << std::setw(14) << pO*TMath::RadToDeg()
-      << std::setw(14) << energy
+      << std::setw(14) << edensity
       << std::endl;
-    double area = (rO*rO-rI*rI)*abs(pO-pI)/2;
-    tc->SetLineColor( getColor(energy/area, emin, emax) );
+    tc->SetLineColor( getColor(edensity, emin, emax) );
     tc->SetLineWidth(0);
     //    tc->SetFillColor( pal->GetValueColor(energy) );
-    tc->SetFillColor( getColor(energy/area, emin, emax) );
+    tc->SetFillColor( getColor(edensity, emin, emax) );
 
     tc->Draw();
   }
