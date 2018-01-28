@@ -403,7 +403,7 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     const double pI = pValues[rBin]*pBin    +offset;
     const double pO = pValues[rBin]*(pBin+1)+offset;
   
-    if (rBin == 3 && pBin > 47) continue;
+    //if (rBin == 3 && pBin > 47) continue;
 
     TCrown *tc = new TCrown(0,0, rI, rO, pI*TMath::RadToDeg(), pO*TMath::RadToDeg());
     streamlog_out(DEBUG)
