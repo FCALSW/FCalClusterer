@@ -41,8 +41,8 @@ int runTest(int, char**) {
       std::vector<double> expectedPhi{expectedPhi_1, expectedPhi_2};
       std::vector<double> expectedTheta(2, 0.0);  //filled later
       IMPL::LCEventImpl   myEvt;
-      auto*               col = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
-      col->parameters().setValue(LCIO::CellIDEncoding, "system:8,barrel:3,layer:8,slice:8,r:32:-16,phi:-16");
+      auto*               col = new IMPL::LCCollectionVec(EVENT::LCIO::CALORIMETERHIT);
+      col->parameters().setValue(EVENT::LCIO::CellIDEncoding, "system:8,barrel:3,layer:8,slice:8,r:32:-16,phi:-16");
       HitMap hits;
       fillLumiCal(gmc, hits, padIDToFill, directionID == -1 ? 2 : directionID, expectedTheta[0]);
       fillLumiCal(gmc, hits, padIDToFill + deltaPad, directionID == -1 ? 2 : directionID, expectedTheta[1], 20);
