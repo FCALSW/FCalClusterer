@@ -37,8 +37,8 @@ int runTest(int, char**) {
       auto              expectedPhi   = expectedPhis[counter++];
       double            expectedTheta = 0.0;  //filled later
       IMPL::LCEventImpl myEvt;
-      auto*             col = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
-      col->parameters().setValue(LCIO::CellIDEncoding, "system:8,barrel:3,layer:8,slice:8,r:32:-16,phi:-16");
+      auto*             col = new IMPL::LCCollectionVec(EVENT::LCIO::CALORIMETERHIT);
+      col->parameters().setValue(EVENT::LCIO::CellIDEncoding, "system:8,barrel:3,layer:8,slice:8,r:32:-16,phi:-16");
       fillLumiCal(gmc, col, padIDToFill, directionID == -1 ? 2 : directionID, expectedTheta);
       myEvt.addCollection(col, "lumiCollection");
 

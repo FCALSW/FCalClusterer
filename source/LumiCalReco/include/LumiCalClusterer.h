@@ -85,7 +85,7 @@ protected:
   MapIntInt    _numHitsInArm;
   //  VInt _armsToCluster;
 
-  std::unique_ptr<CellIDDecoder<CalorimeterHit>> _mydecoder{};
+  std::unique_ptr<UTIL::CellIDDecoder<EVENT::CalorimeterHit>> _mydecoder{};
 
   GlobalMethodsClass _gmc;
 
@@ -96,7 +96,7 @@ protected:
   int	getCalHits( EVENT::LCEvent * evt,
 		    MapIntMapIntVCalHit & calHits );
 
-  LCCollection* createCaloHitCollection(LCCollection* simCaloHitCollection) const;
+  EVENT::LCCollection* createCaloHitCollection(EVENT::LCCollection* simCaloHitCollection) const;
 
   int	buildClusters(	MapIntVCalHit const& calHits,
 			MapIntCalHit & calHitsCellIdGlobal,

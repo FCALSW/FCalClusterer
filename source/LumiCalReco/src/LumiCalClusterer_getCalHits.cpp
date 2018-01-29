@@ -58,7 +58,8 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
     }
 
     if (not _mydecoder) {
-      _mydecoder = std::unique_ptr<CellIDDecoder<CalorimeterHit>>(new CellIDDecoder<CalorimeterHit>(col));
+      _mydecoder =
+        std::unique_ptr<UTIL::CellIDDecoder<EVENT::CalorimeterHit>>(new UTIL::CellIDDecoder<EVENT::CalorimeterHit>(col));
     }
 
     for (int i=0; i<nHitsCol; ++i) {
@@ -172,18 +173,18 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
     }else{ return 1; }
 }
 
-LCCollection* LumiCalClustererClass::createCaloHitCollection(LCCollection* simCaloHitCollection) const {
+EVENT::LCCollection* LumiCalClustererClass::createCaloHitCollection(EVENT::LCCollection* simCaloHitCollection) const {
   streamlog_out(DEBUG7) << "Creating the CalorimeterHit collection with dummy digitization" << std::endl;
 
   const double calibrationFactor = _gmc.getCalibrationFactor();
 
-  auto caloHitCollection = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
-  caloHitCollection->parameters().setValue(LCIO::CellIDEncoding,
-                                           simCaloHitCollection->getParameters().getStringVal(LCIO::CellIDEncoding));
+  auto caloHitCollection = new IMPL::LCCollectionVec(EVENT::LCIO::CALORIMETERHIT);
+  caloHitCollection->parameters().setValue(EVENT::LCIO::CellIDEncoding,
+                                           simCaloHitCollection->getParameters().getStringVal(EVENT::LCIO::CellIDEncoding));
   caloHitCollection->setFlag(simCaloHitCollection->getFlag());
   for (int i = 0; i < simCaloHitCollection->getNumberOfElements(); ++i) {
     auto simHit = static_cast<EVENT::SimCalorimeterHit*>(simCaloHitCollection->getElementAt(i));
-    auto calHit = new CalorimeterHitImpl();
+    auto calHit = new IMPL::CalorimeterHitImpl();
 
     calHit->setCellID0(simHit->getCellID0());
     calHit->setCellID1(simHit->getCellID1());
