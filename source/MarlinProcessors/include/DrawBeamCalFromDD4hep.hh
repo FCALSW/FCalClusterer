@@ -31,6 +31,8 @@ class DrawBeamCalFromDD4hep : public marlin::Processor {
   
   
   DrawBeamCalFromDD4hep() ;
+  DrawBeamCalFromDD4hep(const DrawBeamCalFromDD4hep&) = delete ;
+  DrawBeamCalFromDD4hep & operator = (const DrawBeamCalFromDD4hep&) = delete ;
 
   /** Called at the begin of the job before anything is read.
    * Use to initialize the processor, e.g. book histograms.
@@ -66,6 +68,7 @@ class DrawBeamCalFromDD4hep : public marlin::Processor {
   //std::string m_pdftitle;
   int m_nRun ;
   int m_nEvt ;
+  bool m_drawDensities;
 
   BeamCalGeo* m_bcg;
   dd4hep::DetElement m_BeamCal{};
@@ -74,8 +77,6 @@ class DrawBeamCalFromDD4hep : public marlin::Processor {
   TTree * m_tree;
   double m_x, m_y, m_z, m_energy;
 private://to shut the warnings up
-  DrawBeamCalFromDD4hep(const DrawBeamCalFromDD4hep&);
-  DrawBeamCalFromDD4hep& operator=(const DrawBeamCalFromDD4hep&);
 
   MapIdVal hitEnergies{};
 

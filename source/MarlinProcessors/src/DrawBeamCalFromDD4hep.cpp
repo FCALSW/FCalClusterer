@@ -79,6 +79,7 @@ DrawBeamCalFromDD4hep::DrawBeamCalFromDD4hep() : Processor("DrawBeamCalFromDD4he
 			     m_nameInputFile(""),
 			     m_nRun(0),
 			     m_nEvt(0),
+			     m_drawDensities(false),
 			     m_bcg(NULL),
 						 m_file(NULL),
 						 m_tree(NULL),
@@ -103,9 +104,15 @@ DrawBeamCalFromDD4hep::DrawBeamCalFromDD4hep() : Processor("DrawBeamCalFromDD4he
 			   std::string("BeamCalCollection") ) ;
 
   registerProcessorParameter ("OutputFileBackground",
-			      "Root OutputFile ",
-			      m_nameOutputFile,
-			      std::string("BeamCal.root") ) ;
+         "Root OutputFile ",
+         m_nameOutputFile,
+         std::string("BeamCal.root") ) ;
+
+  registerProcessorParameter ("DrawDensities",
+         "Option to draw area density of deposited energy rather than deposited energy per cell. "
+         "Meaningful for polar segmentation. Default false.",
+         m_drawDensities,
+         false ) ;
 
 }
 //#pragma GCC diagnostic pop
@@ -371,7 +378,8 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     const double rI = rValues[rBin];
     const double rO = rValues[rBin+1];
 
-    double area = (rO*rO-rI*rI)*pValues[rBin]/2 ;
+    double area = dd4hep::cm2;
+    if (m_drawDensities) area = (rO*rO-rI*rI)*pValues[rBin]/2 ;
     double edensity = ehit.second / area;
 
     if (edensity < emin && rBin == rValues.size()-2) {
@@ -432,8 +440,10 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   leg->SetFillStyle(0);
   leg->SetTextSize(0.04);
   leg->SetTextFont(42);
-  leg->AddEntry(tcmax, Form("E_{dep}/A > %.2g GeV/cm^{2}", emax / (dd4hep::GeV / dd4hep::cm2) ), "f");
-  leg->AddEntry(tcmin, Form("E_{dep}/A < %.2g GeV/cm^{2}", emin / (dd4hep::GeV / dd4hep::cm2) ), "f");
+  std::string unit("GeV");
+  if (m_drawDensities) unit = "GeV/cm^{2}";
+  leg->AddEntry(tcmax, Form("E_{dep}/A > %.2g %s", emax / (dd4hep::GeV / dd4hep::cm2), unit.c_str() ), "f");
+  leg->AddEntry(tcmin, Form("E_{dep}/A < %.2g %s", emin / (dd4hep::GeV / dd4hep::cm2), unit.c_str() ), "f");
   leg->Draw();
 
   c2.SaveAs("Segmentation.eps");
