@@ -1,25 +1,30 @@
 #include "BeamCal.hh"
 #include "BCPadEnergies.hh"
 #include "BeamCalGeoCached.hh"
-#include "BeamCalGeoGear.hh"
 #include "BeamCalCluster.hh"
 #include "BCPCuts.hh"
 #include "BCRootUtilities.hh"
 
 //GEAR
+#include <GEAR.h>
 #include <gearxml/GearXML.h>
-#include <gear/GearMgr.h>
 
 //ROOT
-#include <TFile.h>
-#include <TTree.h>
-#include <TH2F.h>
+#include <TCanvas.h>
+#include <TH2.h>
 #include <TStyle.h>
 
-#include <vector>
 #include <iostream>
-#include <iomanip>
+#include <memory>
 #include <stdexcept>
+#include <string>
+#include <vector>
+
+class BeamCalGeo;
+
+namespace gear {
+  class GearMgr;
+}
 
 int reconstructBecas (int argn, char **argc) {
  

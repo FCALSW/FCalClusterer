@@ -2,7 +2,6 @@
 #define BCPADENERGIES_HH
 
 #include <map>
-#include <stdexcept>
 #include <vector>
 
 class BeamCalGeo;

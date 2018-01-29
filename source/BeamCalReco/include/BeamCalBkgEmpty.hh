@@ -7,12 +7,12 @@
 #pragma once
 
 #include "BeamCalBkg.hh"
-#include "BCPadEnergies.hh"
 
 #include <string>
 #include <vector>
 
 class BeamCalGeo;
+class BCPadEnergies;
 
 class BeamCalBkgEmpty : public BeamCalBkg {
  public:

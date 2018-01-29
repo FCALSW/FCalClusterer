@@ -8,21 +8,18 @@
    ============================================================================ */
 #include "LumiCalClusterer.h"
 
-#include <IMPL/CalorimeterHitImpl.h>
-
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
 
 namespace EVENT{
   class LCEvent;
 }
 
+#include <iomanip>
+#include <iostream>
 #include <map>
 #include <string>
-#include <vector>
-#include <cmath>
-#include <iostream>
-#include <iomanip>
-
-
+#include <utility>
 
 /* ============================================================================
    Constructor

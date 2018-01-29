@@ -12,12 +12,10 @@
 #include <vector>
 
 #include "BeamCalBkg.hh"
-#include "BCPadEnergies.hh"
 
 class TChain;
-class TRandom3;
-class TTree;
 
+class BCPadEnergies;
 class BeamCalGeo;
 
 using std::vector;

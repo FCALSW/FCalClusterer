@@ -6,39 +6,27 @@
 * @date 2015-06-12
 */
 
-
-#include "BeamCalBkg.hh"
 #include "BeamCalBkgGauss.hh"
-#include "BeamCalGeoCached.hh"
 #include "BCPadEnergies.hh"
-#include "BCRootUtilities.hh"
-
+#include "BeamCalBkg.hh"
+#include "BeamCalGeo.hh"
 
 // ----- include for verbosity dependent logging ---------
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
-#include <marlin/ProcessorEventSeeder.h>
-#include <marlin/Global.h>
-
 // ROOT
-#include <TMatrixD.h>
 #include <TTree.h>
 #include <TFile.h>
-#include <TF1.h>
 #include <TRandom3.h>
 
-#include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <map>
-#include <set>
 
 using std::vector;
 using std::string;
 using std::map;
 
-using marlin::Global;
 
 BeamCalBkgGauss::BeamCalBkgGauss(const string& bg_method_name, 
                      const BeamCalGeo *BCG) : BeamCalBkg(bg_method_name, BCG),

@@ -5,21 +5,14 @@
 
 #include "BeamCalGeo.hh"
 
-#include <gear/GEAR.h>
-#include <gear/GearMgr.h>
-#include <gear/GearParameters.h>
-#include <gear/LayerLayout.h>
-#include <gear/CalorimeterParameters.h>
-
 #include <TCanvas.h>
 #include <TCrown.h>
-#include <TH2D.h>
-#include <TH3D.h>
+#include <TH2.h>
+#include <TH3.h>
 #include <TList.h>
 #include <TMath.h>
 #include <TPad.h>
 #include <TPaletteAxis.h>
-#include <TPave.h>
 #include <TStyle.h>
 
 #include <algorithm>

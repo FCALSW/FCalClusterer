@@ -1,19 +1,15 @@
 //Local
-#include "LumiCalClusterer.h"
 #include "Distance2D.hh"
+#include "LumiCalClusterer.h"
+#include "LumiCalHit.hh"
 using LCHelper::distance2D;
 //Root
-#include <TH1F.h>
-//LCIO
-#include <IMPL/CalorimeterHitImpl.h>
+#include <TH1.h>
 // stdlib
-#include <map>
-#include <vector>
 #include <cmath>
-//Forward Declarations
-namespace IMPL{
-  class CalorimeterHitImpl;
-}
+#include <map>
+#include <utility>
+#include <vector>
 
 void LumiCalClustererClass::energyCorrections(MapIntVInt& superClusterIdToCellId,
                                               MapIntVDouble& superClusterIdToCellEngy,

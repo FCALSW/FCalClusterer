@@ -1,16 +1,13 @@
 #include "BeamCalGeoCached.hh"
 
 #include <gear/GEAR.h>
-#include <gear/GearParameters.h>
 #include <gear/LayerLayout.h>
 #include <gear/CalorimeterParameters.h>
 #include <gear/GearMgr.h>
 
 
-#include <vector>
-#include <algorithm>
 #include <cmath>
-
+#include <vector>
 
 BeamCalGeoCached::BeamCalGeoCached(gear::GearMgr* gearMgr): m_BCPs(gearMgr->getBeamCalParameters()),
 							    m_innerRadius(m_BCPs.getExtent()[0]),

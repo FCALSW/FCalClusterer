@@ -1,19 +1,24 @@
 #ifndef MarlinLumiCalClusterer_
 #define MarlinLumiCalClusterer_
-#include <marlin/Global.h>
-#include "Global.hh"
 
 #include "GlobalMethodsClass.h"
 #include "LumiCalClusterer.h"
 #include "OutputManagerClass.h"
 
-class ClusterClass;
-
 // Marlin classes:
 #include <marlin/Processor.h>
 
+#include <map>
+#include <string>
+#include <tuple>
+#include <vector>
+
+class LCCluster;
+class ClusterClass;
+
 namespace EVENT{
   class LCEvent;
+  class LCRunHeader;
 }
 
 namespace IMPL {

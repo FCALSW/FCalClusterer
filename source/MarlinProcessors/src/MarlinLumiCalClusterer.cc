@@ -1,12 +1,6 @@
-#include "Global.hh"
 #include "MarlinLumiCalClusterer.h"
 
 #include <EVENT/LCEvent.h>
-
-#include <gear/GEAR.h>
-#include <gear/GearParameters.h>
-#include <gear/CalorimeterParameters.h>
-#include <gear/LayerLayout.h>
 
 #include <string>
 #include <map>

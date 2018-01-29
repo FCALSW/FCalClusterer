@@ -2,24 +2,35 @@
 #include "MarlinLumiCalClusterer.h"
 
 #include "ClusterClass.h"
+#include "Global.hh"
+#include "LCCluster.hh"
 #include "MCInfo.h"
 
+#include <streamlog/loglevels.h>  // for DEBUG6, DEBUG7, DEBUG2
+#include <streamlog/streamlog.h>  // for streamlog_out
+
 #include <EVENT/LCCollection.h>
+#include <EVENT/LCEvent.h>
+#include <EVENT/LCIO.h>
 #include <EVENT/MCParticle.h>
+#include <Exceptions.h>
 #include <IMPL/ClusterImpl.h>
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/LCFlagImpl.h>
 #include <IMPL/ReconstructedParticleImpl.h>
 
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TTree.h>
+#include <TH1.h>
+#include <TH2.h>
 
 #include <algorithm>
-#include <map>
-#include <vector>
-#include <iomanip>
+#include <cmath>
 #include <functional>
+#include <iomanip>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <utility>
+#include <vector>
 
 /* >> */
 

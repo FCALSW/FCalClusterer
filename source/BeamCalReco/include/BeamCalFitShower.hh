@@ -9,7 +9,6 @@
 #pragma once
 
 #include <vector>
-#include <utility>
 #include "BCPadEnergies.hh"
 
 class BeamCalGeo;

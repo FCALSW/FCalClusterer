@@ -1,25 +1,17 @@
 #ifndef GlobalMethodsClass_H
 #define GlobalMethodsClass_H 1
 
-#include "Global.hh"
-
-#include <gear/GEAR.h>
-#include <gear/GearParameters.h>
-#include <gear/CalorimeterParameters.h>
-#include <gear/LayerLayout.h>
-#include <gear/GearMgr.h>
-
-#include <marlin/ProcessorMgr.h>
-#include <marlin/CMProcessor.h>
-#include <marlin/Processor.h>
-#include <marlin/ProcessorParameter.h>
-#include <marlin/StringParameters.h>
-
-
 #include <map>
 #include <string>
+#include <tuple>
+
+class LCCluster;
 
 class TGeoHMatrix;
+
+namespace marlin {
+  class Processor;
+}
 
 namespace IMPL {
   class ClusterImpl;

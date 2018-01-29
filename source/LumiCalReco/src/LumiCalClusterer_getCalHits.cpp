@@ -1,19 +1,32 @@
 // Local
+#include "Global.hh"
+#include "GlobalMethodsClass.h"
 #include "LumiCalClusterer.h"
+#include "LumiCalHit.hh"
+
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
 //LCIO
+#include <EVENT/CalorimeterHit.h>
 #include <EVENT/LCCollection.h>
 #include <EVENT/LCEvent.h>
+#include <EVENT/LCIO.h>
+#include <EVENT/LCObject.h>
+#include <EVENT/LCParameters.h>
+#include <EVENT/SimCalorimeterHit.h>
 #include <Exceptions.h>
 #include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/LCCollectionVec.h>
-#include <IMPL/SimCalorimeterHitImpl.h>
+#include <UTIL/BitField64.h>
 #include <UTIL/CellIDDecoder.h>
 // Stdlib
-#include <map>
-#include <vector>
-#include <iostream>
-#include <cmath>
+#include <algorithm>
 #include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 /* --------------------------------------------------------------------------
    Loop over al hits in the LCCollection and write the hits into vectors

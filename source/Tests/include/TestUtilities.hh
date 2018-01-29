@@ -11,7 +11,9 @@
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/ReconstructedParticleImpl.h>
 
+
 #include <streamlog/streamlog.h>
+#include <marlin/VerbosityLevels.h>
 
 #include <iomanip>
 #include <iostream>
@@ -144,13 +146,13 @@ void fillLumiCal(GlobalMethodsClass& gmc, HitMap& hits, int phiID, int direction
   expectedTheta /= weightSum;
 }
 
-void fillCollection(HitMap const& hits, LCCollectionVec* col){
+void fillCollection(HitMap const& hits, IMPL::LCCollectionVec* col){
   for (auto const& hitPair : hits ) {
     col->addElement(hitPair.second);
   }
 }
 
-void fillLumiCal(GlobalMethodsClass& gmc, LCCollectionVec* col, int phiID, int direction,
+void fillLumiCal(GlobalMethodsClass& gmc, IMPL::LCCollectionVec* col, int phiID, int direction,
                        double& expectedTheta) {
   HitMap hits;
   fillLumiCal(gmc, hits, phiID, direction, expectedTheta);

@@ -1,19 +1,13 @@
 #ifndef ReadBeamCal_h
 #define ReadBeamCal_h 1
 
-#include <BCPadEnergies.hh>
-
 #include <string>
-#include <vector>
 
 #include <marlin/Processor.h>
-#include <lcio.h>
 
+class BCPadEnergies;
+class BeamCalGeo;
 
-class TH1D;
-class TH2D;
-class TH3D;
-class TFile;
 class TRandom3;
 
 

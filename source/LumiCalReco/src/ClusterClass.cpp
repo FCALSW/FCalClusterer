@@ -1,15 +1,13 @@
-
-#include "Global.hh"
-
 #include "ClusterClass.h"
 
-#include <EVENT/MCParticle.h>
+#include "Global.hh"
+#include "GlobalMethodsClass.h"
 
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
-#include <cmath>
 #include <iomanip>
+#include <ostream>
 
 using namespace streamlog;
 

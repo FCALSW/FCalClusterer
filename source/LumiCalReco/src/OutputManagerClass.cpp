@@ -1,17 +1,14 @@
 #include "OutputManagerClass.h"
-#include "Global.hh"
 
 #include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
+#include <TH1.h>
+#include <TH2.h>
 #include <TROOT.h>
 #include <TTree.h>
 
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
-#include <algorithm>
-#include <cassert>
 #include <map>
 #include <sstream>
 #include <string>

@@ -4,11 +4,9 @@
 #include "LCCluster.hh"
 #include "LumiCalClusterer.h"
 
-#include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/LCEventImpl.h>
 
-#include <cmath>
 #include <iostream>
 #include <vector>
 

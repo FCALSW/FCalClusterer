@@ -19,23 +19,16 @@
 
 #include "GlobalMethodsClass.h"
 #include "LCCluster.hh"
-#include "LumiCalHit.hh"
-#include "ProjectionInfo.hh"
-#include "VirtualCluster.hh"
 
 #include <UTIL/CellIDDecoder.h>
 
-#include <streamlog/loglevels.h>
-#include <streamlog/streamlog.h>
-
 #include <string>
-#include <map>
 #include <memory>
-#include <vector>
 
 namespace EVENT {
   class CalorimeterHit;
   class LCEvent;
+  class LCCollection;
 }
 
 class LumiCalClustererClass {

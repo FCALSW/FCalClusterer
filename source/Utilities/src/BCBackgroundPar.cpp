@@ -18,18 +18,19 @@
 *
 */
 
+#include "BackgroundFitter.hh"
 
+#include <TFile.h>
+#include <TTree.h>
+
+#include <stddef.h>
 #include <algorithm>
 #include <cmath>
-#include <vector>
 #include <iostream>
-#include <string>
+#include <memory>
 #include <numeric>
-
-#include "TTree.h"
-#include "TFile.h"
-
-#include "BackgroundFitter.hh"
+#include <string>
+#include <vector>
 
 using namespace std;
 

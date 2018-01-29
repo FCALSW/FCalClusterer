@@ -1,7 +1,7 @@
 #include "LCCluster.hh"
+#include "LumiCalHit.hh"
 #include "VirtualCluster.hh"
 
-#include <iostream>
 #include <iomanip>
 
 LCCluster::LCCluster() {}

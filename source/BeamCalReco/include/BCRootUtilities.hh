@@ -1,10 +1,7 @@
 #ifndef BCRootUtilities_hh
 #define BCRootUtilities_hh 1
 
-#include "BCPadEnergies.hh"
-
-class TFile;
-class BeamCalGeo;
+class BCPadEnergies;
 
 #include <TError.h>
 

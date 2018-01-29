@@ -1,31 +1,23 @@
 #ifndef BEAMCAL_HH
 #define BEAMCAL_HH 1
 
-#include <TROOT.h>
-#include <TH3D.h>
-#include <TMath.h>
+#include <RtypesCore.h>
 #include <TCanvas.h>
+#include <TH3.h>
+#include <TObject.h>
+#include <TPad.h>
+#include <TString.h>
+
+#include <map>
 
 class TCrown;
 class TH1D;
 class TH2F;
 class TH2D;
-class TPad;
 
 
 class BCPadEnergies;
 class BeamCalGeo;
-
-#include <EVENT/SimCalorimeterHit.h>
-
-#include <gear/GEAR.h>
-#include <gear/GearParameters.h>
-#include <gear/LayerLayout.h>
-#include <gear/CalorimeterParameters.h>
-#include <gear/GearMgr.h>
-
-#include <vector>
-#include <map>
 
 
 class BeamCal {

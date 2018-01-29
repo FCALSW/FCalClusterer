@@ -1,48 +1,46 @@
 #include "DrawBeamCalFromDD4hep.hh"
 
-#include <BeamCal.hh>
-#include <BeamCalGeoGear.hh>
-#include <BeamCalGeoCached.hh>
-#include <BCUtilities.hh>
-
 #ifdef FCAL_USE_CustomRoot
 #include <CustomRoot.hh>
 #endif
 
-
-#include "DD4hep/DD4hepUnits.h"
+#include <DD4hep/Detector.h>
+#include <DD4hep/Objects.h>
+#include <DD4hep/Readout.h>
+#include <DD4hep/Segmentations.h>
+#include <DDParsers/DD4hepUnits.h>
+#include <DDSegmentation/BitFieldCoder.h>
+#include <DDSegmentation/Segmentation.h>
+#include <DDSegmentation/SegmentationParameter.h>
 
 #include <EVENT/LCCollection.h>
-#include <EVENT/MCParticle.h>
-#include <EVENT/SimTrackerHit.h>
+#include <EVENT/LCEvent.h>
+#include <EVENT/LCIO.h>
 #include <EVENT/SimCalorimeterHit.h>
-#include <EVENT/ReconstructedParticle.h>
-#include <EVENT/Track.h>
+#include <Exceptions.h>
 #include <UTIL/CellIDDecoder.h>
 
 // ----- include for verbosity dependend logging ---------
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
-#include <marlin/ProcessorEventSeeder.h>
-#include <marlin/Global.h>
-
-#include <TTree.h>
-#include <TFile.h>
-#include <TH2F.h>
-#include <TH1D.h>
-#include <TH2D.h>
-#include <TH3D.h>
+#include <RtypesCore.h>
 #include <TCanvas.h>
-#include <TStyle.h>
-#include <TLegend.h>
-#include <TRandom3.h>
-#include <TPaletteAxis.h>
 #include <TCrown.h>
+#include <TFile.h>
+#include <TH2.h>
+#include <TLegend.h>
+#include <TMath.h>
+#include <TString.h>
+#include <TStyle.h>
+#include <TTree.h>
+#include <TVirtualPad.h>
 
-#include <iostream>
 #include <iomanip>
-
+#include <iostream>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
 using namespace lcio ;
 using namespace marlin ;
@@ -80,7 +78,6 @@ DrawBeamCalFromDD4hep::DrawBeamCalFromDD4hep() : Processor("DrawBeamCalFromDD4he
 			     m_nRun(0),
 			     m_nEvt(0),
 			     m_drawDensities(false),
-			     m_bcg(NULL),
 						 m_file(NULL),
 						 m_tree(NULL),
 						 m_x(0.0),

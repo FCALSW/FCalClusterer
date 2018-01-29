@@ -1,9 +1,13 @@
 #include "MCInfo.h"
+#include "Global.hh"
 #include "GlobalMethodsClass.h"
 
 #include <EVENT/MCParticle.h>
 
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <memory>
 
 SMCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle* particle, GlobalMethodsClass& gmc) {
   const double LcalZstart = gmc.GlobalParamD[GlobalMethodsClass::ZStart];

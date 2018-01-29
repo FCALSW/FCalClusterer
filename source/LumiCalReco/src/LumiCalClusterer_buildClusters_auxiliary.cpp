@@ -1,23 +1,27 @@
 // Local
-#include "LumiCalClusterer.h"
-#include "LCCluster.hh"
-#include "SortingFunctions.hh"
-#include "Global.hh"
-#include "ProjectionInfo.hh"
 #include "Distance2D.hh"
+#include "Global.hh"
+#include "GlobalMethodsClass.h"
+#include "LCCluster.hh"
+#include "LumiCalClusterer.h"
+#include "LumiCalHit.hh"
+#include "ProjectionInfo.hh"
+#include "SortingFunctions.hh"
+#include "VirtualCluster.hh"
 using LCHelper::distance2D;
 
-//LCIO
-#include <IMPL/CalorimeterHitImpl.h>
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
 // Stdlib
-#include <map>
-#include <vector>
-#include <iomanip>
 #include <algorithm>
 #include <cassert>
-#include <stdexcept>
-
-
+#include <cmath>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <utility>
+#include <vector>
 
 /* =========================================================================
    LumiCalClustererClass :: initialClusterBuild
