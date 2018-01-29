@@ -1,9 +1,8 @@
+#include "TestMain.hh"
+
 #include "GlobalMethodsClass.h"
 #include "LCCluster.hh"
 #include "LumiCalClusterer.h"
-#include "TestUtilities.hh"
-
-#include <streamlog/streamlog.h>
 
 #include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/LCCollectionVec.h>
@@ -13,7 +12,7 @@
 #include <iostream>
 #include <vector>
 
-int testLumiCal() {
+int runTest(int, char**) {
   bool               failed = false;
   GlobalMethodsClass gmc;
   initializeGMC(gmc);
@@ -68,27 +67,4 @@ int testLumiCal() {
   }  // forwardAndBackward
 
   return failed ? 1 : 0;
-}
-
-int main() {
-  streamlog::out.init(std::cout, "Testing");
-  initLogLevels();
-
-  streamlog::logscope scope(streamlog::out);
-  scope.setLevel("DEBUG6");
-
-  try {
-    return testLumiCal();
-  } catch (std::out_of_range& e) {
-    std::cerr << "Out of Range error:" << e.what() << std::endl;
-    return 1;
-  } catch (std::runtime_error& e) {
-    std::cerr << "Runtime Error: " << e.what() << std::endl;
-    return 1;
-  } catch (std::invalid_argument& e) {
-    std::cerr << e.what() << std::endl;
-    return 1;
-  }
-
-  return 0;
 }
