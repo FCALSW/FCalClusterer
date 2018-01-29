@@ -327,7 +327,7 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
 
   TCanvas c1("rphi2", "rphi2", 800, 800);
   TH2D dummy("dummy", "dummy", 20, 0, 20, 200, 0, 200); //16 bits to get colours from pal->GetValueColor
-  TH2D g("g", "g;x [cm]; y [cm]; E_{dep} (GeV)", 200, -20, 20, 200, -20, 20); //16 bits to get colours from pal->GetValueColor
+  TH2D g("g", "g;x [cm]; y [cm]; E_{dep} [GeV]", 200, -20, 20, 200, -20, 20); //16 bits to get colours from pal->GetValueColor
   typedef dd4hep::DDSegmentation::TypedSegmentationParameter< std::vector<double> > ParVec;
   typedef dd4hep::DDSegmentation::TypedSegmentationParameter< double > ParDou;
   ParVec* rPar = static_cast<ParVec*>(m_seg.segmentation()->parameter("grid_r_values"));
@@ -369,7 +369,7 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
   unsigned idmin = 0;
   unsigned idmax = 0;
 
-  for (auto ehit : hitEnergies) {
+  for (auto const & ehit : hitEnergies) {
 
     unsigned int cellid = ehit.first;
     auto const& decoder = *m_seg.segmentation()->decoder();
