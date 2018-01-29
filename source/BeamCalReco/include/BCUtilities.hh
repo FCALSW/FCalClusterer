@@ -85,7 +85,7 @@ namespace BCUtil{
         cylinder = mydecoder( hit )["r"] ;
         sector   = mydecoder( hit )["phi"] ;
         layer    = mydecoder( hit )["layer"] - startingLayer; // starting at 1 for BeamCal at 0 for LumiCal
-      } catch (Exception &e) {
+      } catch (lcio::Exception &e) {
         std::cout << "Exception in BCUtil with DD4hep:" << e.what()  << std::endl;
       }
     } else {
@@ -94,7 +94,7 @@ namespace BCUtil{
         cylinder = mydecoder( hit )["I"] ;
         sector   = mydecoder( hit )["J"] ;
         layer    = mydecoder( hit )["K"] ;
-      } catch (Exception &e) {
+      } catch (lcio::Exception &e) {
         std::cout << "Exception in BCUtil without DD4hep:" << e.what()  << std::endl;
       }
 
