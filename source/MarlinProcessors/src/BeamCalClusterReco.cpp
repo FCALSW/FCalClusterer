@@ -1075,7 +1075,9 @@ void BeamCalClusterReco::readSignalHits(LCEvent* evt, LCCollection* colBCal, BCP
       } else if (side == BCPadEnergies::kRight) {
         padID = padEnergiesRight.addEnergy(layer, ring, sector, energy);
       }
-      m_caloHitMap[side][padID] = bcalhit;
+      if(padID >= 0) {
+        m_caloHitMap[side][padID] = bcalhit;
+      }
     } catch (std::out_of_range& e) {
       streamlog_out(DEBUG1) << "Filling from signal: " << e.what() << std::setw(10) << layer << std::setw(10) << ring
                             << std::setw(10) << sector << std::endl;
