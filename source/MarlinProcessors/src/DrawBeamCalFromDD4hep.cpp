@@ -382,7 +382,10 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     if (m_drawDensities) area = (rO*rO-rI*rI)*pValues[rBin]/2 ;
     double edensity = ehit.second / area;
 
-    if (edensity < emin && rBin == rValues.size()-2) {
+    // Comparison rBin == rValues.size()-2 ensures that the lower boundary of the
+    // automatic z-axis range is calculated from the outermost BeamCal ring, rather than
+    // from the phantom cells in the keyhole.
+    if (edensity < emin && rBin == static_cast<long>(rValues.size())-2) {
       emin = edensity;
       idmin = cellid;
     }
