@@ -1,25 +1,21 @@
 #ifndef DrawBeamCalFromDD4hep_h
 #define DrawBeamCalFromDD4hep_h 1
 
-#include <BCPadEnergies.hh>
-
 #include <marlin/Processor.h>
-#include <lcio.h>
 
-#include <DD4hep/Detector.h>
 #include <DD4hep/DetElement.h>
+#include <DD4hep/Segmentations.h>
 
 #include <string>
-#include <vector>
 #include <map>
 
-
-class TH1D;
-class TH2D;
-class TH3D;
 class TFile;
-class TRandom3;
 class TTree;
+
+namespace EVENT {
+  class LCEvent;
+  class LCRunHeader;
+}
 
 typedef std::map< unsigned int, double> MapIdVal;
 
@@ -70,7 +66,6 @@ class DrawBeamCalFromDD4hep : public marlin::Processor {
   int m_nEvt ;
   bool m_drawDensities;
 
-  BeamCalGeo* m_bcg;
   dd4hep::DetElement m_BeamCal{};
   dd4hep::Segmentation m_seg{};
   TFile * m_file;

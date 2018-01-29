@@ -1,5 +1,3 @@
-#include "BeamCalGeo.hh"
-#include "BeamCalGeoGear.hh"
 #include "BeamCalGeoCached.hh"
 #include "BeamCal.hh"
 #include "BCPadEnergies.hh"
@@ -7,17 +5,17 @@
 
 //GEAR
 #include <gearxml/GearXML.h>
-#include <gear/GearMgr.h>
 
 //ROOT
-#include <TFile.h>
-#include <TTree.h>
-#include <TH2F.h>
+#include <TH2.h>
 #include <TStyle.h>
 
 #include <string>
 #include <iostream>
 
+namespace gear {
+  class GearMgr;
+}
 
 int drawBeamCals(int argn, char **argc) {
 

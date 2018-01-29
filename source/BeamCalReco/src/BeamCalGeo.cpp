@@ -1,10 +1,8 @@
 #include "BeamCalGeo.hh"
 
-#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>
-#include <iostream>
 
 //Return the double[6] pointer with innerRadius, Outerradius, Phi1 and Phi2, middle radius, middle phi
 void BeamCalGeo::getPadExtents(int cylinder, int sector, double *extents) const {

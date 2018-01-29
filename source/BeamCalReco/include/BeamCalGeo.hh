@@ -1,8 +1,8 @@
 #ifndef BeamCalGeo_hh
 #define BeamCalGeo_hh 1
 
-#include <stdexcept>
 #include <vector>
+#include <ostream>
 
 
 /// ABC for BeamCalGeometry information

@@ -1,6 +1,9 @@
 //Local
-#include "Global.hh"
 #include "LumiCalClusterer.h"
+
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
 // Stdlib
 #include <map>
 #include <vector>

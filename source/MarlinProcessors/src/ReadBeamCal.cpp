@@ -1,15 +1,13 @@
 #include "ReadBeamCal.hh"
 #include "ProcessorUtilities.hh"
 
-#include <BeamCal.hh>
-#include <BCUtilities.hh>
+#include "BCPadEnergies.hh"
+#include "BCUtilities.hh"
+#include "BeamCal.hh"
+#include "BeamCalGeo.hh"
 
 #include <EVENT/LCCollection.h>
-#include <EVENT/MCParticle.h>
-#include <EVENT/SimTrackerHit.h>
 #include <EVENT/SimCalorimeterHit.h>
-#include <EVENT/ReconstructedParticle.h>
-#include <EVENT/Track.h>
 #include <UTIL/CellIDDecoder.h>
 
 // ----- include for verbosity dependend logging ---------
@@ -19,17 +17,12 @@
 #include <marlin/ProcessorEventSeeder.h>
 #include <marlin/Global.h>
 
-#include <TTree.h>
-#include <TFile.h>
-#include <TH2F.h>
-#include <TH1D.h>
-#include <TH2D.h>
-#include <TH3D.h>
 #include <TCanvas.h>
-#include <TStyle.h>
-#include <TLegend.h>
+#include <TFile.h>
+#include <TH2.h>
 #include <TRandom3.h>
-#include <TPaletteAxis.h>
+#include <TStyle.h>
+#include <TTree.h>
 
 #include <iostream>
 #include <iomanip>

@@ -3,7 +3,16 @@
 
 #include "BeamCalGeo.hh"
 
-#include <DD4hep/Detector.h>
+#include <DD4hep/DetElement.h>
+#include <DD4hep/Segmentations.h>
+
+#include <string>
+#include <vector>
+
+
+namespace dd4hep {
+  class Detector;
+}
 
 class BeamCalGeoDD : public BeamCalGeo {     
 

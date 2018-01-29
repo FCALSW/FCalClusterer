@@ -4,12 +4,13 @@
 #include "BeamCalBkgGauss.hh"
 #include "BeamCalBkgParam.hh"
 #include "BeamCalBkgPregen.hh"
-#include "BeamCalGeo.hh"
 
 #include <streamlog/streamlog.h>
 
 #include <iostream>
 #include <string>
+
+class BeamCalGeo;
 
 BeamCalBkg* BeamCalBkg::Factory(std::string const& backgroundMethod, BeamCalGeo const* BCG) {
   if (std::string("Pregenerated") == backgroundMethod) {

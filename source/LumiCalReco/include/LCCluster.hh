@@ -2,10 +2,11 @@
 #define LCCluster_hh 1
 
 #include "GlobalMethodsClass.h"
-#include "LumiCalHit.hh"
+#include "Global.hh"
 
 #include <cmath>
 #include <ostream>
+
 
 class VirtualCluster;
 

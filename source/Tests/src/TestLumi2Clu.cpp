@@ -5,12 +5,9 @@
 #include "LumiCalClusterer.h"
 #include "TestUtilities.hh"
 
-#include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/LCEventImpl.h>
 
-#include <algorithm>
-#include <cmath>
 #include <iostream>
 #include <vector>
 

@@ -13,13 +13,9 @@
 #include <vector>
 
 #include "BeamCalBkg.hh"
-#include "BCPadEnergies.hh"
-
-class TFile;
-class TRandom3;
-class TTree;
 
 class BeamCalGeo;
+class BCPadEnergies;
 
 using std::vector;
 using std::string;

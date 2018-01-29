@@ -1,17 +1,16 @@
 #ifndef ClusterClass_h
 #define ClusterClass_h 1
 
-#include "GlobalMethodsClass.h"
+#include "Global.hh"
 #include "LCCluster.hh"
 #include "MCInfo.h"
 
-#include <map>
+#include <algorithm>
+#include <iosfwd>
+#include <memory>
 #include <string>
-#include <vector>
 
-namespace EVENT {
-  class MCParticle;
-}
+class GlobalMethodsClass;
 
 /* --------------------------------------------------------------------------
    class ....

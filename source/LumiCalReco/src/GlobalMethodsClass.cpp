@@ -1,21 +1,22 @@
 
 #include "GlobalMethodsClass.h"
-#include "MarlinLumiCalClusterer.h"
+#include "LCCluster.hh"
+#include "LumiCalHit.hh"
 
-#include <gear/GEAR.h>
-#include <gear/GearParameters.h>
 #include <gear/LayerLayout.h>
 #include <gear/CalorimeterParameters.h>
 #include <gear/GearMgr.h>
 
 #ifdef FCAL_WITH_DD4HEP
 
-#include <DD4hep/Detector.h>
 #include <DD4hep/DD4hepUnits.h>
+#include <DD4hep/Detector.h>
 #include <DDRec/DetectorData.h>
 
 #endif
 
+#include <marlin/CMProcessor.h>
+#include <marlin/Global.h>
 
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
@@ -27,7 +28,6 @@ using streamlog::MESSAGE;
 
 #include <map>
 #include <string>
-#include <sstream>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>

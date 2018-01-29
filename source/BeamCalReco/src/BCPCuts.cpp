@@ -1,4 +1,5 @@
 #include "BCPCuts.hh"
+#include "BeamCalCluster.hh"
 
 bool BCPCuts::isPadAboveThreshold(int padRing, double padEnergy) const {
   for (int i = int(m_startingRings.size())-1; i >= 0; --i) {

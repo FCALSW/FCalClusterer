@@ -3,8 +3,7 @@
 
 #include <vector>
 
-#include "BeamCalCluster.hh"
-
+class BeamCalCluster;
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Just a container class for the cuts used in the BCPadEnergies clustering algorithms //

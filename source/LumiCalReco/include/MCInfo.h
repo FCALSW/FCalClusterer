@@ -1,7 +1,6 @@
 #ifndef MCInfo_h
 #define MCInfo_h 1
 
-#include <cstddef>
 #include <memory>
 #include <ostream>
 

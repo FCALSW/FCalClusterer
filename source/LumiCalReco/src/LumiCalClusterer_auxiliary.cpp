@@ -1,8 +1,12 @@
 //Local
-#include "SortingFunctions.hh"
-#include "LumiCalClusterer.h"
 #include "Distance2D.hh"
+#include "LumiCalClusterer.h"
+#include "LumiCalHit.hh"
+#include "SortingFunctions.hh"
 using LCHelper::distance2D;
+
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
 
 // stdlib
 #include <algorithm>

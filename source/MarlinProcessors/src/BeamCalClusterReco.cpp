@@ -7,7 +7,6 @@
 #include "BeamCal.hh"
 #include "BeamCalCluster.hh"
 #include "BCUtilities.hh"
-#include "BeamCalGeoCached.hh"
 #include "BeamCalBkg.hh"
 #include "BeamCalFitShower.hh"
 
@@ -15,7 +14,6 @@
 #include <EVENT/CalorimeterHit.h>
 #include <EVENT/LCCollection.h>
 #include <EVENT/MCParticle.h>
-#include <EVENT/ReconstructedParticle.h>
 #include <EVENT/SimCalorimeterHit.h>
 #include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/ClusterImpl.h>
@@ -30,24 +28,20 @@
 
 #include <marlin/ProcessorEventSeeder.h>
 #include <marlin/Global.h>
-#include <marlin/Exceptions.h>
 
 //ROOT
 #include <TCanvas.h>
-#include <TChain.h>
-#include <TCrown.h>
 #include <TEfficiency.h>
 #include <TFile.h>
-#include <TH2F.h>
+#include <TH2.h>
 #include <TLine.h>
+#include <TMarker.h>
+#include <TMath.h>
 #include <TPaveText.h>
 #include <TProfile.h>
-#include <TRandom3.h>
 #include <TStyle.h>
-#include <TMarker.h>
 
 //STDLIB
-#include <numeric>
 #include <iomanip>
 #include <iostream>
 #include <utility>

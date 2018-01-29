@@ -1,29 +1,27 @@
 #ifndef BeamCalClusterReco_h
 #define BeamCalClusterReco_h 1
 
-#include <lcio.h>
 #include <marlin/Processor.h>
 
 #include <string>
 #include <vector>
 #include <map>
 
-class TChain;
 class TEfficiency;
-class TFile;
 class TH1;
-class TRandom3;
 class TString;
 
 class BCPCuts;
 class BCPadEnergies;
 class BCRecoObject;
-class BeamCal;
 class BeamCalGeo;
 class BeamCalBkg;
 
 namespace EVENT {
   class CalorimeterHit;
+  class LCCollection;
+  class LCEvent;
+  class LCRunHeader;
 }
 
 class BeamCalClusterReco : public marlin::Processor {

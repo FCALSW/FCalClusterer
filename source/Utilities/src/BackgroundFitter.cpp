@@ -1,19 +1,16 @@
 #include "BackgroundFitter.hh"
 
+#include <TF1.h>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
+#include <TH1.h>
+#include <TTree.h>
+
+#include <stddef.h>
 #include <algorithm>
 #include <cmath>
-#include <vector>
-#include <iostream>
 #include <string>
-#include <numeric>
-
-#include "TCanvas.h"
-#include "TTree.h"
-#include "TF1.h"
-#include "TFile.h"
-#include "TH1F.h"
-#include "TFitResult.h"
-#include "TFitResultPtr.h"
+#include <vector>
 
 using namespace std;
 

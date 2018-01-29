@@ -1,14 +1,10 @@
 #ifndef BCutilities_hh
 #define BCutilities_hh 1
 
-#include <gear/GEAR.h>
-#include <gear/GearParameters.h>
-#include <gear/LayerLayout.h>
-#include <gear/CalorimeterParameters.h>
+#include <Exceptions.h>
 
-#include <EVENT/CalorimeterHit.h>
-#include <EVENT/SimCalorimeterHit.h>
-#include <UTIL/CellIDDecoder.h>
+#include <cmath>
+#include <iostream>
 
 namespace BCUtil{
 
@@ -85,7 +81,7 @@ namespace BCUtil{
         cylinder = mydecoder( hit )["r"] ;
         sector   = mydecoder( hit )["phi"] ;
         layer    = mydecoder( hit )["layer"] - startingLayer; // starting at 1 for BeamCal at 0 for LumiCal
-      } catch (lcio::Exception &e) {
+      } catch (EVENT::Exception &e) {
         std::cout << "Exception in BCUtil with DD4hep:" << e.what()  << std::endl;
       }
     } else {
@@ -94,7 +90,7 @@ namespace BCUtil{
         cylinder = mydecoder( hit )["I"] ;
         sector   = mydecoder( hit )["J"] ;
         layer    = mydecoder( hit )["K"] ;
-      } catch (lcio::Exception &e) {
+      } catch (EVENT::Exception &e) {
         std::cout << "Exception in BCUtil without DD4hep:" << e.what()  << std::endl;
       }
 

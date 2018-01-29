@@ -1,14 +1,14 @@
-#include "Distance2D.hh"
 #include "SuperTrueClusterWeights.hh"
+#include "Distance2D.hh"
+#include "LCCluster.hh"
 
+#include <algorithm>
 #include <cmath>
-#include <cassert>
-
 
 SuperTrueClusterWeights::SuperTrueClusterWeights(	int superClusterIdNow,
 							int trueClusterIdNow,
-							LCCluster superClusterCM,
-							LCCluster trueClusterCM):
+							LCCluster const& superClusterCM,
+							LCCluster const& trueClusterCM):
 
   superClusterId(superClusterIdNow),
   trueClusterId(trueClusterIdNow),

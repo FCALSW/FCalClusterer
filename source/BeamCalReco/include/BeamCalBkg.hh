@@ -14,7 +14,6 @@
 #include "BCPadEnergies.hh"
 
 class TRandom3;
-class TTree;
 
 class BeamCalGeo;
 class BCPCuts;

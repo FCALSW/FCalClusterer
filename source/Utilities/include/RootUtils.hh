@@ -1,14 +1,14 @@
 #ifndef RootUtils_hh
 #define RootUtils_hh 1
 
-#include <TROOT.h>
+#include <RtypesCore.h>
 
 #include <vector>
 
-class TH1;
 class TEfficiency;
 class TGraph;
 class TGraphErrors;
+class TH1;
 
 
 namespace RootUtils {

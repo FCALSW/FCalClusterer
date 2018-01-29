@@ -6,11 +6,10 @@
 * @date 2015-03-31
 */
 
-#include "BeamCalBkg.hh"
 #include "BeamCalFitShower.hh"
-#include "BeamCalPadGeometry.hh"
-#include "BeamCalGeoCached.hh"
 #include "BCRootUtilities.hh"
+#include "BeamCalGeo.hh"
+#include "BeamCalPadGeometry.hh"
 
 #include <streamlog/streamlog.h>
 
@@ -19,8 +18,6 @@
 #include "Minuit2/Minuit2Minimizer.h"
 #include "Math/Functor.h"
 
-#include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <numeric>
 #include <cmath>

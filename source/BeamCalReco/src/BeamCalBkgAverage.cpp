@@ -10,37 +10,17 @@
 *
 */
 #include "BeamCalBkgAverage.hh"
-#include "BeamCalGeoCached.hh"
 #include "BCPadEnergies.hh"
 #include "BCRootUtilities.hh"
+#include "BeamCalGeo.hh"
 
-
-// ----- include for verbosity dependent logging ---------
-#include <streamlog/loglevels.h>
-#include <streamlog/streamlog.h>
-
-#include <marlin/ProcessorEventSeeder.h>
-#include <marlin/Global.h>
-
-// ROOT
-#include <TChain.h>
-#include <TMatrixD.h>
-#include <TTree.h>
-#include <TFile.h>
-#include <TF1.h>
 #include <TRandom3.h>
 
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <set>
+#include <cmath>
 
 using std::vector;
 using std::string;
-using std::map;
 
-using marlin::Global;
 
 BeamCalBkgAverage::BeamCalBkgAverage(const string& bg_method_name, 
                      const BeamCalGeo *BCG) : BeamCalBkg(bg_method_name, BCG)

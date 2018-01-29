@@ -8,6 +8,8 @@ namespace gear{
   class GearMgr;
 }
 
+#include <vector>
+
 class BeamCalGeoGear : public BeamCalGeo {     
 
 public:

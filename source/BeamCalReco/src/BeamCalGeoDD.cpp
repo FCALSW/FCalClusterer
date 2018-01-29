@@ -1,6 +1,7 @@
 #include "BeamCalGeoDD.hh"
 
 #include <DD4hep/DD4hepUnits.h>
+#include <DD4hep/Detector.h>
 #include <DDRec/DetectorData.h>
 
 // ----- include for verbosity dependend logging ---------
@@ -12,8 +13,6 @@
 // Use the DDRec CalorimeterExtension, I guess?
 // Use DDSegmentation RPphi parameters? This knows about tghe inner radius, too
 
-
-class BeamCalInfo;
 
 #include <vector>
 #include <algorithm>

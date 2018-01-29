@@ -3,10 +3,10 @@
 #include "BCPCuts.hh"
 #include "BCPadEnergies.hh"
 #include "BCUtilities.hh"
-#include "BeamCal.hh"
 #include "BeamCalCluster.hh"
 #include "BeamCalGeoDD.hh"
-#include "TestUtilities.hh"
+
+#include <DD4hep/Detector.h>
 
 #include <iomanip>
 #include <iostream>

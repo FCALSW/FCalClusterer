@@ -4,13 +4,11 @@
 #include "BeamCalGeo.hh"
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
 
 //typedef std::map<int, int> PadIndexList;
 // typedef BCPadEnergies::PadIndexList;

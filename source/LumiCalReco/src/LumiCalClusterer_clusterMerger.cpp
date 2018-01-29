@@ -5,12 +5,6 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <iostream>
-#include <iomanip>
-//Forward Declaration
-namespace IMPL{
-  class CalorimeterHitImpl;
-}
 
 void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy,
                                           MapIntVInt& clusterIdToCellId,
