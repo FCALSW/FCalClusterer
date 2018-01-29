@@ -104,9 +104,9 @@ DrawBeamCalFromDD4hep::DrawBeamCalFromDD4hep() : Processor("DrawBeamCalFromDD4he
 			   std::string("BeamCalCollection") ) ;
 
   registerProcessorParameter ("OutputFileBackground",
-         "Root OutputFile ",
-         m_nameOutputFile,
-         std::string("BeamCal.root") ) ;
+            "Root OutputFile ",
+            m_nameOutputFile,
+            std::string("BeamCal.root") ) ;
 
   registerProcessorParameter ("DrawDensities",
          "Option to draw area density of deposited energy rather than deposited energy per cell. "
