@@ -259,9 +259,6 @@ void BeamCalClusterReco::init() {
 
   m_nEvt = 0;
 
-#pragma message "FIXME: Allow for possibility to use precomputed sigma file"
-#pragma message "FIXME: Need energy calibration"
-
   if ( (m_startingRings.size() != m_requiredClusterEnergy.size() ) ||
        (m_requiredClusterEnergy.size() != m_requiredRemainingEnergy.size())){
     throw WrongParameterException("== Error From BeamCalClusterReco == The number of starting rings and required" \
