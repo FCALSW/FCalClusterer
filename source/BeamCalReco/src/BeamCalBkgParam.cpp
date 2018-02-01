@@ -13,34 +13,44 @@
 #include "BeamCalGeo.hh"
 
 // ----- include for verbosity dependent logging ---------
+#include <streamlog/baselevels.h>
 #include <streamlog/loglevels.h>
+#include <streamlog/logstream.h>
 #include <streamlog/streamlog.h>
 
 
 // ROOT
-#include <TTree.h>
-#include <TFile.h>
-#include <TF1.h>
-#include <TRandom3.h>
-#include <TMath.h>
 #include <RVersion.h>
+#include <TBranch.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TMath.h>
+#include <TObjArray.h>
+#include <TObject.h>
+#include <TRandom3.h>
+#include <TString.h>
+#include <TTree.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
 using std::vector;
 using std::string;
 using std::map;
 
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
-BeamCalBkgParam::BeamCalBkgParam(const string& bg_method_name, 
-                     const BeamCalGeo *BCG) : BeamCalBkg(bg_method_name, BCG),
-					   m_padParLeft(NULL),
-					   m_padParRight(NULL),
-					   m_unuransLeft(vector<TF1*>()),
-					   m_unuransRight(vector<TF1*>())
-{}
+BeamCalBkgParam::BeamCalBkgParam(const string& bg_method_name, const BeamCalGeo* BCG)
+    : BeamCalBkg(bg_method_name, BCG),
+      m_padParLeft(nullptr),
+      m_padParRight(nullptr),
+      m_unuransLeft(vector<TF1*>()),
+      m_unuransRight(vector<TF1*>()) {}
 
 BeamCalBkgParam::~BeamCalBkgParam()
 {
@@ -178,17 +188,17 @@ void BeamCalBkgParam::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
   // map the branch names to containers
   typedef map<string, vector<double> *> MapStrVec_t;
   MapStrVec_t br_cont_map;
-  //Set to NULL so root deals with the memory itself
-  br_cont_map[side_name+"zero_rate"] = NULL;
-  br_cont_map[side_name+"mean"]      = NULL;
-  br_cont_map[side_name+"stdev"]     = NULL;
-  br_cont_map[side_name+"sum"]       = NULL;
-  br_cont_map[side_name+"minm"]      = NULL;
-  br_cont_map[side_name+"maxm"]      = NULL;
-  br_cont_map[side_name+"chi2"]      = NULL;
-  br_cont_map[side_name+"par0"]      = NULL;
-  br_cont_map[side_name+"par1"]      = NULL;
-  br_cont_map[side_name+"par2"]      = NULL;
+  //Set to nullptr so root deals with the memory itself
+  br_cont_map[side_name + "zero_rate"] = nullptr;
+  br_cont_map[side_name + "mean"]      = nullptr;
+  br_cont_map[side_name + "stdev"]     = nullptr;
+  br_cont_map[side_name + "sum"]       = nullptr;
+  br_cont_map[side_name + "minm"]      = nullptr;
+  br_cont_map[side_name + "maxm"]      = nullptr;
+  br_cont_map[side_name + "chi2"]      = nullptr;
+  br_cont_map[side_name + "par0"]      = nullptr;
+  br_cont_map[side_name + "par1"]      = nullptr;
+  br_cont_map[side_name + "par2"]      = nullptr;
 
   // check the branch presence in the tree
   bool errorGettingBranches = false;
@@ -282,7 +292,7 @@ int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
     // Parameters of energy deposition in a pad:
     PadEdepRndPar_t pep = (BCPadEnergies::kLeft == bc_side ? 
                            m_padParLeft->at(ip) : m_padParRight->at(ip));
-    vunr.push_back(NULL);
+    vunr.push_back(nullptr);
     //TF1 *func_pad_edep = new TF1("fedep", "gaus(0)/x", pep.minm, pep.maxm);
     // if chi2 is good enough we want to initialise our unuran randomiser
     if (pep.chi2 <= 200. && pep.par1 >= 2*pep.par2) {

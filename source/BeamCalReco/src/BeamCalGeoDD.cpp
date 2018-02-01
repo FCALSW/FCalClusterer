@@ -1,21 +1,25 @@
 #include "BeamCalGeoDD.hh"
 
-#include <DD4hep/DD4hepUnits.h>
+#include <DD4hep/Alignments.h>
 #include <DD4hep/Detector.h>
+#include <DD4hep/Objects.h>
+#include <DD4hep/Readout.h>
+#include <DDParsers/DD4hepUnits.h>
 #include <DDRec/DetectorData.h>
+#include <DDSegmentation/Segmentation.h>
+#include <DDSegmentation/SegmentationParameter.h>
 
 // ----- include for verbosity dependend logging ---------
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
-
-//#include <DD4hep/UserExtension/BeamCalInfo.h>
-// Use the DDRec CalorimeterExtension, I guess?
-// Use DDSegmentation RPphi parameters? This knows about tghe inner radius, too
-
-
-#include <vector>
 #include <algorithm>
+#include <cmath>
+#include <map>
+#include <ostream>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
 BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector, std::string const& detectorName,
                            std::string const& colName): m_BeamCal(theDetector.detector(detectorName)),
@@ -46,8 +50,7 @@ BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector, std::string cons
   const std::vector<dd4hep::rec::LayeredCalorimeterStruct::Layer>& layers= theExtension->layers;
 
   m_layers = layers.size();
-  for (size_t i = 0; i < layers.size(); i++) {
-    const dd4hep::rec::LayeredCalorimeterStruct::Layer & theLayer = layers.at(i);
+  for (auto const& theLayer : layers) {
     //no inner thickness means no sensitive detector, like the old graphite layer
     if ( theLayer.inner_thickness == 0.0 ) {
       m_layers--;

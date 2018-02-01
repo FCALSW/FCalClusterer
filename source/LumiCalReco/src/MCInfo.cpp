@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <iomanip>
 #include <memory>
 
@@ -22,7 +23,8 @@ SMCInfo MCInfo::getMCParticleInfo(EVENT::MCParticle* particle, GlobalMethodsClas
 
   int pdg = particle->getPDG();
   // skip neutrinos
-  if( abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 ) return mcp; //<--- detectable ?
+  if (std::abs(pdg) == 12 || std::abs(pdg) == 14 || std::abs(pdg) == 16)
+    return mcp;  //<--- detectable ?
 
   // energy above min
   const double engy = particle->getEnergy();

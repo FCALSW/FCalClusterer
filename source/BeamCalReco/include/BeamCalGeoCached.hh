@@ -3,6 +3,8 @@
 
 #include "BeamCalGeo.hh"
 
+#include <vector>
+
 namespace gear{
   class CalorimeterParameters;
   class GearMgr;

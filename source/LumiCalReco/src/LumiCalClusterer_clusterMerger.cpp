@@ -1,10 +1,13 @@
 // Local
-#include "SuperTrueClusterWeights.hh"
+#include "Global.hh"
+#include "LCCluster.hh"
 #include "LumiCalClusterer.h"
+#include "SuperTrueClusterWeights.hh"
 // Stdlib
-#include <map>
-#include <vector>
 #include <algorithm>
+#include <map>
+#include <utility>
+#include <vector>
 
 void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy,
                                           MapIntVInt& clusterIdToCellId,

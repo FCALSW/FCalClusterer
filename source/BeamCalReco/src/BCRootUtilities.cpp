@@ -3,12 +3,15 @@
 #include "BeamCalGeo.hh"
 
 #include <TFile.h>
+#include <TString.h>
 #include <TTree.h>
 
+#include <cstdlib>
+#include <exception>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
-#include <cstdlib>
 
 
 void BCUtil::ReadRootFile(std::string const& fileName, std::vector<BCPadEnergies>& newPads) {

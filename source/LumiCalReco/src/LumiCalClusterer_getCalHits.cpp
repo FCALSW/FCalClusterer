@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+// IWYU pragma: no_include <bits/shared_ptr.h>
+
 /* --------------------------------------------------------------------------
    Loop over al hits in the LCCollection and write the hits into vectors
    of CalorimeterHitImpl. Hits are split in two vectors, one for each arm
@@ -35,8 +37,7 @@
    -------------------------------------------------------------------------- */
 int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 					MapIntMapIntVCalHit & calHits) {
-
-  EVENT::LCCollection * col = NULL;
+  EVENT::LCCollection* col = nullptr;
   try {
     col = evt->getCollection(_lumiName.c_str());
   } catch (EVENT::DataNotAvailableException& e) {

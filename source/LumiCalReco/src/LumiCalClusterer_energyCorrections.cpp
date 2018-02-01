@@ -1,5 +1,7 @@
 //Local
 #include "Distance2D.hh"
+#include "Global.hh"
+#include "LCCluster.hh"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.hh"
 using LCHelper::distance2D;
@@ -8,8 +10,12 @@ using LCHelper::distance2D;
 // stdlib
 #include <cmath>
 #include <map>
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
+
+// IWYU pragma: no_include <bits/shared_ptr.h>
 
 void LumiCalClustererClass::energyCorrections(MapIntVInt& superClusterIdToCellId,
                                               MapIntVDouble& superClusterIdToCellEngy,

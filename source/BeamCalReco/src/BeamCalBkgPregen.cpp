@@ -9,10 +9,11 @@
 * to split into separate class for pregenerated background
 *
 */
-#include "BeamCalBkg.hh"
 #include "BeamCalBkgPregen.hh"
-#include "BeamCalGeoCached.hh"
 #include "BCPadEnergies.hh"
+#include "BeamCalBkg.hh"
+#include "BeamCalGeo.hh"
+#include "BeamCalGeoCached.hh"
 
 // ----- include for verbosity dependent logging ---------
 #include <streamlog/loglevels.h>
@@ -25,23 +26,23 @@
 #include <TRandom3.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <set>
+#include <stdexcept>
 
 using std::vector;
 using std::string;
 using std::map;
 
-BeamCalBkgPregen::BeamCalBkgPregen(const string& bg_method_name, 
-                     const BeamCalGeo *BCG) 
-		 :BeamCalBkg(bg_method_name, BCG), 
-		  m_listOfBunchCrossingsLeft(vector<BCPadEnergies*>()),
-		  m_listOfBunchCrossingsRight(vector<BCPadEnergies*>()),
-		  m_backgroundBX(NULL),
-		  m_numberForAverage(1)
-{
+BeamCalBkgPregen::BeamCalBkgPregen(const string& bg_method_name, const BeamCalGeo* BCG)
+    : BeamCalBkg(bg_method_name, BCG),
+      m_listOfBunchCrossingsLeft(vector<BCPadEnergies*>()),
+      m_listOfBunchCrossingsRight(vector<BCPadEnergies*>()),
+      m_backgroundBX(nullptr),
+      m_numberForAverage(1) {
   streamlog_out(MESSAGE) << "Initialising BeamCal background with \""
 			 << bg_method_name << "\" method" << std::endl;
 }
@@ -73,12 +74,12 @@ void BeamCalBkgPregen::init(vector<string> &bg_files, const int n_bx)
 
   for (std::vector<std::string>::iterator file = bg_files.begin(); file != bg_files.end(); ++file) {
     streamlog_out(DEBUG1) << *file << std::endl;
-    m_backgroundBX->Add(TString(*file));
+    m_backgroundBX->Add((*file).c_str());
   }
 
   //Ready the energy deposit vectors for the tree
-  m_BeamCalDepositsLeft=NULL;
-  m_BeamCalDepositsRight=NULL;
+  m_BeamCalDepositsLeft  = nullptr;
+  m_BeamCalDepositsRight = nullptr;
 
   m_backgroundBX->SetBranchAddress("vec_left" , &m_BeamCalDepositsLeft);
   m_backgroundBX->SetBranchAddress("vec_right", &m_BeamCalDepositsRight);
@@ -130,8 +131,8 @@ void BeamCalBkgPregen::init(vector<string> &bg_files, const int n_bx)
   //Now divide by ten, to get the average distributions...
   m_BeamCalAverageLeft ->scaleEnergies(1./double(m_numberForAverage));
   m_BeamCalAverageRight->scaleEnergies(1./double(m_numberForAverage));
-  Double_t totalEnergyMean = m_BeamCalAverageLeft->getTotalEnergy();
-  Double_t varEn(0.0);
+  double totalEnergyMean = m_BeamCalAverageLeft->getTotalEnergy();
+  double varEn(0.0);
   for (int l = 0; l < m_numberForAverage;++l) {
     varEn += (m_listOfBunchCrossingsRight[l]->getTotalEnergy() - totalEnergyMean) * (m_listOfBunchCrossingsRight[l]->getTotalEnergy() - totalEnergyMean);
   }//histograms
@@ -171,11 +172,11 @@ BCPadEnergies* BeamCalBkgPregen::getBeamCalErrors(const BCPadEnergies *averages,
 
   BCPadEnergies * BCPErrors = new BCPadEnergies(m_BCG);
   for (int i = 0; i < m_BCG->getPadsPerBeamCal()  ;++i) {
-    Double_t mean(averages->getEnergy(i));
-    Double_t variance(0);
-    Double_t nHistos(m_numberForAverage);
+    double mean(averages->getEnergy(i));
+    double variance(0);
+    double nHistos(m_numberForAverage);
     for (int l = 0; l < nHistos;++l) {
-      Double_t energy( singles[l]->getEnergy(i) );
+      double energy(singles[l]->getEnergy(i));
       variance += ( energy - mean ) * ( energy - mean );
     }//histograms
     variance /= nHistos;

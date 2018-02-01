@@ -10,6 +10,10 @@ class BeamCalGeo;
 
 class TRandom3;
 
+namespace EVENT {
+  class LCEvent;
+  class LCRunHeader;
+}
 
 class ReadBeamCal : public marlin::Processor {
   

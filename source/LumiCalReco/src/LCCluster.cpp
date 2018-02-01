@@ -3,6 +3,7 @@
 #include "VirtualCluster.hh"
 
 #include <iomanip>
+#include <memory>
 
 LCCluster::LCCluster() {}
 

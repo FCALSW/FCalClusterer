@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+// IWYU pragma: no_include <bits/shared_ptr.h>
+
 class GlobalMethodsClass;
 
 /* --------------------------------------------------------------------------

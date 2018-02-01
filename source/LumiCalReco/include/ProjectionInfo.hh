@@ -1,8 +1,10 @@
 #ifndef ProjectionInfo_hh
 #define ProjectionInfo_hh 1
 
-#include <memory>
+#include <memory> // IWYU pragma: keep
 #include <set>
+
+// IWYU pragma: no_include <bits/shared_ptr.h>
 
 namespace EVENT{
   class CalorimeterHit;

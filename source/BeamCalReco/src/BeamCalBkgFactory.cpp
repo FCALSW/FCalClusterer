@@ -5,9 +5,11 @@
 #include "BeamCalBkgParam.hh"
 #include "BeamCalBkgPregen.hh"
 
+#include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 class BeamCalGeo;

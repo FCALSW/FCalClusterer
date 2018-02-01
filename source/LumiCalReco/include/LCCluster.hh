@@ -5,7 +5,10 @@
 #include "Global.hh"
 
 #include <cmath>
+#include <memory> // IWYU pragma: keep
 #include <ostream>
+
+// IWYU pragma: no_include <bits/shared_ptr.h>
 
 
 class VirtualCluster;

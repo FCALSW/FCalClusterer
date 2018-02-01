@@ -11,13 +11,13 @@
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/ReconstructedParticleImpl.h>
 
-
 #include <streamlog/streamlog.h>
 #include <marlin/VerbosityLevels.h>
 
+#include <cstdlib>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <cmath>
 
 
 using HitMap = std::map<long long, IMPL::CalorimeterHitImpl*>;
@@ -286,7 +286,3 @@ void initLogLevels(){
 }
 
 #endif // TESTUTILITIES_HH
-
-
-
-

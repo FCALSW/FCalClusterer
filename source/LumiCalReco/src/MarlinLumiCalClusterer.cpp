@@ -32,6 +32,9 @@
 #include <utility>
 #include <vector>
 
+// IWYU pragma: no_include <bits/shared_ptr.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
+
 /* >> */
 
 /// use std::bind to set first variable and use in std::sort
@@ -227,7 +230,7 @@ void MarlinLumiCalClusterer::writeRootInfo(LCEvent* evt) {
     for (MapIntPClusterClass::iterator mapIntClusterClassIt = clusterClassMap[armNow].begin();
          mapIntClusterClassIt != clusterClassMap[armNow].end(); ++mapIntClusterClassIt) {
       delete mapIntClusterClassIt->second;
-      mapIntClusterClassIt->second = NULL;
+      mapIntClusterClassIt->second = nullptr;
     }
   }
 }  // WriteRootInfo
@@ -248,7 +251,7 @@ void MarlinLumiCalClusterer::CreateClusters(std::map<int, MapIntPClusterClass>& 
     for (int jparticle = 0; jparticle < numMCParticles; jparticle++) {
       MCParticle* particle = static_cast<MCParticle*>(particles->getElementAt(jparticle));
       auto        mcInfo   = MCInfo::getMCParticleInfo(particle, gmc);
-      if (mcInfo->mcp == NULL)
+      if (mcInfo->mcp == nullptr)
         continue;
       streamlog_out(DEBUG2) << mcInfo.get() << std::endl;
       if (mcInfo->sign > 0)
@@ -390,7 +393,7 @@ void MarlinLumiCalClusterer::CreateClusters(std::map<int, MapIntPClusterClass>& 
 
   void MarlinLumiCalClusterer::storeMCParticleInfo(LCEvent* evt, int clusterInFlag) {
     int mcparticleInFlag = 0;
-    LCCollection * particles(NULL);
+    LCCollection* particles(nullptr);
     try {
       particles = evt->getCollection( "MCParticle" );
     } catch ( DataNotAvailableException &e ){
@@ -404,7 +407,7 @@ void MarlinLumiCalClusterer::CreateClusters(std::map<int, MapIntPClusterClass>& 
     for ( int jparticle=0; jparticle<numMCParticles; jparticle++ ){
       MCParticle *particle = static_cast<MCParticle*>( particles->getElementAt(jparticle) );
       auto        mcInfo   = MCInfo::getMCParticleInfo(particle, gmc);
-      if (mcInfo->mcp == NULL)
+      if (mcInfo->mcp == nullptr)
         continue;
       const double *endPoint = particle->getEndpoint();
       const double *vx = particle->getVertex();
