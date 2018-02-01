@@ -26,6 +26,7 @@
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/LCFlagImpl.h>
 #include <IMPL/ReconstructedParticleImpl.h>
+#include <LCIOSTLTypes.h>
 #include <UTIL/CellIDDecoder.h>
 
 // ----- include for verbosity dependent logging ---------
@@ -158,6 +159,10 @@ BeamCalClusterReco::BeamCalClusterReco()
 
   registerProcessorParameter("DetectorName", "The Name of the Detector the reconstruction is for",
                              m_detectorName, std::string("BeamCal"));
+
+  registerProcessorParameter("SubClusterEnergyID",
+                             "The ID where the SubClusterEnergy will be added: LumiCal=3, BeamCal=5 in DDPFOCreator.hh",
+                             m_subClusterEnergyID, m_subClusterEnergyID);
 
   registerProcessorParameter("DetectorStartingLayerID", "The ID of the first layer of the detector BeamCal 1: LumiCal: 0",
                              m_startingLayer, m_startingLayer);
@@ -417,7 +422,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     const float phiCluster((*it)->getPhi()*TMath::DegToRad());
 
     const float mass = 0.0;
-    const float charge = 1e+19;
+    const float charge = 0.0;
     const float mmBeamCalDistance((*it)->getZ() / cos(thetaCluster));
 
 #pragma message "make sure rotation to labframe works on both sides and we are not rotating something weird"
@@ -445,7 +450,8 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     for (auto const& hitID : (*it)->getClusterPads()) {
       cluster->addHit(m_caloHitMap[(*it)->getSide()][hitID.first], 1.0);
     }
-
+    cluster->subdetectorEnergies().resize(6);
+    cluster->subdetectorEnergies()[m_subClusterEnergyID] = energyCluster;
     ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
     particle->setMass( mass ) ;
     particle->setCharge( charge ) ;
