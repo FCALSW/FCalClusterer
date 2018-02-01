@@ -138,6 +138,8 @@ private:
   std::string m_BCalRPColName;
   std::string m_EfficiencyFileName;
   std::string m_detectorName = "";
+  //LCAL_INDEX=3, BCAL_INDEX=5 in DDPFOCreator.hh
+  int m_subClusterEnergyID = 5;
 
   ///Creates the BeamCalGeometry either from DD4hep if compiled with DD4hep and
   ///the geometry is available or from GearFile in all other cases
