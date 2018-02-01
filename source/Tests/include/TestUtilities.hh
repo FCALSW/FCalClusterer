@@ -15,6 +15,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <cmath>
 
 
 using HitMap = std::map<long long, IMPL::CalorimeterHitImpl*>;
