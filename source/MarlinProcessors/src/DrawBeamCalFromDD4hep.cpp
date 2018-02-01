@@ -45,6 +45,8 @@
 using namespace lcio ;
 using namespace marlin ;
 
+// IWYU pragma: no_include <Math/GenVector/DisplacementVector3D.h>
+
 DrawBeamCalFromDD4hep aDrawBeamCalFromDD4hep;
 
 // #pragma GCC diagnostic push
@@ -70,24 +72,23 @@ int getColor(double energy, double minenergy=1e-3, double maxenergy=1e2) {
 
 }
 
-DrawBeamCalFromDD4hep::DrawBeamCalFromDD4hep() : Processor("DrawBeamCalFromDD4hep"),
-			     m_colNameBCal(""),
-			     m_nameOutputFile(""),
-			     m_nameFinalOutputFile(""),
-			     m_nameInputFile(""),
-			     m_nRun(0),
-			     m_nEvt(0),
-			     m_drawDensities(false),
-						 m_file(NULL),
-						 m_tree(NULL),
-						 m_x(0.0),
-						 m_y(0.0),
-						 m_z(0.0),
-						 m_energy(0.0)
+DrawBeamCalFromDD4hep::DrawBeamCalFromDD4hep()
+    : Processor("DrawBeamCalFromDD4hep"),
+      m_colNameBCal(""),
+      m_nameOutputFile(""),
+      m_nameFinalOutputFile(""),
+      m_nameInputFile(""),
+      m_nRun(0),
+      m_nEvt(0),
+      m_drawDensities(false),
+      m_file(nullptr),
+      m_tree(nullptr),
+      m_x(0.0),
+      m_y(0.0),
+      m_z(0.0),
+      m_energy(0.0)
 
-						 
 {
-
   // modify processor description
   _description = "DrawBeamCalFromDD4hep draws segmentation from dd4hep with energy deposits in the lcio files" ;
 
@@ -245,7 +246,7 @@ void DrawBeamCalFromDD4hep::end(){
   m_file->Write();
   m_file->Close();
   delete m_file;
-  m_file = NULL;
+  m_file = nullptr;
   streamlog_out ( MESSAGE ) << __PRETTY_FUNCTION__ << " " << name()
 			    << " processed " << m_nEvt << " events."
 			    << std::endl ;
@@ -394,8 +395,8 @@ void DrawBeamCalFromDD4hep::drawPolarGridRPhi2() {
     hitEDensities[cellid] = edensity;
   }
 
-  TCrown *tcmin = NULL;
-  TCrown *tcmax = NULL;
+  TCrown* tcmin = nullptr;
+  TCrown* tcmax = nullptr;
 
   for (auto ehit : hitEDensities) {
     unsigned int cellid = ehit.first;

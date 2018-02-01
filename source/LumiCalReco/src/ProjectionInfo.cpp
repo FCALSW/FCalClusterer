@@ -1,6 +1,8 @@
 #include "ProjectionInfo.hh"
 #include "LumiCalHit.hh"
 
+#include <memory>
+
 ProjectionInfo::ProjectionInfo (): energy (0.0), cellIdHitZ(0), newObject(true) {
   position[0] = 0.0;
   position[1] = 0.0;

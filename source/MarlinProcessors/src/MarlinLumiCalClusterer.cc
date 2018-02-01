@@ -1,10 +1,15 @@
 #include "MarlinLumiCalClusterer.h"
 
 #include <EVENT/LCEvent.h>
+#include <EVENT/LCIO.h>
 
-#include <string>
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
+#include <iostream>
 #include <map>
-
+#include <string>
+#include <utility>
 
 ///////////////////////////////////////////////////////////////////////////////
 // GENERAL NOTES:

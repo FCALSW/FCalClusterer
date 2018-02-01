@@ -7,14 +7,10 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <sstream>
+#include <memory>
+#include <sstream>  // IWYU pragma: keep
 #include <stdexcept>
-
-//typedef std::map<int, int> PadIndexList;
-// typedef BCPadEnergies::PadIndexList;
-// typedef BCPadEnergies::TowerIndexList;
-
-
+#include <utility>
 
 bool value_comparer( const BCPadEnergies::TowerIndexList::value_type &i1, const BCPadEnergies::TowerIndexList::value_type &i2)
 {

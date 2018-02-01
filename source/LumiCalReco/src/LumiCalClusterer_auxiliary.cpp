@@ -1,24 +1,30 @@
 //Local
 #include "Distance2D.hh"
+#include "Global.hh"
+#include "GlobalMethodsClass.h"
+#include "LCCluster.hh"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.hh"
+#include "ProjectionInfo.hh"
 #include "SortingFunctions.hh"
 using LCHelper::distance2D;
 
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
-// stdlib
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <vector>
 #include <iomanip>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
-
-#ifdef FCAL_WITH_DD4HEP
-#include <DD4hep/DD4hepUnits.h>
-#endif
+// IWYU pragma: no_include <bits/shared_ptr.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
 /* --------------------------------------------------------------------------
    calculate weight for cluster CM according to different methods

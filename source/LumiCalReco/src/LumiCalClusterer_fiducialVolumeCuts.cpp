@@ -1,14 +1,16 @@
 //Local
+#include "LCCluster.hh"
 #include "LumiCalClusterer.h"
 
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
 // Stdlib
-#include <map>
-#include <vector>
 #include <cmath>
 #include <iostream>
+#include <map>
+#include <utility>
+#include <vector>
 
 void LumiCalClustererClass:: fiducialVolumeCuts( std::map < int , std::vector<int> > & superClusterIdToCellId,
 						 std::map < int , std::vector<double> > & superClusterIdToCellEngy,

@@ -1,15 +1,22 @@
-#include "TestMain.hh"
+#include "TestMain.hh"  // IWYU pragma: keep
 
 #include "BCPCuts.hh"
 #include "BCPadEnergies.hh"
 #include "BCUtilities.hh"
 #include "BeamCalCluster.hh"
+#include "BeamCalGeo.hh"
 #include "BeamCalGeoDD.hh"
 
 #include <DD4hep/Detector.h>
 
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
 #include <iomanip>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 /// Inject Energy into the beamcal vector

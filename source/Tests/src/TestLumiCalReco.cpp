@@ -1,13 +1,24 @@
-#include "TestMain.hh"
+#include "TestMain.hh"  // IWYU pragma: keep
+#include "TestUtilities.hh"
 
+#include "Global.hh"
 #include "GlobalMethodsClass.h"
 #include "LCCluster.hh"
 #include "LumiCalClusterer.h"
 
+#include <EVENT/LCIO.h>
+#include <EVENT/LCParameters.h>
 #include <IMPL/LCCollectionVec.h>
 #include <IMPL/LCEventImpl.h>
 
+#include <streamlog/loglevels.h>
+#include <streamlog/streamlog.h>
+
+#include <iomanip>
 #include <iostream>
+#include <map>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 
 int runTest(int, char**) {

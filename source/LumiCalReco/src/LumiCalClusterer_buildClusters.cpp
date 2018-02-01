@@ -2,7 +2,7 @@
 #include "Distance2D.hh"
 #include "Global.hh"
 #include "LCCluster.hh"
-#include "LumiCalClusterer.h"
+#include "LumiCalClusterer.h"  // IWYU pragma: associated
 #include "LumiCalHit.hh"
 #include "SortingFunctions.hh"
 #include "VirtualCluster.hh"
@@ -18,6 +18,7 @@ using LCHelper::distance2D;
 // stdlib
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
 #include <map>
 #include <memory>
@@ -26,6 +27,10 @@ using LCHelper::distance2D;
 #include <string>
 #include <utility>
 #include <vector>
+
+// IWYU pragma: no_include <bits/shared_ptr.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
+// IWYU pragma: no_include <Math/ParamFunctor.h>
 
 /* =========================================================================
    LumiCalClustererClass :: buildClusters
@@ -112,14 +117,14 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
   // 3. for ShowerPeak layers optionally split hits according to value <middleEnergyHitBound>
 
   for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
-    size_t numHitsInLayer = (int)(calHitsIt->second.size());
+    std::size_t numHitsInLayer    = (int)(calHitsIt->second.size());
     int layerNow = calHitsIt->first;
     isShowerPeakLayer[ layerNow ] = ( (int)numHitsInLayer > minNumElementsInShowerPeakLayer )? 1 : 0;
 #if _CLUSTER_BUILD_DEBUG == 1
     if( isShowerPeakLayer[ layerNow ] == 1 )
       streamlog_out(DEBUG3) <<"\t"<< layerNow <<"\t nhits("<< numHitsInLayer <<")\n";
 #endif
-    for(size_t j=0; j<numHitsInLayer; j++){
+    for (std::size_t j = 0; j < numHitsInLayer; j++) {
       int       cellIdHit = (int)calHitsIt->second[j]->getCellID0();
       double    cellEngy = (double)calHitsIt->second[j]->getEnergy();
       if( cellEngy >= _hitMinEnergy ){
@@ -418,13 +423,13 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
        -------------------------------------------------------------------------- */
 
     // initialize the layer-averaging position/energy maps
-    for(size_t layerN = 0; layerN < engyPosCMLayer[clusterId].size(); layerN++) {
+    for (std::size_t layerN = 0; layerN < engyPosCMLayer[clusterId].size(); layerN++) {
       const int layerNow = thisLayer[clusterId][layerN];
       layerToPosX[layerNow] = layerToPosY[layerNow] = layerToEngy[layerNow] = 0.;
     }
 
     // fill the maps with energy-weighted positions
-    for(size_t layerN = 0; layerN < engyPosCMLayer[clusterId].size(); layerN++) {
+    for (std::size_t layerN = 0; layerN < engyPosCMLayer[clusterId].size(); layerN++) {
       const int layerNow = thisLayer[clusterId][layerN];
       /*(BP) FIX:
        *  it should be weighted with WeightingMethod
@@ -442,7 +447,7 @@ int LumiCalClustererClass::buildClusters(MapIntVCalHit const& calHits, MapIntCal
 
     // fill histograms of x(z) and y(z) of the CM positions
     layerToPosXYIterator = layerToPosX.begin();
-    for(size_t layerN = 0; layerN < layerToPosX.size(); layerN++, layerToPosXYIterator++) {
+    for (std::size_t layerN = 0; layerN < layerToPosX.size(); layerN++, layerToPosXYIterator++) {
       const int layerNow = (int)(*layerToPosXYIterator).first;
 
       // get back to units of position

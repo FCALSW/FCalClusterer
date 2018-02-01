@@ -11,6 +11,7 @@
 #include "BeamCalGeo.hh"
 #include "BeamCalPadGeometry.hh"
 
+#include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
 // ROOT
@@ -18,9 +19,10 @@
 #include "Minuit2/Minuit2Minimizer.h"
 #include "Math/Functor.h"
 
+#include <cmath>
 #include <iostream>
 #include <numeric>
-#include <cmath>
+#include <utility>
 
 using std::vector;
 using std::pair;
@@ -29,22 +31,20 @@ using std::pair;
 //                    BeamCalFitShower methods                     //
 //=================================================================//
 
-BeamCalFitShower::BeamCalFitShower(vector<EdepProfile_t*> &vep, 
-		    const BCPadEnergies::BeamCalSide_t bc_side) :
-                                  m_vep(vep),
-				  m_spotPads(vector<EdepProfile_t*>()),
-				  m_covInv(vector<double>()),
-				  m_spotEint(vector<double>()),
-				  m_BCG(NULL),
-				  m_BCbackground(NULL),
-				  m_BCside(bc_side),
-				  m_rhom(9.3),
-				  m_enTowerLimit(0.),
-				  m_towerChi2Limit(1.),
-				  m_startLayer(1),
-				  m_countingLayer(1),
-				  m_flagUncorr(false)
-{
+BeamCalFitShower::BeamCalFitShower(vector<EdepProfile_t*>& vep, const BCPadEnergies::BeamCalSide_t bc_side)
+    : m_vep(vep),
+      m_spotPads(vector<EdepProfile_t*>()),
+      m_covInv(vector<double>()),
+      m_spotEint(vector<double>()),
+      m_BCG(nullptr),
+      m_BCbackground(nullptr),
+      m_BCside(bc_side),
+      m_rhom(9.3),
+      m_enTowerLimit(0.),
+      m_towerChi2Limit(1.),
+      m_startLayer(1),
+      m_countingLayer(1),
+      m_flagUncorr(false) {
   // hardcode now, make better later
   // m_rhom = 9.3; // Moliere radius (rho_M)
 }

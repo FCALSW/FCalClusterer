@@ -2,11 +2,16 @@
 #define BCPADENERGIES_HH
 
 #include <map>
+#include <string>
 #include <vector>
 
 class BeamCalGeo;
-class BeamCalCluster;
+class BeamCalCluster;  // IWYU pragma: keep
 class BCPCuts;  
+
+//needed to avoid circular includes
+// IWYU pragma: no_include "BeamCalCluster.hh"
+
 
 class BCPadEnergies{
 

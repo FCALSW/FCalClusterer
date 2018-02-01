@@ -1,5 +1,7 @@
 #include "OutputManagerClass.h"
 
+#include <Rtypes.h>
+#include <TAxis.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -9,9 +11,11 @@
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
+#include <cstdlib>
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 
 OutputManagerClass::OutputManagerClass()
     : HisMap1D(),
@@ -24,7 +28,7 @@ OutputManagerClass::OutputManagerClass()
       TreeDoubleV(),
       OutputRootFileName("LcalOut"),
       OutDirName("rootOut"),
-      OutputRootFile(NULL),
+      OutputRootFile(nullptr),
       Counter(),
       CounterIterator(),
       SkipNEvents(0),
@@ -45,14 +49,14 @@ void OutputManagerClass::Initialize(int treeLocOptNow, int skipNEventsNow, int n
   //	Counter["High engy cluster In positive side"] = 0;
   //	Counter["High engy cluster In negative side"] = 0;
   //	Counter["Bhabhas after selection cuts"]   = 0;
-  OutputRootFile = NULL;
+  OutputRootFile = nullptr;
   if (outFileNameNow == "")
     return;  // nothing to do
 
   TH1F*       his1;
   TH2F*       his2;
   TTree*      tree;
-  Int_t       markerCol = kRed - 4, lineCol = kAzure + 3, fillCol = kBlue - 8;
+  int         markerCol = kRed - 4, lineCol = kAzure + 3, fillCol = kBlue - 8;
   std::string hisName;
   int         numBins1;
   double      hisRange1[2];

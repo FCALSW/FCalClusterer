@@ -16,23 +16,29 @@
 #include <streamlog/streamlog.h>
 
 // ROOT
-#include <TTree.h>
+#include <TBranch.h>
 #include <TFile.h>
+#include <TObjArray.h>
+#include <TObject.h>
 #include <TRandom3.h>
+#include <TString.h>
+#include <TTree.h>
 
+#include <cmath>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
 using std::vector;
 using std::string;
 using std::map;
 
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
-BeamCalBkgGauss::BeamCalBkgGauss(const string& bg_method_name, 
-                     const BeamCalGeo *BCG) : BeamCalBkg(bg_method_name, BCG),
-					   m_padParLeft(NULL),
-					   m_padParRight(NULL)
-{}
+BeamCalBkgGauss::BeamCalBkgGauss(const string& bg_method_name, const BeamCalGeo* BCG)
+    : BeamCalBkg(bg_method_name, BCG), m_padParLeft(nullptr), m_padParRight(nullptr) {}
 
 BeamCalBkgGauss::~BeamCalBkgGauss() {
   delete m_padParLeft;
@@ -136,8 +142,8 @@ void BeamCalBkgGauss::readBackgroundPars(TTree *bg_par_tree, const BCPadEnergies
   typedef map<string, vector<double> *> MapStrVec_t;
   MapStrVec_t br_cont_map;
 
-  br_cont_map[side_name+"mean"]      = NULL;
-  br_cont_map[side_name+"stdev"]     = NULL;
+  br_cont_map[side_name + "mean"]  = nullptr;
+  br_cont_map[side_name + "stdev"] = nullptr;
 
   // check the branch presence in the tree
   MapStrVec_t::iterator im = br_cont_map.begin();

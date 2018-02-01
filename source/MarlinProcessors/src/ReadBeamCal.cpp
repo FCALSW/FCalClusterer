@@ -7,11 +7,17 @@
 #include "BeamCalGeo.hh"
 
 #include <EVENT/LCCollection.h>
+#include <EVENT/LCEvent.h>
+#include <EVENT/LCIO.h>
 #include <EVENT/SimCalorimeterHit.h>
 #include <UTIL/CellIDDecoder.h>
 
+#include <Exceptions.h>
+
 // ----- include for verbosity dependend logging ---------
+#include <streamlog/baselevels.h>
 #include <streamlog/loglevels.h>
+#include <streamlog/logstream.h>
 #include <streamlog/streamlog.h>
 
 #include <marlin/ProcessorEventSeeder.h>
@@ -24,9 +30,10 @@
 #include <TStyle.h>
 #include <TTree.h>
 
-#include <iostream>
 #include <iomanip>
-
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 
 using namespace lcio ;
 using namespace marlin ;
@@ -36,20 +43,20 @@ ReadBeamCal aReadBeamCal ;
 // #pragma GCC diagnostic push
 // #pragma GCC diagnostic ignored "-Wshadow"
 
-ReadBeamCal::ReadBeamCal() : Processor("ReadBeamCal"),
-			     m_colNameBCal(""),
-			     m_nameOutputFile(""),
-			     m_nameFinalOutputFile(""),
-			     m_nameInputFile(""),
-			     m_nRun(0),
-			     m_nEvt(0),
-			     m_probFactor(0.0),
-			     m_random3(NULL),
-			     m_padEnergiesLeft(NULL),
-			     m_padEnergiesRight(NULL),
-			     m_bcg(NULL),
-                             m_usingDD4HEP(false) {
-
+ReadBeamCal::ReadBeamCal()
+    : Processor("ReadBeamCal"),
+      m_colNameBCal(""),
+      m_nameOutputFile(""),
+      m_nameFinalOutputFile(""),
+      m_nameInputFile(""),
+      m_nRun(0),
+      m_nEvt(0),
+      m_probFactor(0.0),
+      m_random3(nullptr),
+      m_padEnergiesLeft(nullptr),
+      m_padEnergiesRight(nullptr),
+      m_bcg(nullptr),
+      m_usingDD4HEP(false) {
   // modify processor description
   _description = "ReadBeamCal reads the simulation for the pairs and creates two std::vector<double> in a tree, which can then be used later on for Overlay, calculation of fluctiuations, etc." ;
 
@@ -160,7 +167,7 @@ void ReadBeamCal::end(){
   tree->Branch("vec_left",m_padEnergiesLeft->getEnergies());
   tree->Fill();
 
-  TFile *rootfile = TFile::Open((TString)m_nameOutputFile,"RECREATE");
+  TFile* rootfile = TFile::Open(m_nameOutputFile.c_str(), "RECREATE");
 
   // for(unsigned int k = 0; k < bgruns.size(); k++) {
   //   bgruns[k]->Write();
@@ -192,7 +199,7 @@ void ReadBeamCal::end(){
   rootfile->Write();
   rootfile->Close();
   delete rootfile;
-  rootfile=NULL;
+  rootfile = nullptr;
   delete m_random3;
   delete m_bcg;
 

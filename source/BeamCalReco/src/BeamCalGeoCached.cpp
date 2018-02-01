@@ -5,7 +5,6 @@
 #include <gear/CalorimeterParameters.h>
 #include <gear/GearMgr.h>
 
-
 #include <cmath>
 #include <vector>
 

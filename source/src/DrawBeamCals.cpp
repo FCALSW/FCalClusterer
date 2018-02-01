@@ -4,14 +4,21 @@
 #include "BCRootUtilities.hh"
 
 //GEAR
+#include <GEAR.h>
 #include <gearxml/GearXML.h>
 
 //ROOT
+#include <TCanvas.h>
 #include <TH2.h>
 #include <TStyle.h>
 
-#include <string>
+#include <cstdlib>
 #include <iostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+class BeamCalGeo;
 
 namespace gear {
   class GearMgr;

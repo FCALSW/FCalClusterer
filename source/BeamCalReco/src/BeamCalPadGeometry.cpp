@@ -10,8 +10,9 @@
 #include "BeamCalPadGeometry.hh"
 
 #include <algorithm>
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include <memory>
 
 using std::vector;
 using std::pair;

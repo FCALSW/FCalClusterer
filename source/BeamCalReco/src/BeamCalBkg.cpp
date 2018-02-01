@@ -22,6 +22,7 @@
 // ROOT
 #include <TRandom3.h>
 
+#include <cmath>
 #include <iostream>
 #include <map>
 
@@ -29,22 +30,20 @@ using std::vector;
 using std::string;
 using std::map;
 
-BeamCalBkg::BeamCalBkg(const string& bg_method_name, 
-                     const BeamCalGeo *BCG) : 
-                                           m_bgMethod(kPregenerated),
-					   m_nBX(0),
-                                           m_BeamCalDepositsLeft(NULL),
-                                           m_BeamCalDepositsRight(NULL),
-                                           m_BeamCalAverageLeft(NULL),
-                                           m_BeamCalAverageRight(NULL),
-                                           m_BeamCalErrorsLeft(NULL),
-                                           m_BeamCalErrorsRight(NULL),
-					   m_TowerErrorsLeft(NULL),
-					   m_TowerErrorsRight(NULL),
-                                           m_random3(NULL),
-                                           m_BCG(BCG),
-                                           m_bcpCuts(NULL)
-{
+BeamCalBkg::BeamCalBkg(const string& bg_method_name, const BeamCalGeo* BCG)
+    : m_bgMethod(kPregenerated),
+      m_nBX(0),
+      m_BeamCalDepositsLeft(nullptr),
+      m_BeamCalDepositsRight(nullptr),
+      m_BeamCalAverageLeft(nullptr),
+      m_BeamCalAverageRight(nullptr),
+      m_BeamCalErrorsLeft(nullptr),
+      m_BeamCalErrorsRight(nullptr),
+      m_TowerErrorsLeft(nullptr),
+      m_TowerErrorsRight(nullptr),
+      m_random3(nullptr),
+      m_BCG(BCG),
+      m_bcpCuts(nullptr) {
   streamlog_out(MESSAGE) << "Initialising BeamCal background with \""
 			 << bg_method_name << "\" method" << std::endl;
 }

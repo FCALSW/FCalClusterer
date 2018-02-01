@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include <vector>
 #include "BCPadEnergies.hh"
+
+#include <vector>
+#include <map>
 
 class BeamCalGeo;
 class BeamCalBkg;

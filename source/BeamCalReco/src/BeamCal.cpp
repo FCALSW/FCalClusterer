@@ -5,8 +5,14 @@
 
 #include "BeamCalGeo.hh"
 
+#include <Rtypes.h>
+#include <TAttLine.h>
+#include <TAttMarker.h>
+#include <TAxis.h>
 #include <TCanvas.h>
 #include <TCrown.h>
+#include <TGaxis.h>
+#include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
 #include <TList.h>
@@ -14,11 +20,18 @@
 #include <TPad.h>
 #include <TPaletteAxis.h>
 #include <TStyle.h>
+#include <TVirtualPad.h>
 
+#include <string.h>
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
 BeamCal::BeamCal(BeamCalGeo const& geo):
   m_BCG(geo),

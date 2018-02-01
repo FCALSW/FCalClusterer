@@ -4,17 +4,23 @@
 #include "BCPCuts.hh"
 #include "BCPadEnergies.hh"
 #include "BCRecoObject.hh"
-#include "BeamCal.hh"
-#include "BeamCalCluster.hh"
 #include "BCUtilities.hh"
+#include "BeamCal.hh"
 #include "BeamCalBkg.hh"
+#include "BeamCalCluster.hh"
 #include "BeamCalFitShower.hh"
+#include "BeamCalGeo.hh"
 
 //LCIO
 #include <EVENT/CalorimeterHit.h>
 #include <EVENT/LCCollection.h>
+#include <EVENT/LCEvent.h>
+#include <EVENT/LCIO.h>
+#include <EVENT/LCObject.h>
+#include <EVENT/LCParameters.h>
 #include <EVENT/MCParticle.h>
 #include <EVENT/SimCalorimeterHit.h>
+#include <Exceptions.h>
 #include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/ClusterImpl.h>
 #include <IMPL/LCCollectionVec.h>
@@ -23,29 +29,40 @@
 #include <UTIL/CellIDDecoder.h>
 
 // ----- include for verbosity dependent logging ---------
+#include <streamlog/baselevels.h>
 #include <streamlog/loglevels.h>
+#include <streamlog/logstream.h>
 #include <streamlog/streamlog.h>
 
 #include <marlin/ProcessorEventSeeder.h>
 #include <marlin/Global.h>
 
 //ROOT
+#include <Rtypes.h>
+#include <TAttLine.h>
 #include <TCanvas.h>
 #include <TEfficiency.h>
 #include <TFile.h>
+#include <TH1.h>
 #include <TH2.h>
 #include <TLine.h>
+#include <TList.h>
 #include <TMarker.h>
 #include <TMath.h>
+#include <TPad.h>
 #include <TPaveText.h>
 #include <TProfile.h>
+#include <TString.h>
 #include <TStyle.h>
+#include <TVirtualPad.h>
 
 //STDLIB
+#include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <stdexcept>
+#include <tuple>
 #include <utility>
-//#include <set>
 
 using namespace lcio ;
 using namespace marlin ;
@@ -67,46 +84,44 @@ public:
 explicit WrongParameterException(std::string const& error) : std::runtime_error(error) { }
 };
 
-
-BeamCalClusterReco::BeamCalClusterReco() : Processor("BeamCalClusterReco"),
-                                           m_colNameMC(""),
-                                           m_colNameBCal(""),
-					   m_bgMethodName(""),
-                                           m_files(),
-                                           m_nEvt(0),
-                                           m_specialEvent(-1),
-                                           m_nBXtoOverlay(0),
-                                           m_eventSide(-1),
-                                           m_minimumTowerSize(0),
-                                           m_startLookingInLayer(0),
-                                           m_NShowerCountingLayers(0),
-                                           m_usePadCuts(true),
-					   m_useChi2Selection(false),
-                                           m_createEfficienyFile(false),
-                                           m_sigmaCut(1.0),
-                                           m_TowerChi2ndfLimit(5.0),
-                                           m_calibrationFactor(1.0),
-                                           m_startingRings(),
-                                           m_requiredRemainingEnergy(),
-                                           m_requiredClusterEnergy(),
-                                           m_BCG(NULL),
-                                           m_bcpCuts(NULL),
-					   m_BCbackground(NULL),
-                                           m_totalEfficiency(NULL),
-                                           m_thetaEfficieny(NULL),
-                                           m_phiEfficiency(NULL),
-                                           m_twoDEfficiency(NULL),
-                                           m_phiFake(NULL),
-                                           m_thetaFake(NULL),
-                                           m_checkPlots(0),
-                                           m_originalParticles(0),
-                                           m_MCinBeamCal(false),
-                                           m_BCalClusterColName(""),
-                                           m_BCalRPColName(""),
-                                           m_EfficiencyFileName(""),
-                                           m_usingDD4HEP(false)
-{
-
+BeamCalClusterReco::BeamCalClusterReco()
+    : Processor("BeamCalClusterReco"),
+      m_colNameMC(""),
+      m_colNameBCal(""),
+      m_bgMethodName(""),
+      m_files(),
+      m_nEvt(0),
+      m_specialEvent(-1),
+      m_nBXtoOverlay(0),
+      m_eventSide(-1),
+      m_minimumTowerSize(0),
+      m_startLookingInLayer(0),
+      m_NShowerCountingLayers(0),
+      m_usePadCuts(true),
+      m_useChi2Selection(false),
+      m_createEfficienyFile(false),
+      m_sigmaCut(1.0),
+      m_TowerChi2ndfLimit(5.0),
+      m_calibrationFactor(1.0),
+      m_startingRings(),
+      m_requiredRemainingEnergy(),
+      m_requiredClusterEnergy(),
+      m_BCG(nullptr),
+      m_bcpCuts(nullptr),
+      m_BCbackground(nullptr),
+      m_totalEfficiency(nullptr),
+      m_thetaEfficieny(nullptr),
+      m_phiEfficiency(nullptr),
+      m_twoDEfficiency(nullptr),
+      m_phiFake(nullptr),
+      m_thetaFake(nullptr),
+      m_checkPlots(0),
+      m_originalParticles(0),
+      m_MCinBeamCal(false),
+      m_BCalClusterColName(""),
+      m_BCalRPColName(""),
+      m_EfficiencyFileName(""),
+      m_usingDD4HEP(false) {
   _description = "BeamCalClusterReco reproduces the beamstrahlung background for a given number of " \
     "bunch-crossings NumberOfBX and puts the signal hits from the "	\
     "lcio input file on top of that, and then clustering is attempted." ;
@@ -331,7 +346,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   try {
     colBCal = evt->getCollection( m_colNameBCal ) ;
   } catch (Exception &e) {
-    colBCal = NULL;
+    colBCal = nullptr;
   }
 
   m_BCbackground->setRandom3Seed(m_nEvt+Global::EVENTSEEDER->getSeed(this));
@@ -600,9 +615,9 @@ void BeamCalClusterReco::end(){
     m_phiFake->Write();
     m_thetaFake->Write();
 
-    for (size_t j = 0; j < m_checkPlots.size() ;++j) {
-      m_checkPlots[j]->Write();
-      delete m_checkPlots[j];
+    for (auto* checkPlot : m_checkPlots) {
+      checkPlot->Write();
+      delete checkPlot;
     }//all plots
 
     effFile->Close();
@@ -825,10 +840,10 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   TCanvas canv("canv","canv", 3200, 1600);
   gStyle->SetOptStat(0.0);
   TPad *pads[9];
-  Double_t padSizeX = canv.GetWindowWidth()/4.0;
-  Double_t padSizeY = (canv.GetWindowHeight()-200)/2.0;
+  double padSizeX = canv.GetWindowWidth() / 4.0;
+  double padSizeY = (canv.GetWindowHeight() - 200) / 2.0;
   for (int i = 0; i < 8 ;++i) {
-    Double_t lowX, lowY, highX, highY;
+    double lowX, lowY, highX, highY;
 
     lowX  = padSizeX *	double(int(i%4))    / 3200.;
     highX = padSizeX *	double(int(i%4)+1)  / 3200.;
@@ -856,8 +871,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
   bc.SetLogz(1);
   bc.SetBeamCalHisto(padEnergies,"tempLeft");
 
-  Double_t ymax = 0.5*double(m_nBXtoOverlay);
-
+  double ymax = 0.5 * double(m_nBXtoOverlay);
 
   for (int layer = startLayer; layer < startLayer + 4; ++layer) {
 
@@ -942,7 +956,7 @@ void BeamCalClusterReco::DrawElectronMarkers ( const std::vector<BCRecoObject*> 
     // electron->SetMarkerStyle(kOpenCircle);
     // electron->SetMarkerSize(5);
     electron->SetMarkerColor(kRed);
-    //      Double_t ymin = 0, ymax = 35;
+    //      double ymin = 0, ymax = 35;
     electron->Draw();
 
   }
@@ -951,8 +965,7 @@ void BeamCalClusterReco::DrawElectronMarkers ( const std::vector<BCRecoObject*> 
 }
 
 void BeamCalClusterReco::DrawLineMarkers( const std::vector<BCRecoObject*> & RecoedObjects ) const {
-
-  Double_t ymin = 0, ymax = 5;
+  double ymin = 0, ymax = 5;
 
   for( std::vector<BCRecoObject*>::const_iterator it = RecoedObjects.begin();
        it != RecoedObjects.end(); ++it) {

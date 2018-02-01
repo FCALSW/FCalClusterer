@@ -1,8 +1,10 @@
 #ifndef MCInfo_h
 #define MCInfo_h 1
 
-#include <memory>
+#include <memory>  // IWYU pragma: keep
 #include <ostream>
+
+// IWYU pragma: no_include <bits/shared_ptr.h>
 
 class GlobalMethodsClass;
 namespace EVENT{

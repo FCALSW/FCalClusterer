@@ -9,29 +9,49 @@
 
 #ifdef FCAL_WITH_DD4HEP
 
-#include <DD4hep/DD4hepUnits.h>
+#include <DD4hep/Alignments.h>
+#include <DD4hep/DetElement.h>
 #include <DD4hep/Detector.h>
+#include <DD4hep/Objects.h>
+#include <DD4hep/Readout.h>
+#include <DD4hep/Segmentations.h>
+#include <DDParsers/DD4hepUnits.h>
 #include <DDRec/DetectorData.h>
+#include <DDSegmentation/Segmentation.h>
+#include <DDSegmentation/SegmentationParameter.h>
 
 #endif
 
 #include <marlin/CMProcessor.h>
 #include <marlin/Global.h>
+#include <marlin/Processor.h>
+#include <marlin/ProcessorParameter.h>
+#include <marlin/StringParameters.h>
 
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
 #include <IMPL/ClusterImpl.h>
 #include <IMPL/ReconstructedParticleImpl.h>
+#include <LCIOSTLTypes.h>
 
 using streamlog::MESSAGE;
 
-#include <map>
-#include <string>
+#include <TGeoMatrix.h>
+
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+// IWYU pragma: no_include <bits/shared_ptr.h>
 
 // utility copied from marlin 
 template <class T>

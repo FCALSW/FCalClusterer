@@ -17,11 +17,15 @@ using LCHelper::distance2D;
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <ostream>
 #include <utility>
 #include <vector>
+
+// IWYU pragma: no_include <bits/shared_ptr.h>
+// IWYU pragma: no_include <ext/alloc_traits.h>
 
 /* =========================================================================
    LumiCalClustererClass :: initialClusterBuild
@@ -315,7 +319,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
     sort(clusterIdEngyV2.begin(), clusterIdEngyV2.end(), clusterCMEnergyCmpAsc<VVDouble::value_type>);
 
     // copy the Ids that are now in order to a std::vector
-    for(size_t j=0; j<clusterIdEngyV2.size(); j++)
+    for (std::size_t j = 0; j < clusterIdEngyV2.size(); j++)
       clusterIdV.push_back( (int)clusterIdEngyV2[j][1] );
 
     // cleanUp
@@ -333,7 +337,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
       }
 
       // compute distance to neighboring clusters
-      for(size_t j=1; j<clusterIdV.size(); j++){
+      for(std::size_t j=1; j<clusterIdV.size(); j++){
 	clusterId = clusterIdV[j];
 
 	const double distanceCM = distance2D(clusterCM[clusterIdV[0]].getPosition(),clusterCM[clusterId].getPosition());
@@ -367,7 +371,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
 	const int clusterId1 = clusterIdV[0];
 	const int clusterId2 = maxElement->first;
 
-	for(size_t j=0; j<clusterIdToCellId[clusterId1].size(); j++){
+	for(std::size_t j=0; j<clusterIdToCellId[clusterId1].size(); j++){
 	  // add hit from clusterIdToCellId with clusterId to one with maxWDClusterId
 	  const int cellIdHit = clusterIdToCellId[clusterId1][j];
 	  clusterIdToCellId[clusterId2].push_back(cellIdHit);
@@ -414,7 +418,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
     sort(clusterIdEngyV2.begin(), clusterIdEngyV2.end(), clusterCMEnergyCmpDesc<VVDouble::value_type>);
 
     // copy the Ids that are now in order to a std::vector
-    for(size_t j=0; j<clusterIdEngyV2.size(); j++)
+    for (std::size_t j = 0; j < clusterIdEngyV2.size(); j++)
       clusterIdV.push_back( (int)clusterIdEngyV2[j][1] );
 
     // cleanUp
@@ -431,7 +435,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
       double CM1[2] = { highestCluster.getX(), highestCluster.getY() };
 
       // compute distance to neighboring clusters
-      for(size_t j=1; j<clusterIdV.size(); j++){
+      for(std::size_t j=1; j<clusterIdV.size(); j++){
 
 	const int clusterIdJ = clusterIdV[j];
 	LCCluster const& thisCluster = clusterCM[clusterIdJ];
@@ -468,7 +472,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
 	const int clusterId1 = maxElement->first;
 	const int clusterId2 = clusterIdV[0];
 
-	for(size_t j=0; j<clusterIdToCellId[clusterId1].size(); j++){
+	for(std::size_t j=0; j<clusterIdToCellId[clusterId1].size(); j++){
 	  // add hit from clusterIdToCellId with clusterId to one with maxWDClusterId
 	  const int cellIdHit = clusterIdToCellId[clusterId1][j];
 	  clusterIdToCellId[clusterId2].push_back(cellIdHit);
@@ -550,7 +554,7 @@ int LumiCalClustererClass::initialClusterBuild(MapIntCalHit const& calHitsCellId
 	const int clusterId1 = smallClusterIdV[j];
 	const int clusterId2 = maxElement->first;
 
-	for(size_t k=0; k<clusterIdToCellId[clusterId1].size(); k++){
+	for(std::size_t k=0; k<clusterIdToCellId[clusterId1].size(); k++){
 	  // add hit from clusterIdToCellId with clusterId to one with maxWDClusterId
 	  const int cellIdHit = clusterIdToCellId[clusterId1][k];
 	  clusterIdToCellId[clusterId2].push_back(cellIdHit);
@@ -1609,10 +1613,10 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
       std::vector< int > const& cellIds = superClusterIdToCellId[superClusterIdBad];
       //Find the clusters closest to the previously rejected Hits
-      for(size_t hitNow = 0; hitNow < cellIds.size(); hitNow++) {
-	const int cellIdHit = cellIds[hitNow];
+      for (std::size_t hitNow = 0; hitNow < cellIds.size(); hitNow++) {
+        const int cellIdHit = cellIds[hitNow];
 
-	std::map < int , double > weightedDistanceV;
+        std::map<int, double> weightedDistanceV;
         const auto& thisHit = calHitsCellIdGlobal.at(cellIdHit);
 
 	int numSuperClustersGood = superClusterAccepted.size();
