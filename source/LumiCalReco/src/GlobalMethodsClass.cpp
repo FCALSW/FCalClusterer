@@ -469,7 +469,7 @@ std::tuple<ClusterImpl*, ReconstructedParticleImpl*> GlobalMethodsClass::getLCIO
 
   ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
   const float                mass     = 0.0;
-  const float                charge   = 1e+19;
+  const float                charge   = 0.0;
   particle->setMass(mass);
   particle->setCharge(charge);
   particle->setEnergy(clusterEnergy);
