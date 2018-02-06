@@ -4,7 +4,7 @@
 #include <DD4hep/Detector.h>
 #include <DD4hep/Objects.h>
 #include <DD4hep/Readout.h>
-#include <DDParsers/DD4hepUnits.h>
+#include <DD4hep/DD4hepUnits.h>
 #include <DDRec/DetectorData.h>
 #include <DDSegmentation/Segmentation.h>
 #include <DDSegmentation/SegmentationParameter.h>
