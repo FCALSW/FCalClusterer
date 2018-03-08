@@ -80,6 +80,12 @@ ReadBeamCal::ReadBeamCal()
 			      m_probFactor,
 			      double(100.0) ) ;
 
+  registerProcessorParameter("DetectorName", "The Name of the Detector the collections are from",
+                             m_detectorName, m_detectorName);
+
+  registerProcessorParameter("DetectorStartingLayerID", "The ID of the first layer of the detector BeamCal 1: LumiCal: 0",
+                             m_startingLayer, m_startingLayer);
+
 }
 //#pragma GCC diagnostic pop
 
@@ -92,7 +98,7 @@ void ReadBeamCal::init() {
   printParameters() ;
 
   m_nEvt = 0;
-  m_bcg = ProcessorUtilities::getBeamCalGeo(m_usingDD4HEP);
+  m_bcg = ProcessorUtilities::getBeamCalGeo(m_usingDD4HEP, m_detectorName, m_colNameBCal);
   m_padEnergiesLeft = new BCPadEnergies(m_bcg);
   m_padEnergiesRight = new BCPadEnergies(m_bcg);
  
@@ -123,7 +129,7 @@ void ReadBeamCal::processEvent( LCEvent * evt ) {
   for(int i=0; i < nHits; i++) {
     SimCalorimeterHit *bcalhit = static_cast<SimCalorimeterHit*>(colBCal->getElementAt(i));
     int side, layer, cylinder, sector;
-    BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, cylinder, sector, m_usingDD4HEP);
+    BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, cylinder, sector, m_usingDD4HEP, m_startingLayer);
     const float energy = bcalhit->getEnergy();
     try{
       (side == 0 ) ?
