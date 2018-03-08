@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!-- ?xml-stylesheet type="text/xsl" href="http://ilcsoft.desy.de/marlin/marlin.xsl"? -->
+<!-- ?xml-stylesheet type="text/xsl" href="marlin.xsl"? -->
+
+
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+ <execute>
+   <processor name="InitDD4hep"/>
+   <processor name="MyReadBeamCal"/>
+   <processor name="ReadLumiCal"/>
+ </execute>
+
+ <global>
+   <parameter name="LCIOInputFiles">    
+     /path/to/Simulated/BackgroundFiles/BunchCrossing1_1of3.slcio
+     /path/to/Simulated/BackgroundFiles/BunchCrossing1_2of3.slcio
+     /path/to/Simulated/BackgroundFiles/BunchCrossing1_3of3.slcio
+ </parameter>
+
+  <!-- limit the number of processed records (run+evt): -->  
+  <parameter name="MaxRecordNumber" value="0" />  
+  <parameter name="SkipNEvents" value="0" />  
+  <parameter name="SupressCheck" value="false" />  
+  <parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> MESSAGE  </parameter> 
+  <parameter name="RandomSeed" value="0" />
+ </global>
+
+ <processor name="InitDD4hep" type="InitializeDD4hep">
+   <!--InitializeDD4hep reads a compact xml file and initializes the DD4hep::LCDD object-->
+   <!--Name of the DD4hep compact xml file to load-->
+   <parameter name="EncodingStringParameter"> GlobalTrackerReadoutID </parameter>
+   <parameter name="DD4hepXMLFile" type="string">
+     /cvmfs/clicdp.cern.ch/iLCSoft/builds/nightly/x86_64-slc6-gcc62-opt/lcgeo/HEAD/CLIC/compact/CLIC_o3_v14/CLIC_o3_v14.xml
+   </parameter>
+ </processor>
+
+
+ <processor name="MyReadBeamCal" type="ReadBeamCal">
+ <!--ReadBeamCal reads the simulation for the pairs and creates two std::vector<double> in a tree, which can then be used later on for Overlay, calculation of fluctiuations, etc.-->
+  <!--Name of BeamCal Collection-->
+  <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit"> BeamCalCollection </parameter>
+  <!--Root OutputFile -->
+  <parameter name="OutputFileBackground" type="string">BeamCal.root </parameter>
+  <parameter name="ProbabilityFactor" type="double"> 100 </parameter>
+  <!--The Name of the Detector the reconstruction is for-->
+  <parameter name="DetectorName" type="string">BeamCal </parameter>
+  <!--The ID of the first layer of the detector BeamCal 1: LumiCal: 0-->
+  <parameter name="DetectorStartingLayerID" type="double"> 1 </parameter>
+  <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+  <parameter name="Verbosity" type="string">DEBUG </parameter>
+</processor>
+
+ <processor name="ReadLumiCal" type="ReadBeamCal">
+ <!--ReadBeamCal reads the simulation for the pairs and creates two std::vector<double> in a tree, which can then be used later on for Overlay, calculation of fluctiuations, etc.-->
+  <!--Name of BeamCal Collection-->
+  <parameter name="BeamCalCollectionName" type="string" lcioInType="SimCalorimeterHit"> LumiCalCollection </parameter>
+  <!--Root OutputFile -->
+  <parameter name="OutputFileBackground" type="string">LumiCal.root </parameter>
+  <parameter name="ProbabilityFactor" type="double"> 100 </parameter>
+  <!--The Name of the Detector the reconstruction is for-->
+  <parameter name="DetectorName" type="string">LumiCal </parameter>
+  <!--The ID of the first layer of the detector BeamCal 1: LumiCal: 0-->
+  <parameter name="DetectorStartingLayerID" type="double"> 0 </parameter>
+  <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
+  <parameter name="Verbosity" type="string">DEBUG </parameter>
+</processor>
+
+
+
+</marlin>
