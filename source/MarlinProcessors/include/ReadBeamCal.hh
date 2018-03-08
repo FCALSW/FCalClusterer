@@ -51,6 +51,9 @@ class ReadBeamCal : public marlin::Processor {
   /** Input collection name.
    */
   std::string m_colNameBCal, m_nameOutputFile, m_nameFinalOutputFile, m_nameInputFile;
+  int m_startingLayer=1;
+  std::string m_detectorName = "BeamCal";
+
   //std::string m_pdftitle;
   int m_nRun ;
   int m_nEvt ;
