@@ -431,8 +431,11 @@ void BeamCal::DrawPhiDistributions(TPad *pad, Int_t layer, Option_t* options){
        (it)->SetLineStyle(kDashed);
     }
 
-    (it)->DrawCopy("same");
-    
+    if(strstr(options, "histo") ) {
+      (it)->DrawCopy("same,histo");
+    } else {
+      (it)->DrawCopy("same");
+    }
     // std::cout << __func__ << " Entries " 
     // 	      << std::setw(15) << it->GetEntries() 
     // 	      << std::setw(15) << it->Integral() 
@@ -475,6 +478,7 @@ void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, TString title){
 void BeamCal::SetBeamCalHisto(const BCPadEnergies *bcpads, const BCPadEnergies *bcErrors, TString title){
   if(m_h3BeamCalHisto) delete m_h3BeamCalHisto;
   m_h3BeamCalHisto = getBeamCalHistogram(title);
+  m_h3BeamCalHisto->Sumw2();
 
   int layer=-1, cylinder=-1, sector=-1;
   for (int i = 0; i < m_BCG.getPadsPerBeamCal() ;++i) {
