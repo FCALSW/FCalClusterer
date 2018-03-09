@@ -318,30 +318,31 @@ void BeamCalClusterReco::init() {
       minAngle(0.9*m_BCG->getBCInnerRadius()/m_BCG->getBCZDistanceToIP()*1000), 
       maxAngle(1.1*m_BCG->getBCOuterRadius()/m_BCG->getBCZDistanceToIP()*1000); 
     const int bins = 50;
-    m_totalEfficiency = new TEfficiency("totalEff","Total detector efficiency", 1, 
+    TString detName(m_detectorName);
+    m_totalEfficiency = new TEfficiency("totalEff"+detName,"Total detector efficiency", 1, 
       minAngle/0.9, maxAngle/1.1);
-    m_thetaEfficieny = new TEfficiency("thetaEff","Efficiency vs. #Theta", bins, minAngle, maxAngle);
-    m_phiEfficiency  = new TEfficiency("phiEff","Efficiency vs. #Phi", 72, 0, 360);
-    m_twoDEfficiency = new TEfficiency("TwoDEff","Efficiency vs. #Theta and #Phi", bins, minAngle, maxAngle, 72, 0, 360);
-    m_phiFake  = new TEfficiency("phiFake","Fake Rate vs. #Phi", 72, 0, 360);
-    m_thetaFake = new TEfficiency("thetaFake","Fake Rate vs. #Theta", bins, minAngle, maxAngle);
+    m_thetaEfficieny = new TEfficiency("thetaEff"+detName,"Efficiency vs. #Theta", bins, minAngle, maxAngle);
+    m_phiEfficiency  = new TEfficiency("phiEff"+detName,"Efficiency vs. #Phi", 72, 0, 360);
+    m_twoDEfficiency = new TEfficiency("TwoDEff"+detName,"Efficiency vs. #Theta and #Phi", bins, minAngle, maxAngle, 72, 0, 360);
+    m_phiFake  = new TEfficiency("phiFake"+detName,"Fake Rate vs. #Phi", 72, 0, 360);
+    m_thetaFake = new TEfficiency("thetaFake"+detName,"Fake Rate vs. #Theta", bins, minAngle, maxAngle);
 
-    /* 0*/  m_checkPlots.push_back( new TH1D("energyReal","Energy;Energy [GeV];N",100, 0, 30) );
-    /* 1*/  m_checkPlots.push_back( new TH1D("energyFake","Energy;Energy [GeV];N",100, 0, 30) );
-    /* 2*/  m_checkPlots.push_back( new TH1D("clusterReal","Cluster; Cluster; N",40, 0, 40) );
-    /* 3*/  m_checkPlots.push_back( new TH1D("clusterFake","Cluster; Cluster; N",40, 0, 40) );
-    /* 4*/  m_checkPlots.push_back( new TH2D("EvClusterReal","Energy vs. N_{Pads};Energy [GeV]; N_{Pads}",100, 0, 20, 40, 0, 40) );
-    /* 5*/  m_checkPlots.push_back( new TH2D("EvClusterFake","Energy vs. N_{Pads};Energy [GeV]; N_{Pads}",100, 0, 20, 40, 0, 40) );
-    /* 6*/  m_checkPlots.push_back( new TH2D("EnergyRing","Energy vs. Theta;Energy [GeV]; #theta [mrad",100, 0, 20, 60, 0, 60) );
-    /* 7*/  m_checkPlots.push_back( new TH1D("thetaReal","Theta;#theta [mrad];N",200, 0, 40) );
-    /* 8*/  m_checkPlots.push_back( new TH1D("phiReal","Phi;#phi [deg];N",200, 0, 360) );
-    /* 9*/  m_checkPlots.push_back( new TH1D("thetaDiff","Delta Theta;#Delta#theta [mrad];N",100, -5, 5) );
-    /*10*/  m_checkPlots.push_back( new TH1D("phiDiff","Phi;#Delta#phi [deg];N",100, -20, 20) );
-    /*11*/  m_checkPlots.push_back( new TH2D("spatialRes","Spatial resolution;#Delta(#phi*R) [mm];#Delta R [mm]",60, -30, 30, 60, -30, 30) );
-    /*12*/  m_checkPlots.push_back( new TH2D("dRvsR","dR vs R;R [mm];#Delta R [mm]", 65, 20, 150, 60, -30, 30) );
-    /*13*/  m_checkPlots.push_back( new TH2D("dphiRvsR","d(phi*R) vs R;R [mm];#Delta(#phi*R) [mm]",65, 20, 150, 60, -30, 30) );
-    /*14*/  m_checkPlots.push_back( new TH2D("dphivsR","d(phi) vs R;R [mm];#Delta(#phi) [deg]",65, 20, 150, 100, -20, 20) );
-    /*15*/  m_checkPlots.push_back( new TProfile("EvsTheta_profile", "E vs Theta", bins, minAngle, maxAngle, 0., 30.));
+    /* 0*/  m_checkPlots.push_back( new TH1D("energyReal"+detName,"Energy;Energy [GeV];N",100, 0, 30) );
+    /* 1*/  m_checkPlots.push_back( new TH1D("energyFake"+detName,"Energy;Energy [GeV];N",100, 0, 30) );
+    /* 2*/  m_checkPlots.push_back( new TH1D("clusterReal"+detName,"Cluster; Cluster; N",40, 0, 40) );
+    /* 3*/  m_checkPlots.push_back( new TH1D("clusterFake"+detName,"Cluster; Cluster; N",40, 0, 40) );
+    /* 4*/  m_checkPlots.push_back( new TH2D("EvClusterReal"+detName,"Energy vs. N_{Pads};Energy [GeV]; N_{Pads}",100, 0, 20, 40, 0, 40) );
+    /* 5*/  m_checkPlots.push_back( new TH2D("EvClusterFake"+detName,"Energy vs. N_{Pads};Energy [GeV]; N_{Pads}",100, 0, 20, 40, 0, 40) );
+    /* 6*/  m_checkPlots.push_back( new TH2D("EnergyRing"+detName,"Energy vs. Theta;Energy [GeV]; #theta [mrad",100, 0, 20, 60, 0, 60) );
+    /* 7*/  m_checkPlots.push_back( new TH1D("thetaReal"+detName,"Theta;#theta [mrad];N",200, 0, 40) );
+    /* 8*/  m_checkPlots.push_back( new TH1D("phiReal"+detName,"Phi;#phi [deg];N",200, 0, 360) );
+    /* 9*/  m_checkPlots.push_back( new TH1D("thetaDiff"+detName,"Delta Theta;#Delta#theta [mrad];N",100, -5, 5) );
+    /*10*/  m_checkPlots.push_back( new TH1D("phiDiff"+detName,"Phi;#Delta#phi [deg];N",100, -20, 20) );
+    /*11*/  m_checkPlots.push_back( new TH2D("spatialRes"+detName,"Spatial resolution;#Delta(#phi*R) [mm];#Delta R [mm]",60, -30, 30, 60, -30, 30) );
+    /*12*/  m_checkPlots.push_back( new TH2D("dRvsR"+detName,"dR vs R;R [mm];#Delta R [mm]", 65, 20, 150, 60, -30, 30) );
+    /*13*/  m_checkPlots.push_back( new TH2D("dphiRvsR"+detName,"d(phi*R) vs R;R [mm];#Delta(#phi*R) [mm]",65, 20, 150, 60, -30, 30) );
+    /*14*/  m_checkPlots.push_back( new TH2D("dphivsR"+detName,"d(phi) vs R;R [mm];#Delta(#phi) [deg]",65, 20, 150, 100, -20, 20) );
+    /*15*/  m_checkPlots.push_back( new TProfile("EvsTheta_profile"+detName, "E vs Theta", bins, minAngle, maxAngle, 0., 30.));
 
   }//Creating Efficiency objects
 
@@ -924,7 +925,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
     bc.DrawPhiDistributions((TPad*)canv.GetPad(pad2), layer, "dotted,errors");
 
     bc.SetBeamCalHisto(padEnergies,"padLeft");
-    bc.DrawPhiDistributions((TPad*)canv.GetPad(pad2), layer, "same");
+    bc.DrawPhiDistributions((TPad*)canv.GetPad(pad2), layer, "same,histo");
     static_cast<TH1*>(((TPad*)canv.GetPad(pad2))->GetListOfPrimitives()->At(0))->SetMaximum(ymax);
     DrawLineMarkers( RecoedObjects );
 
@@ -934,7 +935,7 @@ void BeamCalClusterReco::printBeamCalEventDisplay(BCPadEnergies& padEnergiesLeft
       bc.SetBeamCalHisto(padAverages, padErrors);
       bc.DrawPhiDistributions(&tCanv, layer, "dotted,errors");
       bc.SetBeamCalHisto(padEnergies,"padLeft");
-      bc.DrawPhiDistributions(&tCanv, layer, "same");
+      bc.DrawPhiDistributions(&tCanv, layer, "same,histo");
       static_cast<TH1*>(tCanv.GetListOfPrimitives()->At(0))->SetMaximum(ymax);
       //DrawLineMarkers( RecoedObjects );
       tCanv.SaveAs(Form("SpecialEvent_Pad%i.eps", pad2));
