@@ -9,10 +9,11 @@
 #include <TH1.h>
 #include <TLegend.h>
 #include <TLegendEntry.h>
-#include <TStyle.h>
-#include <TROOT.h>
 #include <TList.h>
 #include <TObject.h>
+#include <TPaletteAxis.h>
+#include <TROOT.h>
+#include <TStyle.h>
 
 #include <cstring>
 #include <iostream>
@@ -238,7 +239,7 @@ namespace RootUtils {
     gStyle->SetLineWidth(2);
     gStyle->SetMarkerSize(1.2);
     /*set palette in 2d histogram to nice and colorful one*/
-    gStyle->SetPalette(1, 0);
+    gStyle->SetPalette(kBird, 0);
 
     /*No title for histograms*/
     gStyle->SetOptTitle(0);
@@ -307,6 +308,18 @@ namespace RootUtils {
       std::cout << __func__ << " No Histograms found" << std::endl;
       return -1;
     }
+  }
+
+  TPaletteAxis* MovePaletteHorizontally(TH1 *histo, Double_t step) {
+    TPaletteAxis *palette = (TPaletteAxis*)histo->GetListOfFunctions()->FindObject("palette");
+    if (palette) {
+      palette->SetX1NDC(palette->GetX1NDC()-step);
+      palette->SetX2NDC(palette->GetX2NDC()-step);
+      palette->GetAxis()->SetLabelOffset(0.01);
+    } else {
+      std::cout << "Palette not found!"  << std::endl;
+    }
+    return palette;
   }
 
 }//namespace

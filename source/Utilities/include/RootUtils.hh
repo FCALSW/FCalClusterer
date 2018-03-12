@@ -14,6 +14,7 @@ class TGraphErrors;
 class TH1;
 class TLegend;
 class TCanvas;
+class TPaletteAxis;
 
 namespace RootUtils {
 
@@ -59,7 +60,7 @@ namespace RootUtils {
     static int fileNumber;
   };//class
 
-
+  TPaletteAxis* MovePaletteHorizontally (TH1 *histo, Double_t step);
 
 }//namespace
 
