@@ -130,6 +130,9 @@ void ReadBeamCal::processEvent( LCEvent * evt ) {
     SimCalorimeterHit *bcalhit = static_cast<SimCalorimeterHit*>(colBCal->getElementAt(i));
     int side, layer, cylinder, sector;
     BCUtil::DecodeCellID(mydecoder, bcalhit, side, layer, cylinder, sector, m_usingDD4HEP, m_startingLayer);
+    if (sector < 0) {
+      sector += m_bcg->getPadsInRing(cylinder);
+    }
     const float energy = bcalhit->getEnergy();
     try{
       (side == 0 ) ?
