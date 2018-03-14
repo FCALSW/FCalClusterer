@@ -5,6 +5,7 @@
 #include "BCPadEnergies.hh"
 #include "BCRecoObject.hh"
 #include "BCUtilities.hh"
+#include "BCRootUtilities.hh"
 #include "BeamCal.hh"
 #include "BeamCalBkg.hh"
 #include "BeamCalCluster.hh"
@@ -363,9 +364,13 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   BCPadEnergies padErrorsLeft(m_BCG, BCPadEnergies::kLeft);
   BCPadEnergies padErrorsRight(m_BCG, BCPadEnergies::kRight);
 
-  m_BCbackground->getEventBG(padEnergiesLeft, padEnergiesRight);
-  m_BCbackground->getAverageBG(padAveragesLeft, padAveragesRight);
-  m_BCbackground->getErrorsBG(padErrorsLeft, padErrorsRight);
+  {
+    // Make ROOT quiet while getting event background
+    BCUtil::IgnoreRootError ire( not streamlog::out.write< streamlog::DEBUG0 >() );
+    m_BCbackground->getEventBG(padEnergiesLeft, padEnergiesRight);
+    m_BCbackground->getAverageBG(padAveragesLeft, padAveragesRight);
+    m_BCbackground->getErrorsBG(padErrorsLeft, padErrorsRight);
+  }
 
   streamlog_out(DEBUG4) << "*************** Event " << std::setw(6) << m_nEvt << " ***************" << std::endl;
 
