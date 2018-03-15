@@ -1115,7 +1115,11 @@ LCCollection* BeamCalClusterReco::createCaloHitCollection(LCCollection* simCaloH
   auto caloHitCollection = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);
   caloHitCollection->parameters().setValue(LCIO::CellIDEncoding,
                                            simCaloHitCollection->getParameters().getStringVal(LCIO::CellIDEncoding));
-  caloHitCollection->setFlag(simCaloHitCollection->getFlag());
+
+  IMPL::LCFlagImpl lcFlagImpl;
+  lcFlagImpl.setBit(LCIO::CHBIT_ID1);
+  lcFlagImpl.setBit(LCIO::CHBIT_LONG);
+  caloHitCollection->setFlag(lcFlagImpl.getFlag());
   for (int i = 0; i < simCaloHitCollection->getNumberOfElements(); ++i) {
     auto simHit = static_cast<EVENT::SimCalorimeterHit*>(simCaloHitCollection->getElementAt(i));
     auto calHit = new CalorimeterHitImpl();
