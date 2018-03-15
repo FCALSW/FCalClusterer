@@ -160,6 +160,9 @@ BeamCalClusterReco::BeamCalClusterReco()
   registerProcessorParameter("DetectorName", "The Name of the Detector the reconstruction is for",
                              m_detectorName, std::string("BeamCal"));
 
+  registerOptionalParameter("ReadoutName", "The Name of the DD4hep Readout belonging to the Detector the reconstruction is for, by default the name of the input collection",
+                            m_readoutName, m_readoutName);
+
   registerProcessorParameter("SubClusterEnergyID",
                              "The ID where the SubClusterEnergy will be added: LumiCal=3, BeamCal=5 in DDPFOCreator.hh",
                              m_subClusterEnergyID, m_subClusterEnergyID);
@@ -288,7 +291,14 @@ void BeamCalClusterReco::init() {
     throw WrongParameterException("== Error From BeamCalClusterReco == startingRings must always start with 0");
   }
 
-  m_BCG = ProcessorUtilities::getBeamCalGeo(m_usingDD4HEP, m_detectorName, m_colNameBCal);
+  if(m_readoutName=="") {
+    m_readoutName = m_colNameBCal;
+    streamlog_out(DEBUG7) << "Using input collection as readout name: " << m_readoutName << std::endl;
+  } else {
+    streamlog_out(DEBUG7) << "Using readout name " << m_readoutName << std::endl;
+  }
+
+  m_BCG = ProcessorUtilities::getBeamCalGeo(m_usingDD4HEP, m_detectorName, m_readoutName);
 
   streamlog_out(DEBUG6) << "Geometry:\n" << *m_BCG;
 
@@ -448,7 +458,10 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     cluster->setEnergy( energyCluster );
     cluster->setPosition( position );
     for (auto const& hitID : (*it)->getClusterPads()) {
-      cluster->addHit(m_caloHitMap[(*it)->getSide()][hitID.first], 1.0);
+      auto* bcalhit = m_caloHitMap[(*it)->getSide()][hitID.first];
+      if(bcalhit) { // if nullptr the energy comes from background only
+        cluster->addHit(bcalhit, 1.0);
+      }
     }
     cluster->subdetectorEnergies().resize(6);
     cluster->subdetectorEnergies()[m_subClusterEnergyID] = energyCluster;

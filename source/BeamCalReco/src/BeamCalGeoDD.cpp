@@ -22,8 +22,8 @@
 #include <vector>
 
 BeamCalGeoDD::BeamCalGeoDD(dd4hep::Detector const& theDetector, std::string const& detectorName,
-                           std::string const& colName): m_BeamCal(theDetector.detector(detectorName)),
-                                                                 m_segmentation(theDetector.readout(colName).segmentation()),
+                           std::string const& readoutName): m_BeamCal(theDetector.detector(detectorName)),
+                                                                 m_segmentation(theDetector.readout(readoutName).segmentation()),
                                                                  m_innerRadius(0.0),
                                                                  m_outerRadius(0.0),
                                                                  m_layers(0),
