@@ -13,7 +13,6 @@
 #include "BCPadEnergies.hh"
 #include "BeamCalBkg.hh"
 #include "BeamCalGeo.hh"
-#include "BeamCalGeoCached.hh"
 
 // ----- include for verbosity dependent logging ---------
 #include <streamlog/loglevels.h>
@@ -85,9 +84,6 @@ void BeamCalBkgPregen::init(vector<string> &bg_files, const int n_bx)
   m_backgroundBX->SetBranchAddress("vec_right", &m_BeamCalDepositsRight);
 
   streamlog_out(DEBUG2) << "We have " << m_backgroundBX->GetEntries() << " background BXs" << std::endl;
-
-  //Create an Average BeamCal, needed to setup the BCPadEnergies
-  m_BCG = new BeamCalGeoCached(marlin::Global::GEAR);
 
   m_BeamCalAverageLeft  =  new BCPadEnergies(m_BCG);
   m_BeamCalAverageRight =  new BCPadEnergies(m_BCG);

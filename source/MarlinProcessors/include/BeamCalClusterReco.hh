@@ -79,6 +79,7 @@ class BeamCalClusterReco : public marlin::Processor {
   std::string m_colNameBCal;
   std::string m_bgMethodName;
   std::string m_hitsOutColName="BeamCal_Hits";
+  std::string m_readoutName="";
   std::vector<std::string> m_files;
 
   int m_nEvt ;
