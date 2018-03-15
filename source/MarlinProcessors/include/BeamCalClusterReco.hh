@@ -8,8 +8,10 @@
 #include <map>
 
 class TEfficiency;
+class TFile;
 class TH1;
 class TString;
+class TTree;
 
 class BCPCuts;
 class BCPadEnergies;
@@ -112,10 +114,15 @@ class BeamCalClusterReco : public marlin::Processor {
 
   TEfficiency *m_totalEfficiency, *m_thetaEfficieny, *m_phiEfficiency, *m_twoDEfficiency;
   TEfficiency *m_phiFake, *m_thetaFake;
+  std::map<int, std::shared_ptr<TEfficiency>> m_fakeRates{};
   std::vector<TH1*> m_checkPlots;
   std::vector<OriginalMC> m_originalParticles;
   bool m_MCinBeamCal;
-  
+
+  //Efficiency/fake tree variables
+  std::vector<double> m_recoTheta{}, m_recoPhi{}, m_recoEnergy{}, m_nPads{}, m_trueTheta{}, m_truePhi{}, m_trueEnergy{};
+  TFile* m_effFile=nullptr;
+  TTree* m_efficiencyTree=nullptr;
 
 private:
 

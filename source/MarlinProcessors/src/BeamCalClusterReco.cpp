@@ -55,6 +55,7 @@
 #include <TProfile.h>
 #include <TString.h>
 #include <TStyle.h>
+#include <TTree.h>
 #include <TVirtualPad.h>
 
 //STDLIB
@@ -314,6 +315,8 @@ void BeamCalClusterReco::init() {
 
   //Create Efficiency Objects if required
   if(m_createEfficienyFile) {
+    m_effFile = TFile::Open(m_EfficiencyFileName.c_str(),"RECREATE");
+
     const double //angles in mrad
       minAngle(0.9*m_BCG->getBCInnerRadius()/m_BCG->getBCZDistanceToIP()*1000), 
       maxAngle(1.1*m_BCG->getBCOuterRadius()/m_BCG->getBCZDistanceToIP()*1000); 
@@ -343,6 +346,24 @@ void BeamCalClusterReco::init() {
     /*13*/  m_checkPlots.push_back( new TH2D("dphiRvsR"+detName,"d(phi*R) vs R;R [mm];#Delta(#phi*R) [mm]",65, 20, 150, 60, -30, 30) );
     /*14*/  m_checkPlots.push_back( new TH2D("dphivsR"+detName,"d(phi) vs R;R [mm];#Delta(#phi) [deg]",65, 20, 150, 100, -20, 20) );
     /*15*/  m_checkPlots.push_back( new TProfile("EvsTheta_profile"+detName, "E vs Theta", bins, minAngle, maxAngle, 0., 30.));
+
+    std::vector<int> upperBoundaries{10, 25, 50, 100, 190, 250, 500, 750, 1000, 1250, 2100, 10000};
+    for (auto const& maxE: upperBoundaries ) {
+      m_fakeRates[maxE] = std::make_shared<TEfficiency>(Form("thetaFake_%d_%s", maxE, m_detectorName.c_str()),
+                                                        Form("Fake Rate vs. #Theta, E<%d", maxE),
+                                                        bins, minAngle, maxAngle);
+    }
+
+    m_efficiencyTree = new TTree("fcalEfficiency"+detName, "FCal Reco Efficiency Tree");
+
+    m_efficiencyTree->Branch("recoTheta",  &m_recoTheta  );
+    m_efficiencyTree->Branch("recoPhi",    &m_recoPhi    );
+    m_efficiencyTree->Branch("recoEnergy", &m_recoEnergy );
+    m_efficiencyTree->Branch("nPads",      &m_nPads      );
+    m_efficiencyTree->Branch("trueTheta",  &m_trueTheta  );
+    m_efficiencyTree->Branch("truePhi",    &m_truePhi    );
+    m_efficiencyTree->Branch("trueEnergy", &m_trueEnergy );
+    m_efficiencyTree->Branch("event",      &m_nEvt,      "event/I");
 
   }//Creating Efficiency objects
 
@@ -404,11 +425,19 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   LeftSide.insert( LeftSide.end(), RightSide.begin(), RightSide.end() );
 
   if(m_createEfficienyFile) {
-    findOriginalMCParticles(evt);
-  }
+    m_recoTheta.clear();
+    m_recoPhi.clear();
+    m_recoEnergy.clear();
+    m_nPads.clear();
+    m_trueTheta.clear();
+    m_truePhi.clear();
+    m_trueEnergy.clear();
 
-  if(m_createEfficienyFile) {
+    findOriginalMCParticles(evt);
     fillEfficiencyObjects(LeftSide);
+
+    m_efficiencyTree->Fill();
+
   }
 
   if( (streamlog::out.write< DEBUG3 >() && m_nEvt == m_specialEvent ) ) {
@@ -520,12 +549,19 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
     const double theta(bco->getThetaMrad());
     const double phi(bco->getPhi());
 
+    m_recoTheta.push_back(theta);
+    m_recoPhi.push_back(phi);
+    m_recoEnergy.push_back(bco->getEnergy()*m_calibrationFactor);
+    m_nPads.push_back(bco->getNPads());
+
     for (std::vector<OriginalMC>::iterator mcIt = m_originalParticles.begin(); mcIt != m_originalParticles.end(); ++mcIt) {
-      if (BCUtil::areCloseTogether(theta, phi, (*mcIt).m_theta, (*mcIt).m_phi )) {
+      if (BCUtil::areCloseTogether(theta, phi, (*mcIt).m_theta, (*mcIt).m_phi ) and
+          (fabs(bco->getEnergy()*m_calibrationFactor - mcIt->m_energy)/mcIt->m_energy < 0.5)
+          ) {
 	hasRightCluster = true;
 	bco->setOMC(mcIt-m_originalParticles.begin());
 	(*mcIt).m_wasFound = true;
-	break;
+
       }
     }
 
@@ -559,10 +595,13 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
     const bool hasRightCluster(bco->hasRightCluster());
     const double theta(bco->getThetaMrad());
     const double phi(bco->getPhi());
+    const double energy(bco->getEnergy()*m_calibrationFactor);
     if (not hasRightCluster) {
       m_thetaFake->Fill(true, theta);
       m_phiFake->Fill(true, phi);
       foundFake = true;
+      m_fakeRates.upper_bound(int(energy))->second->Fill(true, theta);
+
     }
   }
 
@@ -573,6 +612,11 @@ void BeamCalClusterReco::fillEfficiencyObjects(const std::vector<BCRecoObject*>&
     const double step = (high-low)/double(nbins);
     for (int i = 1; i <= nbins ;++i) {
       m_thetaFake->Fill( false, i * step + step/2.0 + low );
+    }
+    for (auto& eEff: m_fakeRates) {
+      for (int i = 1; i <= nbins ;++i) {
+        eEff.second->Fill( false, i * step + step/2.0 + low );
+      }
     }
   }
 
@@ -627,7 +671,8 @@ void BeamCalClusterReco::end(){
 
 
   if(m_createEfficienyFile) {
-    TFile *effFile = TFile::Open(m_EfficiencyFileName.c_str(),"RECREATE");
+    m_effFile->cd();
+    m_efficiencyTree->Write();
     m_totalEfficiency->Write();
     m_thetaEfficieny->Write();
     m_phiEfficiency->Write();
@@ -639,9 +684,16 @@ void BeamCalClusterReco::end(){
       checkPlot->Write();
       delete checkPlot;
     }//all plots
+    m_checkPlots.clear();
 
-    effFile->Close();
-    delete effFile;
+    for (auto& fakeRate : m_fakeRates) {
+      fakeRate.second->Write();
+    }
+    m_fakeRates.clear();
+
+    m_effFile->Close();
+    delete m_effFile;
+    m_effFile=nullptr;
 
     delete m_totalEfficiency;
     delete m_thetaEfficieny;
@@ -652,7 +704,6 @@ void BeamCalClusterReco::end(){
 
   }
 
-  m_checkPlots.clear();
 
   delete m_BCG;
   delete m_BCbackground;
@@ -1003,7 +1054,6 @@ void BeamCalClusterReco::DrawLineMarkers( const std::vector<BCRecoObject*> & Rec
 void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
   m_originalParticles.clear();
   const double halfCrossingAngleMrad(m_BCG->getCrossingAngle()*0.5);
-  const double maxAngle(1.1*m_BCG->getBCOuterRadius()/m_BCG->getBCZDistanceToIP()*1000); 
   try {
     LCCollection* colMC = evt->getCollection ( m_colNameMC );
     for (int i =0; i < colMC->getNumberOfElements();++i) {
@@ -1027,7 +1077,6 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
 
       //double radius = sqrt(momentum2[0]*momentum2[0]+momentum2[1]*momentum2[1]);
       double impactTheta = BCUtil::AngleToBeamCal(momentum, halfCrossingAngleMrad)*1000;//mrad
-      if ( impactTheta > maxAngle ) continue; //only particles that are inside the BeamCal acceptance
 
       double impactPhi   = TMath::ATan2(momentum2[1], momentum2[0]) * TMath::RadToDeg();
       if(impactPhi < 0) impactPhi += 360;
@@ -1039,6 +1088,10 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
 			      << std::setw(13) << impactPhi
 			      << std::setw(13) << absMom
 			      << std::endl;
+      m_trueTheta.push_back(impactTheta);
+      m_truePhi.push_back(impactPhi);
+      m_trueEnergy.push_back(absMom);
+
     }
   } catch (Exception &e) {
   }
