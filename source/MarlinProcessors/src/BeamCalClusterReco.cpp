@@ -523,6 +523,8 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 
   m_nEvt++ ;
 
+  m_caloHitMap.clear();
+
   /*
   if (m_nEvt > 1000) this->end();
 
@@ -1110,14 +1112,15 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
 void BeamCalClusterReco::readSignalHits(LCEvent* evt, LCCollection* colBCal, BCPadEnergies& padEnergiesLeft,
                                         BCPadEnergies& padEnergiesRight, double& depositedEnergy, double& maxDeposit,
                                         int& maxLayer) {
-  if (not colBCal or colBCal->getNumberOfElements() == 0) {
-    return;
-  }
-  m_caloHitMap.clear();
+
   m_caloHitMap.emplace(std::piecewise_construct, std::forward_as_tuple(BCPadEnergies::kLeft),
                        std::forward_as_tuple(m_BCG->getPadsPerBeamCal(), nullptr));
   m_caloHitMap.emplace(std::piecewise_construct, std::forward_as_tuple(BCPadEnergies::kRight),
                        std::forward_as_tuple(m_BCG->getPadsPerBeamCal(), nullptr));
+
+  if (not colBCal or colBCal->getNumberOfElements() == 0) {
+    return;
+  }
 
   // figure out if we have a CalorimeterHit or SimCalorimeterHit collection,
   // and create CalorimeterHit collection if necessary
