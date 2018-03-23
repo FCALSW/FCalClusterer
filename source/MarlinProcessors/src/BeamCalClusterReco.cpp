@@ -457,12 +457,16 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     ClusterImpl* cluster = new ClusterImpl;
     cluster->setEnergy( energyCluster );
     cluster->setPosition( position );
-    for (auto const& hitID : (*it)->getClusterPads()) {
-      auto* bcalhit = m_caloHitMap[(*it)->getSide()][hitID.first];
-      if(bcalhit) { // if nullptr the energy comes from background only
-        cluster->addHit(bcalhit, 1.0);
+    
+    if(not m_caloHitMap.empty()) {
+      for (auto const& hitID : (*it)->getClusterPads()) {
+        auto* bcalhit = m_caloHitMap[(*it)->getSide()][hitID.first];
+        if(bcalhit) { // if nullptr the energy comes from background only
+          cluster->addHit(bcalhit, 1.0);
+        }
       }
     }
+    
     cluster->subdetectorEnergies().resize(6);
     cluster->subdetectorEnergies()[m_subClusterEnergyID] = energyCluster;
     ReconstructedParticleImpl* particle = new ReconstructedParticleImpl;
