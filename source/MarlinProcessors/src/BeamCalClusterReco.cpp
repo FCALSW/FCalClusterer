@@ -465,7 +465,6 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     const float charge = 0.0;
     const float mmBeamCalDistance((*it)->getZ() / cos(thetaCluster));
 
-#pragma message "make sure rotation to labframe works on both sides and we are not rotating something weird"
     //which side the Cluster is on
     double sideFactor = ((*it)->getSide()==BCPadEnergies::kLeft) ? +1.0 : -1.0;
 
@@ -1073,7 +1072,6 @@ void BeamCalClusterReco::findOriginalMCParticles(LCEvent *evt) {
       const double absMom = sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
       if ( absMom < 10 ) continue;
       //Rotate to appropriate beamCal System
-#pragma message "Fix the rotation thing"
       BCUtil::RotateToBCFrame(momentum, momentum2, halfCrossingAngleMrad);
       m_eventSide = (momentum[2] > 0) ? BCPadEnergies::kLeft  : BCPadEnergies::kRight;
 
