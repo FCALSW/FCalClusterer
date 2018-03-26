@@ -30,7 +30,7 @@ using VD=std::vector<double>;
 
 void calculateOccupancy(std::string& detectorName, std::string& compactFile, double threshold,
                         std::vector<std::string> const& backgroundFiles);
-void readBackgroundFile(std::string const& backgroundFile, VD& countLeft, VD& countRight, double threshold, int& nBX);
+void readBackgroundFile(std::string const& backgroundFile, VD& countLeft, VD& countRight, double threshold, int& nBX, double& totalEnergyBX);
 void drawOccupancy(std::string const& detectorName, BeamCalGeo const& bcg,
                    std::string const& name, BCPadEnergies const& bcp);
 
@@ -77,10 +77,13 @@ void calculateOccupancy(std::string& detectorName, std::string& compactFile, dou
   int nBX(0);
   int nPads = bcg.getPadsPerBeamCal();
   VD countLeft(nPads, 0), countRight(nPads, 0);
+  double totalEnergy(0.0);
 
   std::cout << "Have " << backgroundFiles.size() << " Files"  << std::endl;
   for (auto const& backgroundFile: backgroundFiles ) {
-    readBackgroundFile(backgroundFile, countLeft, countRight, threshold, nBX);
+    double totalEnergyBX = 0.0;
+    readBackgroundFile(backgroundFile, countLeft, countRight, threshold, nBX, totalEnergyBX);
+    totalEnergy += totalEnergyBX;
   }
 
   std::cout << "Have " << nBX << " bunch crossings"  << std::endl;
@@ -90,6 +93,7 @@ void calculateOccupancy(std::string& detectorName, std::string& compactFile, dou
   //bunch crossings and count values above threshold why store all the values
   //and not directly count things above threshold?
 
+  totalEnergy /= (double(nBX)*2.0); //counting both sides
   for (size_t nPad = 0; nPad < countLeft.size();++nPad) {
     countLeft[nPad] /= double(nBX);
     countRight[nPad] /= double(nBX);
@@ -102,6 +106,9 @@ void calculateOccupancy(std::string& detectorName, std::string& compactFile, dou
 
   drawOccupancy(detectorName, bcg, "Left", left);
   drawOccupancy(detectorName, bcg, "Right", right);
+
+  std::cout << "Total Energy deposit per BX in _one_ Detector: " << totalEnergy << " GeV" << std::endl;
+
 }
 
 void drawOccupancy(std::string const& detectorName, BeamCalGeo const& bcg,
@@ -136,7 +143,7 @@ void drawOccupancy(std::string const& detectorName, BeamCalGeo const& bcg,
 }
 
 
-void readBackgroundFile(std::string const& backgroundFile, VD& countLeft, VD& countRight, double threshold, int& nBX){
+void readBackgroundFile(std::string const& backgroundFile, VD& countLeft, VD& countRight, double threshold, int& nBX, double& totalEnergyBX){
   TTree* tree;
   VD *depLeft=NULL;
   VD *depRight=NULL;
@@ -161,6 +168,8 @@ void readBackgroundFile(std::string const& backgroundFile, VD& countLeft, VD& co
     tree->GetEntry(i);
     nBX++;
     for (size_t nPad = 0; nPad < countLeft.size();++nPad) {
+      totalEnergyBX += (*depLeft)[nPad];
+      totalEnergyBX += (*depRight)[nPad];
       if((*depLeft)[nPad] > threshold) {
         countLeft[nPad] += 1;
       }
