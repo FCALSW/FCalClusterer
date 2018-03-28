@@ -17,6 +17,7 @@
 #include <Exceptions.h>
 #include <IMPL/CalorimeterHitImpl.h>
 #include <IMPL/LCCollectionVec.h>
+#include <IMPL/LCFlagImpl.h>
 #include <UTIL/BitField64.h>
 #include <UTIL/CellIDDecoder.h>
 // Stdlib
@@ -182,7 +183,10 @@ EVENT::LCCollection* LumiCalClustererClass::createCaloHitCollection(EVENT::LCCol
   auto caloHitCollection = new IMPL::LCCollectionVec(EVENT::LCIO::CALORIMETERHIT);
   caloHitCollection->parameters().setValue(EVENT::LCIO::CellIDEncoding,
                                            simCaloHitCollection->getParameters().getStringVal(EVENT::LCIO::CellIDEncoding));
-  caloHitCollection->setFlag(simCaloHitCollection->getFlag());
+  IMPL::LCFlagImpl lcFlagImpl;
+  lcFlagImpl.setBit(EVENT::LCIO::CHBIT_ID1);
+  lcFlagImpl.setBit(EVENT::LCIO::CHBIT_LONG);
+  caloHitCollection->setFlag(lcFlagImpl.getFlag());
   for (int i = 0; i < simCaloHitCollection->getNumberOfElements(); ++i) {
     auto simHit = static_cast<EVENT::SimCalorimeterHit*>(simCaloHitCollection->getElementAt(i));
     auto calHit = new IMPL::CalorimeterHitImpl();
