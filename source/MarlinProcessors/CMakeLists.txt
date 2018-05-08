@@ -1,7 +1,3 @@
-INCLUDE_DIRECTORIES ( ./include )
-INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/BeamCalReco/include )
-INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/source/LumiCalReco/include )
-
 ## BeamCalReco Processors
 SET( BeamCalProcessor_SOURCE src/ReadBeamCal.cpp src/BeamCalClusterReco.cpp)
 
@@ -14,6 +10,7 @@ IF( DD4hep_FOUND )
 ENDIF()
 
 ADD_LIBRARY ( FCalClusterer SHARED ${BeamCalProcessor_SOURCE} ${LumiCalProcessor_SOURCE} ${DD4hepProcessor_SOURCE} )
+TARGET_INCLUDE_DIRECTORIES(FCalClusterer PUBLIC ./include)
 
 #LibrariesToLink
 SET( FCAL_LIBRARIES LumiCalReco BeamCalReco )
