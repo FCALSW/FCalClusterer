@@ -20,14 +20,12 @@ SET( BeamCalReco_SOURCES
   src/BCRecoObject.cpp
  )
 
-INCLUDE_DIRECTORIES ( ./include )
-INCLUDE_DIRECTORIES ( ../Utilities/include )
-
 IF( DD4hep_FOUND )
   LIST(APPEND BeamCalReco_SOURCES src/BeamCalGeoDD.cpp )
 ENDIF()
 
 ADD_LIBRARY( BeamCalReco SHARED ${BeamCalReco_SOURCES} )
+TARGET_INCLUDE_DIRECTORIES(BeamCalReco PUBLIC ./include)
 
 IF( CPPCHECK_FOUND )
   MESSAGE( STATUS "Will cppcheck beamCalReco" )
