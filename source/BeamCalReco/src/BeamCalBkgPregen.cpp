@@ -18,8 +18,6 @@
 #include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 
-#include <marlin/Global.h>
-
 // ROOT
 #include <TChain.h>
 #include <TRandom3.h>
