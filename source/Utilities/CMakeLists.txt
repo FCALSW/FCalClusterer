@@ -1,20 +1,22 @@
-SET( Utilities_SOURCES 
-  src/RootUtils.cpp
- )
 
-ADD_LIBRARY( FCalUtils SHARED ${Utilities_SOURCES} )
-TARGET_INCLUDE_DIRECTORIES(FCalUtils PUBLIC ./include)
-TARGET_LINK_LIBRARIES( FCalUtils ${ROOT_LIBRARIES}  )
 
+#FCal Utils Library
+ADD_LIBRARY(FCalUtils SHARED src/RootUtils.cpp)
+TARGET_INCLUDE_DIRECTORIES(FCalUtils PUBLIC include)
+TARGET_INCLUDE_DIRECTORIES(FCalUtils SYSTEM PUBLIC ${ROOT_INCLUDE_DIR} ${ROOT_INCLUDE_DIRS})
+TARGET_COMPILE_DEFINITIONS(FCalUtils PUBLIC ${ROOT_DEFINITIONS})
+TARGET_LINK_LIBRARIES(FCalUtils ${ROOT_LIBRARIES})
+
+#BCBackgroundPar Executable
 ADD_EXECUTABLE( BCBackgroundPar src/BCBackgroundPar.cpp src/BackgroundFitter.cpp )
+TARGET_LINK_LIBRARIES( BCBackgroundPar FCalUtils )
 
-TARGET_LINK_LIBRARIES( BCBackgroundPar ${ROOT_LIBRARIES} FCalUtils )
 
+#Occupancies Executbale
 IF( DD4hep_FOUND )
   ADD_EXECUTABLE(Occupancies src/Occupancies.cpp)
-  TARGET_LINK_LIBRARIES(Occupancies BeamCalReco FCalUtils )
+  TARGET_LINK_LIBRARIES(Occupancies BeamCalReco FCalUtils)
   INSTALL(TARGETS Occupancies DESTINATION bin)
-
 ENDIF()
 
 IF ( CPPCHECK_FOUND )
