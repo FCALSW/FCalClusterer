@@ -12,6 +12,7 @@ SET( FCAL_USE_GEAR True ) ##not optional
 SET( FCAL_USE_streamlog True ) ##not optional
 OPTION( FCAL_USE_Marlin  " Build Marlin Processors" True )
 OPTION( FCAL_USE_DD4hep  " Build With DD4hep support" True )
+OPTION( INSTALL_DOC "Set to OFF to skip build/install Documentation" OFF )
 
 SET( CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} )
 
@@ -45,6 +46,9 @@ IF(CLANG_TIDY)
 ENDIF()
 
 ADD_SUBDIRECTORY(source/)
+IF(INSTALL_DOC)
+  ADD_SUBDIRECTORY(doc/)
+ENDIF()
 
 MESSAGE (STATUS "CMAKE_FLAGS ${CMAKE_CXX_FLAGS}" )
 MESSAGE (STATUS "CMAKE_FLAGS DEBUG ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
