@@ -1,3 +1,5 @@
+FIND_PACKAGE( Doxygen REQUIRED )
+
 # build documentation out-of-source
 SET( DOC_SRC_DIR "${PROJECT_SOURCE_DIR}/doc" )
 SET( DOC_BIN_DIR "${PROJECT_BINARY_DIR}/docbuild" )
