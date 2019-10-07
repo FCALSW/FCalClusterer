@@ -126,7 +126,7 @@ void BeamCalBkgParam::init(vector<string> &bg_files, const int n_bx)
 
 void BeamCalBkgParam::getEventBG(BCPadEnergies &peLeft, BCPadEnergies &peRight)
 {
-  BCUtil::IgnoreRootError ire( not streamlog::out.write< streamlog::DEBUG0 >() );
+  BCUtil::IgnoreRootError ire( not streamlog_level(DEBUG0) );
 
   const int nBCpads = m_BCG->getPadsPerBeamCal();
   vector<double> vedep(nBCpads, 0.);
@@ -281,7 +281,7 @@ double gausOverX(double *x, double* p) {
 int BeamCalBkgParam::setBkgDistr(const BCPadEnergies::BeamCalSide_t bc_side)
 {
   //this in highest debug level only
-  BCUtil::IgnoreRootError ire( not streamlog::out.write< streamlog::DEBUG0 >() );
+  BCUtil::IgnoreRootError ire( not streamlog_level(DEBUG0) );
 
   streamlog_out( MESSAGE0 ) << "Creating Background Distributions: " << bc_side << std::endl;
 

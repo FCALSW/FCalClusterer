@@ -277,7 +277,7 @@ void BeamCalClusterReco::init() {
   Global::EVENTSEEDER->registerProcessor(this);
 
   // usually a good idea to
-  if( streamlog::out.write< MESSAGE3 >() ) {
+  if( streamlog_level(MESSAGE3) ) {
     printParameters() ;
   }
 
@@ -440,7 +440,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
 
   }
 
-  if( (streamlog::out.write< DEBUG3 >() && m_nEvt == m_specialEvent ) ) {
+  if( (streamlog_level(DEBUG3) && m_nEvt == m_specialEvent ) ) {
     printBeamCalEventDisplay(padEnergiesLeft, padEnergiesRight, maxLayer, maxDeposit, depositedEnergy, LeftSide);
   }//DEBUG
 

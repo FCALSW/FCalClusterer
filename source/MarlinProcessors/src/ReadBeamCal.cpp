@@ -183,7 +183,7 @@ void ReadBeamCal::end(){
   //   //     bgpos[k]->Write();
   // }
 
-  if( streamlog::out.write< DEBUG >() ) {
+  if( streamlog_level(DEBUG) ) {
 
     BeamCal bc( *m_bcg );
 
