@@ -1,3 +1,22 @@
+# v01-00-01
+
+* 2018-05-16 Shaojun Lu ([PR#59](https://github.com/fcalsw/fcalclusterer/pull/59))
+  - added "FIND_PACKAGE( Doxygen REQUIRED )" for doc/CMakeLists.txt.
+    - to build document with available Doxygen with "INSTALL_DOC=ON".
+
+* 2018-05-15 Andre Sailer ([PR#58](https://github.com/fcalsw/fcalclusterer/pull/58))
+  -  CI: Add build on CC7
+  - CMAKE: fix linker problem on CC7 (newer ld version)
+
+* 2018-05-15 Andre Sailer ([PR#57](https://github.com/fcalsw/fcalclusterer/pull/57))
+  - Doc: add doxygen file
+
+* 2018-05-14 Andre Sailer ([PR#56](https://github.com/fcalsw/fcalclusterer/pull/56))
+  - CMAKE: use TARGET_[INCLUDE_DIRECTORIES|LINK_LIBRARIES|COMPILE_DEFINITIONS] instead of global include or linking
+
+* 2018-05-08 Andre Sailer ([PR#55](https://github.com/fcalsw/fcalclusterer/pull/55))
+  - CMake: let include directories be decided via dependencies
+
 # v01-00
 
 * 2017-11-16 Yorgos Voutsinas ([PR#30](https://github.com/FCALSW/FCalClusterer/pull/30))
