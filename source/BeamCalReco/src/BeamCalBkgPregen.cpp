@@ -29,6 +29,7 @@
 #include <map>
 #include <set>
 #include <stdexcept>
+#include <random>
 
 using std::vector;
 using std::string;
@@ -67,7 +68,9 @@ void BeamCalBkgPregen::init(vector<string> &bg_files, const int n_bx)
   m_backgroundBX = new TChain("bcTree");
 
   //mix up the files, because the random numbers are ordered to avoid repeating
-  std::random_shuffle(bg_files.begin(), bg_files.end());
+  std::random_device seed_gen;
+  std::mt19937 engine(seed_gen());
+  std::shuffle(bg_files.begin(), bg_files.end(), engine);
 
   for (std::vector<std::string>::iterator file = bg_files.begin(); file != bg_files.end(); ++file) {
     streamlog_out(DEBUG1) << *file << std::endl;
