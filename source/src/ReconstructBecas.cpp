@@ -59,9 +59,8 @@ int reconstructBecas (int argn, char **argc) {
   // Reconstruct based on the sigma criterium
   std::cout << "Reconstructing"  << std::endl;
 
-  bool detailedPrintout;
-  const std::vector<BeamCalCluster>& clusters0 = signalBeamCals[0].lookForNeighbouringClustersOverSigma(backgroundBeamCals[0], cuts, detailedPrintout=false);
-  const std::vector<BeamCalCluster>& clusters1 = signalBeamCals[1].lookForNeighbouringClustersOverSigma(backgroundBeamCals[1], cuts, detailedPrintout=false);
+  const std::vector<BeamCalCluster>& clusters0 = signalBeamCals[0].lookForNeighbouringClustersOverSigma(backgroundBeamCals[0], cuts, /*detaildPrintout=*/false);
+  const std::vector<BeamCalCluster>& clusters1 = signalBeamCals[1].lookForNeighbouringClustersOverSigma(backgroundBeamCals[1], cuts, /*detaildPrintout=*/false);
 
   ///Output the reconstructed objects 
   std::cout << "cluster0"  << std::endl;
