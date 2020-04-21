@@ -313,7 +313,7 @@ void BeamCalGeoDD::readPolarGridRPhi() {
   m_rings = int((m_outerRadius - m_innerRadius) / rSize + 0.5);
   m_radSegmentation.resize(m_rings + 1);  //inner and outer radius are part of this
   int n = -1;
-  std::generate(m_radSegmentation.begin(), m_radSegmentation.end(), [n, this, rSize, rOff]() mutable {
+  std::generate(m_radSegmentation.begin(), m_radSegmentation.end(), [n, rSize, rOff]() mutable {
     ++n;
     return rOff + rSize * (n - 0.5);
   });
