@@ -97,7 +97,7 @@ inline double                BeamCalGeoCached::getBCZDistanceToIP() const {
 
 
 inline double                BeamCalGeoCached::getLayerZDistanceToIP(int layer) const {
-#pragma message "FIXME: make thickness of graphite shield to be read from GEAR"
+  //#pragma message "FIXME: make thickness of graphite shield to be read from GEAR"
   const double graphiteShield_dZ = 100.;
   double lr_zdist(graphiteShield_dZ);
   lr_zdist+=m_BCPs.getLayerLayout().getDistance(layer);
