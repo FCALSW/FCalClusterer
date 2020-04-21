@@ -126,7 +126,7 @@ void BeamCalGeoCached::setPadsBeforeRing() {
   int nPads = 0;
   for (int ring = 0; ring <= m_rings; ++ring) {//we want the number of pads _before_ the ring
     m_padsBeforeRing[ring] = nPads;
-    nPads += getPadsInRing(ring);
+    nPads += BeamCalGeoCached::getPadsInRing(ring);
   }
   return;
 }
@@ -143,12 +143,12 @@ inline int BeamCalGeoCached::getPadsPerBeamCal() const {
 
 
 void BeamCalGeoCached::setPadsPerLayer() {
-  m_padsPerLayer = getPadsBeforeRing( getBCRings() );
+  m_padsPerLayer = BeamCalGeoCached::getPadsBeforeRing(BeamCalGeoCached::getBCRings());
 }
 
 
 void BeamCalGeoCached::setPadsPerBeamCal() {
-  m_padsPerBeamCal = getPadsPerLayer() * getBCLayers();
+  m_padsPerBeamCal = BeamCalGeoCached::getPadsPerLayer() * BeamCalGeoCached::getBCLayers();
 }
 
 
@@ -173,6 +173,6 @@ int BeamCalGeoCached::getFirstFullRing() const {
 
 void BeamCalGeoCached::setFirstFullRing() {
   int ring = 0;
-  while ( m_cutOut > getRadSegmentation()[ring] ) { ++ring; }
+  while ( m_cutOut > BeamCalGeoCached::getRadSegmentation()[ring] ) { ++ring; }
   m_firstFullRing = ring;
 }
