@@ -64,7 +64,7 @@ void fillLumiCal(GlobalMethodsClass& gmc, HitMap& hits, int phiID, int direction
   for (int layer = 0; layer < 40; ++layer) {
     for (int thisPad = phiID - nAddHits; thisPad <= phiID + nAddHits; ++thisPad) {
       for (int thisR = centralR - nAddHits; thisR <= centralR + nAddHits; ++thisR) {
-        auto* hit = new IMPL::CalorimeterHitImpl();
+        auto hit = std::make_unique<IMPL::CalorimeterHitImpl>();
 
         int thisPadID = thisPad;
         // counting sense inverted in backward direction (because of LumiCalConstruction)
@@ -138,7 +138,7 @@ void fillLumiCal(GlobalMethodsClass& gmc, HitMap& hits, int phiID, int direction
                               << std::setw(13) << hit->getEnergy()
                               << std::endl;
         
-        hits[llCell] = hit;
+        hits[llCell] = hit.release();
       }
     }
   }
