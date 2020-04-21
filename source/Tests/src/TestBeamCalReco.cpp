@@ -84,11 +84,12 @@ int runTest(int argn, char** argc) {
       signalBeamCals[0].setSide(BCPadEnergies::BeamCalSide_t::kLeft);
       signalBeamCals[1].setSide(BCPadEnergies::BeamCalSide_t::kRight);
 
-      bool                               detailedPrintout;
       const std::vector<BeamCalCluster>& clusters0 =
-          signalBeamCals[0].lookForNeighbouringClustersOverSigma(backgroundBeamCals[0], cuts, detailedPrintout = true);
+          signalBeamCals[0].lookForNeighbouringClustersOverSigma(backgroundBeamCals[0], cuts,
+								 /*detailedPrintout=*/true);
       const std::vector<BeamCalCluster>& clusters1 =
-          signalBeamCals[1].lookForNeighbouringClustersOverSigma(backgroundBeamCals[1], cuts, detailedPrintout = true);
+          signalBeamCals[1].lookForNeighbouringClustersOverSigma(backgroundBeamCals[1], cuts,
+								 /*detailedPrintout=*/true);
 
       double         reconstructedPhi = -1000;
       BeamCalCluster reco;
