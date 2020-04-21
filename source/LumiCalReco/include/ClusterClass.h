@@ -23,7 +23,7 @@ public:
   ClusterClass(GlobalMethodsClass& gmc, int idNow, LCCluster const* clusterInfo);
   ~ClusterClass() = default;
   ClusterClass(const ClusterClass&) = default;
-  ClusterClass& operator=(const ClusterClass&) = default;
+  ClusterClass& operator=(const ClusterClass&) = delete;
 
   void	FillHit(int cellNow, double engyNow);
   int	ResetStats();
