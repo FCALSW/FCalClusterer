@@ -304,6 +304,7 @@ void BeamCalClusterReco::init() {
   streamlog_out(DEBUG6) << "Geometry:\n" << *m_BCG;
 
   m_BCbackground = BeamCalBkg::Factory(m_bgMethodName, m_BCG);
+  m_BCbackground->setRandom3Seed(Global::EVENTSEEDER->getSeed(this));
 
   //Fill BCPCuts object with cuts from the processor parameters
   m_bcpCuts = new BCPCuts(m_startingRings, m_requiredRemainingEnergy, m_requiredClusterEnergy, m_minimumTowerSize,
@@ -386,7 +387,7 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
     colBCal = nullptr;
   }
 
-  m_BCbackground->setRandom3Seed(m_nEvt+Global::EVENTSEEDER->getSeed(this));
+  m_BCbackground->setRandom3Seed(Global::EVENTSEEDER->getSeed(this));
 
   BCPadEnergies padEnergiesLeft(m_BCG, BCPadEnergies::kLeft);
   BCPadEnergies padEnergiesRight(m_BCG, BCPadEnergies::kRight);
