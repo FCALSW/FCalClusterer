@@ -41,7 +41,7 @@ BeamCalBkg::BeamCalBkg(const string& bg_method_name, const BeamCalGeo* BCG)
       m_BeamCalErrorsRight(nullptr),
       m_TowerErrorsLeft(nullptr),
       m_TowerErrorsRight(nullptr),
-      m_random3(nullptr),
+      m_random3(new TRandom3()),
       m_BCG(BCG),
       m_bcpCuts(nullptr) {
   streamlog_out(MESSAGE) << "Initialising BeamCal background with \""
@@ -67,7 +67,6 @@ BeamCalBkg::~BeamCalBkg()
 
 void BeamCalBkg::init(const int n_bx)
 {
-  m_random3 = new TRandom3();
   m_nBX = n_bx;
 
   m_TowerErrorsLeft  =  new vector<double>;
