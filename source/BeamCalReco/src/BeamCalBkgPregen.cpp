@@ -34,6 +34,19 @@ using std::vector;
 using std::string;
 using std::map;
 
+/// A UniformRandomBitGenerator based on TRandom3
+class Random3_URBG {
+private:
+  TRandom3 * const r3;
+public:
+  using result_type = UInt_t;
+  Random3_URBG() = delete;
+  explicit Random3_URBG(TRandom3 * const random3): r3(random3) {}
+  UInt_t operator()() { return r3->Integer(kMaxUInt); }
+  constexpr UInt_t min() { return 0; }
+  constexpr UInt_t max() { return kMaxUInt-1; }
+};
+
 BeamCalBkgPregen::BeamCalBkgPregen(const string& bg_method_name, const BeamCalGeo* BCG)
     : BeamCalBkg(bg_method_name, BCG),
       m_listOfBunchCrossingsLeft(vector<BCPadEnergies*>()),
@@ -67,7 +80,7 @@ void BeamCalBkgPregen::init(vector<string> &bg_files, const int n_bx)
   m_backgroundBX = new TChain("bcTree");
 
   //mix up the files, because the random numbers are ordered to avoid repeating
-  std::random_shuffle(bg_files.begin(), bg_files.end());
+  std::shuffle(bg_files.begin(), bg_files.end(), Random3_URBG(m_random3));
 
   for (std::vector<std::string>::iterator file = bg_files.begin(); file != bg_files.end(); ++file) {
     streamlog_out(DEBUG1) << *file << std::endl;
