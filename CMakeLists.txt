@@ -14,8 +14,6 @@ OPTION( FCAL_USE_Marlin  " Build Marlin Processors" True )
 OPTION( FCAL_USE_DD4hep  " Build With DD4hep support" True )
 OPTION( INSTALL_DOC "Set to OFF to skip build/install Documentation" OFF )
 
-SET( CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR} )
-
 FIND_PACKAGE( ILCUTIL 1.3.0 REQUIRED COMPONENTS ILCSOFT_CMAKE_MODULES )
 # load default settings from ILCSOFT_CMAKE_MODULES
 INCLUDE( ilcsoft_default_settings )
