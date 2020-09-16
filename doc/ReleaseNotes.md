@@ -1,3 +1,13 @@
+# v01-00-02
+
+* 2020-09-04 Andre Sailer ([PR#65](https://github.com/FCALSW/FCalClusterer/pull/65))
+  - CMake: Fix hardcoding of CMAKE_INSTALL_PREFIX, now other installation locations can be set as expected
+
+* 2020-04-23 Andre Sailer ([PR#64](https://github.com/FCALSW/FCalClusterer/pull/64))
+  - Update CI to lcg97, cc7, clang10, gcc9 (from #63)
+  - Fix Warnings from clang
+  - Fix issues with c++17 (random_shuffle), also make shuffling of background files deterministic
+
 # v01-00-01
 
 * 2018-05-16 Shaojun Lu ([PR#59](https://github.com/fcalsw/fcalclusterer/pull/59))
