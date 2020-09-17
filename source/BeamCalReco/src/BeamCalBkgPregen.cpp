@@ -29,6 +29,7 @@
 #include <map>
 #include <set>
 #include <stdexcept>
+#include <random>
 
 using std::vector;
 using std::string;
@@ -43,8 +44,8 @@ public:
   Random3_URBG() = delete;
   explicit Random3_URBG(TRandom3 * const random3): r3(random3) {}
   UInt_t operator()() { return r3->Integer(kMaxUInt); }
-  constexpr UInt_t min() { return 0; }
-  constexpr UInt_t max() { return kMaxUInt-1; }
+  static constexpr UInt_t min() { return 0; }
+  static constexpr UInt_t max() { return kMaxUInt-1; }
 };
 
 BeamCalBkgPregen::BeamCalBkgPregen(const string& bg_method_name, const BeamCalGeo* BCG)
