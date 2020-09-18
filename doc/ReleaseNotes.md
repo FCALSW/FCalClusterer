@@ -1,3 +1,8 @@
+# v01-00-03
+
+* 2020-09-18 Joseph C Wang ([PR#67](https://github.com/FCALSW/FCalClusterer/pull/67))
+  - Fix compiler error for llvm (static constexpr) in BeamCalBackgroundPregen
+
 # v01-00-02
 
 * 2020-09-04 Andre Sailer ([PR#65](https://github.com/FCALSW/FCalClusterer/pull/65))
