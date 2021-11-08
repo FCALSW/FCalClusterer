@@ -512,19 +512,8 @@ void BeamCalClusterReco::processEvent( LCEvent * evt ) {
   ///////////////////////////////////////
   // Done with Running Reco Clustering //
   ///////////////////////////////////////
-  
-  if( BCalClusterCol->getNumberOfElements() != 0 ) {
-    evt->addCollection(BCalClusterCol, m_BCalClusterColName);
-    evt->addCollection(BCalRPCol, m_BCalRPColName);
-  } else {
-    // Add empty collections if no elements are present
-    delete BCalClusterCol;
-    delete BCalRPCol;
-    BCalClusterCol = new LCCollectionVec(LCIO::CLUSTER);
-    BCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
-    evt->addCollection(BCalClusterCol, m_BCalClusterColName);
-    evt->addCollection(BCalRPCol, m_BCalRPColName);
-  }
+  evt->addCollection(BCalClusterCol, m_BCalClusterColName);
+  evt->addCollection(BCalRPCol, m_BCalRPColName);
 
   m_nEvt++ ;
 
@@ -1122,16 +1111,13 @@ void BeamCalClusterReco::readSignalHits(LCEvent* evt, LCCollection* colBCal, BCP
   m_caloHitMap.emplace(std::piecewise_construct, std::forward_as_tuple(BCPadEnergies::kRight),
                        std::forward_as_tuple(m_BCG->getPadsPerBeamCal(), nullptr));
 
-  if (not colBCal or colBCal->getNumberOfElements() == 0) {
-    // Create and add empty collection
-    colBCal = new IMPL::LCCollectionVec(LCIO::CALORIMETERHIT);;
-    evt->addCollection(colBCal, m_hitsOutColName.c_str());
+  if(not colBCal) {
     return;
   }
 
   // figure out if we have a CalorimeterHit or SimCalorimeterHit collection,
   // and create CalorimeterHit collection if necessary
-  if (dynamic_cast<EVENT::SimCalorimeterHit*>(colBCal->getElementAt(0)) != nullptr) {
+  if (colBCal->getTypeName() == LCIO::SIMCALORIMETERHIT) {
     colBCal = createCaloHitCollection(colBCal);
     evt->addCollection(colBCal, m_hitsOutColName.c_str());
   }
