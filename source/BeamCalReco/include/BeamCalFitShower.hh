@@ -20,7 +20,7 @@ class BeamCalPadGeometry;
 /**
 * @brief Segment parameters for profile of the calorimeter energy deposition
 */
-typedef struct {
+struct EdepProfile_t {
   int id=0;
   double towerChi2=0;
   double totalEdep=0;
@@ -28,7 +28,7 @@ typedef struct {
   double bkgSigma=0;
   BeamCalPadGeometry *padGeom=nullptr;
   std::map<int, double> padIDs{};
-} EdepProfile_t;
+} ;
 
 
 class BeamCalFitShower {
