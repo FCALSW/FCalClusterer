@@ -10,7 +10,7 @@ The BeamCal reconstruction is documented in [CLICdp-Note-2016-005](https://cds.c
 
 # Build Status
 
-[![Build Status](https://travis-ci.org/FCALSW/FCalClusterer.svg?branch=master)](https://travis-ci.org/FCALSW/FCalClusterer)
+[![linux](https://github.com/FCALSW/FCalClusterer/actions/workflows/linux.yml/badge.svg)](https://github.com/FCALSW/FCalClusterer/actions/workflows/linux.yml)
 [![Coverity Scan](https://scan.coverity.com/projects/10210/badge.svg)](https://scan.coverity.com/projects/fcalsw-fcalclusterer)
 
 # License
