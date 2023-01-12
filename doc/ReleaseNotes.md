@@ -1,3 +1,9 @@
+# v01-00-04
+
+* 2021-11-10 Placido Fernandez Declara ([PR#69](https://github.com/FCALSW/FCalClusterer/pull/69))
+  * BeamCalCluster Processor:  Always write the output collections, even when they are empty. Fixes issue with EDM4hep always expecting collections to be present
+  * CMake: add LCIO include directory early to the list to avoid picking up outdated LCIO from the stack, mostly an issue for the CI tests
+
 # v01-00-03
 
 * 2020-09-18 Joseph C Wang ([PR#67](https://github.com/FCALSW/FCalClusterer/pull/67))
