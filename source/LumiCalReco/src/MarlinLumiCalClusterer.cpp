@@ -88,13 +88,8 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
     }
 
     //Add collections to the event if there are clusters
-    if (LCalClusterCol->getNumberOfElements() != 0) {
-      evt->addCollection(LCalClusterCol, LumiClusterColName);
-      evt->addCollection(LCalRPCol, LumiRecoParticleColName);
-    } else {
-      delete LCalClusterCol;
-      delete LCalRPCol;
-    }
+    evt->addCollection(LCalClusterCol, LumiClusterColName);
+    evt->addCollection(LCalRPCol, LumiRecoParticleColName);
 
     //Optionally write information to ROOT tree
     writeRootInfo(evt);
