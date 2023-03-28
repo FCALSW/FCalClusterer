@@ -1,3 +1,8 @@
+# v01-00-05
+
+* 2023-03-07 Andre Sailer ([PR#71](https://github.com/fcalsw/fcalclusterer/pull/71))
+  - LumiCalReco: always write out collections, even if they are empty. Needed for EDM4hep compatibility, collections always have to be present
+
 # v01-00-04
 
 * 2021-11-10 Placido Fernandez Declara ([PR#69](https://github.com/FCALSW/FCalClusterer/pull/69))
