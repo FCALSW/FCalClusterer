@@ -48,16 +48,15 @@ int LumiCalClustererClass::getCalHits(	EVENT::LCEvent * evt,
 
   streamlog_out(DEBUG6) << std::endl << "Getting hit information .... event: " << evt->getEventNumber() << std::endl;
 
-
-    const int nHitsCol = col->getNumberOfElements();
-    if ( nHitsCol < _clusterMinNumHits ) return 0;
-
     // figure out if we have a CalorimeterHit or SimCalorimeterHit collection,
     // and create CalorimeterHit collection if necessary
-    if (dynamic_cast<EVENT::SimCalorimeterHit*>(col->getElementAt(0)) != nullptr) {
+    if (col->getTypeName() == EVENT::LCIO::SIMCALORIMETERHIT) {
       col = createCaloHitCollection(col);
       evt->addCollection(col, _lumiOutName.c_str());
     }
+
+    const int nHitsCol = col->getNumberOfElements();
+    if ( nHitsCol < _clusterMinNumHits ) return 0;
 
     if (not _mydecoder) {
       _mydecoder =
