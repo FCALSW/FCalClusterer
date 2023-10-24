@@ -1,3 +1,8 @@
+# v01-00-06
+
+* 2023-07-04 Andre Sailer ([PR#72](https://github.com/FCALSW/FCalClusterer/pull/72))
+  - MarlinLumiCalClusterer: if used with SimCalorimeterHitCollection as input, the CalorimeterHitCollection will always be created correctly and stored in the event.
+
 # v01-00-05
 
 * 2023-03-07 Andre Sailer ([PR#71](https://github.com/fcalsw/fcalclusterer/pull/71))
