@@ -5,11 +5,11 @@ ENDIF()
   SET( test_name "BeamCalReco" )
   ADD_TEST( NAME t_${test_name}
     COMMAND
-    TestBeamCalReco $ENV{lcgeo_DIR}/CLIC/compact/CLIC_o2_v04/CLIC_o2_v04.xml BeamCal
+    TestBeamCalReco $ENV{lcgeo_DIR}/CLIC/compact/CLIC_o3_v14/CLIC_o3_v14.xml BeamCal
     )
   SET_TESTS_PROPERTIES( t_${test_name} PROPERTIES
     FAIL_REGULAR_EXPRESSION  "phi not correctly reconstructed"
-    REQUIRED_FILES "$ENV{lcgeo_DIR}/CLIC/compact/CLIC_o2_v04/CLIC_o2_v04.xml"
+    REQUIRED_FILES "$ENV{lcgeo_DIR}/CLIC/compact/CLIC_o3_v14/CLIC_o3_v14.xml"
     )
 
   SET( test_name "LumiCalReco" )
@@ -33,11 +33,11 @@ ENDIF()
   SET( test_name "NewLumimCalReco" )
   ADD_TEST( NAME t_${test_name}
     COMMAND
-    TestBeamCalReco $ENV{lcgeo_DIR}/CLIC/compact/CLIC_o2_v04/CLIC_o2_v04.xml LumiCal
+    TestBeamCalReco $ENV{lcgeo_DIR}/CLIC/compact/CLIC_o3_v14/CLIC_o3_v14.xml LumiCal
     )
   SET_TESTS_PROPERTIES( t_${test_name} PROPERTIES
     FAIL_REGULAR_EXPRESSION  "phi not correctly reconstructed"
-    REQUIRED_FILES "$ENV{lcgeo_DIR}/CLIC/compact/CLIC_o2_v04/CLIC_o2_v04.xml"
+    REQUIRED_FILES "$ENV{lcgeo_DIR}/CLIC/compact/CLIC_o3_v14/CLIC_o3_v14.xml"
     )
 
 ADD_TEST( NAME test_Sim_BeamCal
