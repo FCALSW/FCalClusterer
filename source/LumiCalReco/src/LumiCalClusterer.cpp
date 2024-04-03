@@ -154,9 +154,7 @@ void LumiCalClustererClass::init( GlobalMethodsClass const& gmc ){
 /* ============================================================================
    main actions in each event:
    ========================================================================= */
-int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
-  int OK = 1;
-  int NOK = 0;
+RETVAL LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
   // increment / initialize global variables
   _totEngyArm[-1] = _totEngyArm[1] = 0.;
   _numHitsInArm[-1] = _numHitsInArm[1] = 0;
@@ -175,7 +173,7 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
      of IMPL::CalorimeterHitImpl. Hits are split in two std::vectors, one for each arm
      of LumiCal.
      -------------------------------------------------------------------------- */
-  if ( !getCalHits(evt , calHits) ) return NOK;
+  if ( !getCalHits(evt , calHits) ) return RETVAL::NOK;
 
 
   /* --------------------------------------------------------------------------
@@ -258,6 +256,6 @@ int LumiCalClustererClass::processEvent( EVENT::LCEvent * evt ) {
     }
   }
 
-  return OK;
+  return RETVAL::OK;
 
 }

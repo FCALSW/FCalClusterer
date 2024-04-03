@@ -25,6 +25,11 @@
 #include <string>
 #include <memory>
 
+enum RETVAL {
+  NOK = 0,
+  OK = 1,
+};
+
 namespace EVENT {
   class CalorimeterHit;
   class LCEvent;
@@ -45,7 +50,7 @@ public:
   void setCutOnFiducialVolume( bool cutFlag ) { _cutOnFiducialVolume = cutFlag; }
 
   // main actions in each event -Called for every event - the working horse.
-  int processEvent( EVENT::LCEvent * evt ) ;
+  RETVAL processEvent( EVENT::LCEvent * evt ) ;
 
   MapIntMapIntVInt       _superClusterIdToCellId;
   MapIntMapIntVDouble    _superClusterIdToCellEngy;
