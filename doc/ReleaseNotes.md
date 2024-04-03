@@ -1,3 +1,11 @@
+# v01-01
+
+* 2024-04-03 Andre Sailer ([PR#74](https://github.com/fcalsw/fcalclusterer/pull/74))
+  - CI: update underlying stacks
+
+* 2024-04-03 scott snyder ([PR#73](https://github.com/fcalsw/fcalclusterer/pull/73))
+  - Always record the output collection, even they are empty.  Avoids crashes from PodioOutput.
+
 # v01-00-06
 
 * 2023-07-04 Andre Sailer ([PR#72](https://github.com/FCALSW/FCalClusterer/pull/72))
