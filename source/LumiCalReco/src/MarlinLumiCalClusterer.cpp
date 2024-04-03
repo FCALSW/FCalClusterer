@@ -57,7 +57,7 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
        create clusters using: LumiCalClustererClass
        -------------------------------------------------------------------------- */
 
-    bool stat = LumiCalClusterer.processEvent(evt);
+    RETVAL status = LumiCalClusterer.processEvent(evt);
 
     LCCollectionVec* LCalClusterCol = new LCCollectionVec(LCIO::CLUSTER);
     IMPL::LCFlagImpl lcFlagImpl;
@@ -66,7 +66,7 @@ void MarlinLumiCalClusterer::TryMarlinLumiCalClusterer(EVENT::LCEvent* evt) {
 
     LCCollectionVec* LCalRPCol = new LCCollectionVec(LCIO::RECONSTRUCTEDPARTICLE);
 
-    if (stat) {
+    if (status == RETVAL::OK) {
       streamlog_out(DEBUG6) << " Transfering reco results to LCalClusterCollection....." << std::endl;
 
       for (int armNow = -1; armNow < 2; armNow += 2) {
